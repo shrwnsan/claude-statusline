@@ -1,0 +1,19 @@
+# Set default behavior for files
+* text=auto
+
+# Ensure bash scripts have proper line endings
+*.sh text eol=lf
+
+# Documentation files
+*.md text
+*.txt text
+
+# Binary files should not be modified
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+
+# Ensure consistent handling of configuration files
+.gitattributes text
+.gitignore text
