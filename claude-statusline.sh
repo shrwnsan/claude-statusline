@@ -130,102 +130,32 @@ setup_symbols() {
 # =============================================================================
 
 detect_sandbox() {
-    # Cross-platform sandbox detection based on Claude Code sandbox behaviors
-    # Uses universal methods that work on Linux, macOS, and Windows
+    # Method 1: Test network restrictions - most reliable indicator
+    local restricted_domains=0
 
-    # Method 1: Check for sandbox runtime flag (most direct if available)
-    if [[ "${SANDBOX_RUNTIME:-}" == "1" ]]; then
-        return 0  # In sandbox
-    fi
+    if command -v curl >/dev/null 2>&1; then
+        # Test multiple domains that should be blocked in sandbox
+        local example_result=$(curl -m 2 -s "https://example.com" 2>/dev/null | head -c 5)
+        [[ -z "$example_result" ]] && ((restricted_domains++))
 
-    # Method 2: Check for Claude-specific temp directory (cross-platform temp check)
-    local temp_dir="${TMPDIR:-${TMP:-${TEMP:-/tmp}}}"
-    if [[ "$temp_dir" =~ claude ]]; then
-        return 0  # In sandbox
-    fi
+        local httpbin_result=$(curl -m 2 -s "https://httpbin.org/ip" 2>/dev/null | head -c 5)
+        [[ -z "$httpbin_result" ]] && ((restricted_domains++))
 
-    # Method 3: Test for excluded commands (docker excluded in sandbox - cross-platform)
-    if ! command -v docker >/dev/null 2>&1; then
-        return 0  # Docker not available - likely in sandbox
-    fi
+        local json_result=$(curl -m 2 -s "https://jsonplaceholder.typicode.com/posts/1" 2>/dev/null | head -c 5)
+        [[ -z "$json_result" ]] && ((restricted_domains++))
 
-    # Method 4: Test write permissions in temp directory (sandbox has restrictions)
-    local test_file="$temp_dir/claude-statusline-test-$$"
-    if ! echo "test" > "$test_file" 2>/dev/null; then
-        return 0  # Cannot write to temp - likely restricted
-    else
-        rm -f "$test_file" 2>/dev/null
-    fi
-
-    # Method 5: Check for multiple Claude environment indicators (cross-platform)
-    local claude_indicators=0
-    [[ "${CLAUDE_CODE_ENTRYPOINT:-}" == "cli" ]] && ((claude_indicators++))
-    [[ "${CLAUDECODE:-}" == "1" ]] && ((claude_indicators++))
-    [[ "${CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR:-}" == "1" ]] && ((claude_indicators++))
-
-    # Method 6: Heuristic based on Claude indicators + actual restrictions
-    if [[ $claude_indicators -ge 1 ]]; then
-        # Consider it sandboxed if we have Claude indicators AND actual restrictions
-        local restrictions_found=0
-
-        # Check for command restrictions (based on sandbox config: docker is excluded)
-        ! command -v docker >/dev/null 2>&1 && ((restrictions_found++))
-
-        # Check network restrictions (sandbox only allows api.github.com, github.com)
-        if command -v curl >/dev/null 2>&1; then
-            # Test multiple domains to detect partial network restrictions
-            local restricted_domains=0
-
-            # Test example.com
-            local example_result=$(curl -m 2 -s "https://example.com" 2>/dev/null | head -c 10)
-            [[ -z "$example_result" ]] && ((restricted_domains++))
-
-            # Test httpbin.org (commonly blocked)
-            local httpbin_result=$(curl -m 2 -s "https://httpbin.org/ip" 2>/dev/null | head -c 10)
-            [[ -z "$httpbin_result" ]] && ((restricted_domains++))
-
-            # Test jsonplaceholder.typicode.com
-            local json_result=$(curl -m 2 -s "https://jsonplaceholder.typicode.com/posts/1" 2>/dev/null | head -c 10)
-            [[ -z "$json_result" ]] && ((restricted_domains++))
-
-            
-            # Consider it restricted if 2+ domains are blocked
-            [[ $restricted_domains -ge 2 ]] && ((restrictions_found++))
-        else
-            ((restrictions_found++))  # curl not available at all
-        fi
-
-        # Check for file restrictions (sandbox cannot read .env files)
-        [[ -f "./.env" ]] && [[ ! -r "./.env" ]] && ((restrictions_found++))
-
-        # Return sandbox if we find any restrictions when in Claude Code environment
-        if [[ $restrictions_found -ge 1 ]]; then
+        # If 2+ domains are blocked, we're definitely in sandbox
+        if [[ $restricted_domains -ge 2 ]]; then
             return 0
         fi
     fi
 
-    # Method 7: Check for restricted file access (cross-platform .env test)
-    if [[ -f "./.env" ]] && [[ ! -r "./.env" ]]; then
-        return 0  # .env exists but not readable - sandbox restriction
-    fi
-
-    # Method 8: Additional heuristic - test for common development tools that might be restricted
-    local dev_tools_unavailable=0
-    ! command -v git >/dev/null 2>&1 && ((dev_tools_unavailable++))
-    ! command -v node >/dev/null 2>&1 && ! command -v npm >/dev/null 2>&1 && ((dev_tools_unavailable++))
-    ! command -v python3 >/dev/null 2>&1 && ! command -v python >/dev/null 2>&1 && ((dev_tools_unavailable++))
-
-    # If multiple dev tools are unavailable in Claude Code environment, likely sandboxed
-    if [[ $dev_tools_unavailable -ge 2 ]] && [[ $claude_indicators -ge 1 ]]; then
-        return 0
-    fi
-
-    # Method 9: Test for process/resource limitations (sandboxes often limit processes)
-    if command -v ps >/dev/null 2>&1; then
-        local process_count
-        process_count=$(ps aux 2>/dev/null | wc -l | tr -d ' ' 2>/dev/null || echo "100")
-        # If very few processes running (less than 50), likely in restricted environment
-        [[ $process_count -lt 50 ]] && [[ $claude_indicators -ge 1 ]] && return 0
+    # Method 2: Check for docker exclusion (only works if docker command exists but is excluded)
+    if command -v docker >/dev/null 2>&1; then
+        # If docker exists but we can't use it (simulated by checking if docker --version fails)
+        if ! docker --version >/dev/null 2>&1; then
+            return 0
+        fi
     fi
 
     return 1  # No sandbox detected
