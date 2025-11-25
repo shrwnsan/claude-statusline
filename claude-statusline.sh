@@ -114,13 +114,113 @@ setup_symbols() {
         readonly staged_symbol="+"
         readonly conflict_symbol="×"
         readonly stashed_symbol="⚑"
+        readonly sandbox_symbol="󰒘"
     else
         readonly git_symbol="@"
         readonly model_prefix="*"
         readonly staged_symbol="+"
         readonly conflict_symbol="C"
         readonly stashed_symbol="$"
+        readonly sandbox_symbol="[*]"
     fi
+}
+
+# =============================================================================
+# SANDBOX DETECTION
+# =============================================================================
+
+detect_sandbox() {
+    # Cross-platform sandbox detection based on Claude Code sandbox behaviors
+    # Uses universal methods that work on Linux, macOS, and Windows
+
+    # Method 1: Check for sandbox runtime flag (most direct if available)
+    if [[ "${SANDBOX_RUNTIME:-}" == "1" ]]; then
+        return 0  # In sandbox
+    fi
+
+    # Method 2: Check for Claude-specific temp directory (cross-platform temp check)
+    local temp_dir="${TMPDIR:-${TMP:-${TEMP:-/tmp}}}"
+    if [[ "$temp_dir" =~ claude ]]; then
+        return 0  # In sandbox
+    fi
+
+    # Method 3: Test for excluded commands (docker excluded in sandbox - cross-platform)
+    if ! command -v docker >/dev/null 2>&1; then
+        return 0  # Docker not available - likely in sandbox
+    fi
+
+    # Method 4: Test write permissions in temp directory (sandbox has restrictions)
+    local test_file="$temp_dir/claude-statusline-test-$$"
+    if ! echo "test" > "$test_file" 2>/dev/null; then
+        return 0  # Cannot write to temp - likely restricted
+    else
+        rm -f "$test_file" 2>/dev/null
+    fi
+
+    # Method 5: Check for multiple Claude environment indicators (cross-platform)
+    local claude_indicators=0
+    [[ "${CLAUDE_CODE_ENTRYPOINT:-}" == "cli" ]] && ((claude_indicators++))
+    [[ "${CLAUDECODE:-}" == "1" ]] && ((claude_indicators++))
+    [[ "${CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR:-}" == "1" ]] && ((claude_indicators++))
+
+    # Method 6: Heuristic based on Claude indicators + actual restrictions
+    if [[ $claude_indicators -ge 1 ]]; then
+        # Consider it sandboxed if we have Claude indicators AND actual restrictions
+        local restrictions_found=0
+
+        # Check for command restrictions (based on sandbox config: docker is excluded)
+        ! command -v docker >/dev/null 2>&1 && ((restrictions_found++))
+
+        # Check network restrictions (sandbox only allows api.github.com, github.com)
+        if command -v curl >/dev/null 2>&1; then
+            # Test if we can reach external sites beyond allowed ones
+            local network_test_result
+            network_test_result=$(curl -m 2 -s "https://example.com" 2>/dev/null | head -c 10)
+            if [[ -z "$network_test_result" ]]; then
+                ((restrictions_found++))
+                echo "$(date): detect_sandbox: Network test failed - no response from example.com" >> /tmp/sandbox-final-debug.log 2>/dev/null || true
+            else
+                echo "$(date): detect_sandbox: Network test passed - got: $network_test_result" >> /tmp/sandbox-final-debug.log 2>/dev/null || true
+            fi
+        else
+            ((restrictions_found++))  # curl not available at all
+            echo "$(date): detect_sandbox: curl not available" >> /tmp/sandbox-final-debug.log 2>/dev/null || true
+        fi
+
+        # Check for file restrictions (sandbox cannot read .env files)
+        [[ -f "./.env" ]] && [[ ! -r "./.env" ]] && ((restrictions_found++))
+
+        # Return sandbox if we find any restrictions when in Claude Code environment
+        if [[ $restrictions_found -ge 1 ]]; then
+            echo "$(date): detect_sandbox: SUCCESS - Method 6 found $restrictions_found restrictions" >> /tmp/sandbox-final-debug.log 2>/dev/null || true
+            return 0
+        fi
+    fi
+
+    # Method 7: Check for restricted file access (cross-platform .env test)
+    if [[ -f "./.env" ]] && [[ ! -r "./.env" ]]; then
+        return 0  # .env exists but not readable - sandbox restriction
+    fi
+
+    return 1  # No sandbox detected
+}
+
+get_sandbox_indicator() {
+    # DEBUG: Log environment and detection results
+    echo "$(date): get_sandbox_indicator - FEATURE=${CLAUDE_CODE_STATUSLINE_SHOW_SANDBOX:-notset} DETECT_RESULT=$(detect_sandbox && echo "YES" || echo "NO")" >> /tmp/sandbox-final-debug.log 2>/dev/null || true
+
+    # Skip if feature is explicitly disabled
+    if [[ "${CLAUDE_CODE_STATUSLINE_SHOW_SANDBOX:-}" == "0" ]]; then
+        return 1
+    fi
+
+    # Check if we're actually in a sandbox (feature is enabled, now check real state)
+    if detect_sandbox; then
+        echo "$sandbox_symbol "
+        return 0
+    fi
+
+    return 1
 }
 
 # =============================================================================
@@ -263,13 +363,14 @@ main() {
     [[ -z "$model_name" ]] && model_name="Unknown"
 
     # Get components
-    local project_name git_info env_info
+    local project_name git_info env_info sandbox_indicator
     project_name=$(basename "$full_dir")
     git_info=$(get_git_info "$full_dir" 2>/dev/null)
     env_info=$(get_env_info 2>/dev/null)
+    sandbox_indicator=$(get_sandbox_indicator 2>/dev/null)
 
     # Build statusline
-    local statusline="$project_name$git_info $model_prefix$model_name$env_info"
+    local statusline="$sandbox_indicator$project_name$git_info $model_prefix$model_name$env_info"
 
     # Simple truncation if needed
     local terminal_width
