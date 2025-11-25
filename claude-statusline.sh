@@ -173,18 +173,26 @@ detect_sandbox() {
 
         # Check network restrictions (sandbox only allows api.github.com, github.com)
         if command -v curl >/dev/null 2>&1; then
-            # Test if we can reach external sites beyond allowed ones
-            local network_test_result
-            network_test_result=$(curl -m 2 -s "https://example.com" 2>/dev/null | head -c 10)
-            if [[ -z "$network_test_result" ]]; then
-                ((restrictions_found++))
-                echo "$(date): detect_sandbox: Network test failed - no response from example.com" >> /tmp/sandbox-final-debug.log 2>/dev/null || true
-            else
-                echo "$(date): detect_sandbox: Network test passed - got: $network_test_result" >> /tmp/sandbox-final-debug.log 2>/dev/null || true
-            fi
+            # Test multiple domains to detect partial network restrictions
+            local restricted_domains=0
+
+            # Test example.com
+            local example_result=$(curl -m 2 -s "https://example.com" 2>/dev/null | head -c 10)
+            [[ -z "$example_result" ]] && ((restricted_domains++))
+
+            # Test httpbin.org (commonly blocked)
+            local httpbin_result=$(curl -m 2 -s "https://httpbin.org/ip" 2>/dev/null | head -c 10)
+            [[ -z "$httpbin_result" ]] && ((restricted_domains++))
+
+            # Test jsonplaceholder.typicode.com
+            local json_result=$(curl -m 2 -s "https://jsonplaceholder.typicode.com/posts/1" 2>/dev/null | head -c 10)
+            [[ -z "$json_result" ]] && ((restricted_domains++))
+
+            
+            # Consider it restricted if 2+ domains are blocked
+            [[ $restricted_domains -ge 2 ]] && ((restrictions_found++))
         else
             ((restrictions_found++))  # curl not available at all
-            echo "$(date): detect_sandbox: curl not available" >> /tmp/sandbox-final-debug.log 2>/dev/null || true
         fi
 
         # Check for file restrictions (sandbox cannot read .env files)
@@ -192,7 +200,6 @@ detect_sandbox() {
 
         # Return sandbox if we find any restrictions when in Claude Code environment
         if [[ $restrictions_found -ge 1 ]]; then
-            echo "$(date): detect_sandbox: SUCCESS - Method 6 found $restrictions_found restrictions" >> /tmp/sandbox-final-debug.log 2>/dev/null || true
             return 0
         fi
     fi
@@ -202,13 +209,29 @@ detect_sandbox() {
         return 0  # .env exists but not readable - sandbox restriction
     fi
 
+    # Method 8: Additional heuristic - test for common development tools that might be restricted
+    local dev_tools_unavailable=0
+    ! command -v git >/dev/null 2>&1 && ((dev_tools_unavailable++))
+    ! command -v node >/dev/null 2>&1 && ! command -v npm >/dev/null 2>&1 && ((dev_tools_unavailable++))
+    ! command -v python3 >/dev/null 2>&1 && ! command -v python >/dev/null 2>&1 && ((dev_tools_unavailable++))
+
+    # If multiple dev tools are unavailable in Claude Code environment, likely sandboxed
+    if [[ $dev_tools_unavailable -ge 2 ]] && [[ $claude_indicators -ge 1 ]]; then
+        return 0
+    fi
+
+    # Method 9: Test for process/resource limitations (sandboxes often limit processes)
+    if command -v ps >/dev/null 2>&1; then
+        local process_count
+        process_count=$(ps aux 2>/dev/null | wc -l | tr -d ' ' 2>/dev/null || echo "100")
+        # If very few processes running (less than 50), likely in restricted environment
+        [[ $process_count -lt 50 ]] && [[ $claude_indicators -ge 1 ]] && return 0
+    fi
+
     return 1  # No sandbox detected
 }
 
 get_sandbox_indicator() {
-    # DEBUG: Log environment and detection results
-    echo "$(date): get_sandbox_indicator - FEATURE=${CLAUDE_CODE_STATUSLINE_SHOW_SANDBOX:-notset} DETECT_RESULT=$(detect_sandbox && echo "YES" || echo "NO")" >> /tmp/sandbox-final-debug.log 2>/dev/null || true
-
     # Skip if feature is explicitly disabled
     if [[ "${CLAUDE_CODE_STATUSLINE_SHOW_SANDBOX:-}" == "0" ]]; then
         return 1
