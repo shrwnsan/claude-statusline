@@ -20,9 +20,8 @@ This statusline script provides a sophisticated replacement for Claude Code's de
 ### Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/shrwnsan/claude-statusline.git
-cd claude-statusline
+# Download the script (or copy raw)
+curl -o claude-statusline.sh https://raw.githubusercontent.com/shrwnsan/claude-statusline/main/claude-statusline.sh
 
 # Make the script executable
 chmod +x claude-statusline.sh
@@ -31,7 +30,7 @@ chmod +x claude-statusline.sh
 {
   "statusLine": {
     "type": "command",
-    "command": "/path/to/claude-statusline.sh"
+    "command": "./claude-statusline.sh"
   }
 }
 ```
