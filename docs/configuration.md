@@ -63,18 +63,23 @@ export CLAUDE_CODE_STATUSLINE_ENV_CONTEXT=1
 - **Python**: `python3 --version` or `python --version` (cached 5 minutes)
 - **Docker**: `docker --version` (cached 30 minutes)
 
-#### `CLAUDE_CODE_STATUSLINE_NO_TRUNCATE=1`
-**Purpose**: Disable name truncation (opt-out of smart width management)
-**Use Case**: Very wide terminals or when full names are preferred
-**Default**: Not set (smart truncation enabled)
+#### `CLAUDE_CODE_STATUSLINE_TRUNCATE=1`
+**Purpose**: Enable smart truncation with branch prioritization (beta feature)
+**Use Case**: Narrow terminals or when intelligent truncation is preferred
+**Default**: Not set (basic truncation enabled)
+
+**Features**:
+- Branch names prioritized over project names
+- 15-character right margin for Claude telemetry compatibility
+- Progressive truncation: Project → Branch → Indicators
 
 **Example**:
 ```bash
-# Disable truncation
-export CLAUDE_CODE_STATUSLINE_NO_TRUNCATE=1
+# Enable smart truncation
+export CLAUDE_CODE_STATUSLINE_TRUNCATE=1
 
-# Result: Full names shown regardless of terminal width
-vibekit-claude-plugins-super-long-project-name-with-lots-of-details  feature/branch-name-that-is-extremely-long-and-descriptive [!?✘]
+# Result: Project truncated, branch preserved
+very-long-project-name-for-testi..  feature/main-branch-with-details [!] 󰚩Sonnet 4.5
 ```
 
 ### Debug Controls

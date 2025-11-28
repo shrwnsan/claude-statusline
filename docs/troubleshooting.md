@@ -241,9 +241,9 @@ echo $COLUMNS
 export COLUMNS=80
 echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | /path/to/claude-statusline
 
-# Test with truncation disabled
-CLAUDE_CODE_STATUSLINE_NO_TRUNCATE=1 \
-  echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | /path/to/claude-statusline
+# Test with smart truncation enabled
+CLAUDE_CODE_STATUSLINE_TRUNCATE=1 \
+  echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Sonnet 4.5"}}' | /path/to/claude-statusline
 ```
 
 **Solutions**:
@@ -251,9 +251,9 @@ CLAUDE_CODE_STATUSLINE_NO_TRUNCATE=1 \
    - Increase terminal width to 80+ characters for optimal experience
    - Use 100+ characters for full feature display
 
-2. **Disable Truncation**:
+2. **Enable Smart Truncation**:
    ```bash
-   export CLAUDE_CODE_STATUSLINE_NO_TRUNCATE=1
+   export CLAUDE_CODE_STATUSLINE_TRUNCATE=1
    ```
 
 3. **Check Terminal Settings**:
@@ -361,7 +361,7 @@ Claude Statusline Variables:
   CLAUDE_CODE_STATUSLINE_NO_EMOJI: $CLAUDE_CODE_STATUSLINE_NO_EMOJI
   CLAUDE_CODE_STATUSLINE_NO_GITSTATUS: $CLAUDE_CODE_STATUSLINE_NO_GITSTATUS
   CLAUDE_CODE_STATUSLINE_ENV_CONTEXT: $CLAUDE_CODE_STATUSLINE_ENV_CONTEXT
-  CLAUDE_CODE_STATUSLINE_NO_TRUNCATE: $CLAUDE_CODE_STATUSLINE_NO_TRUNCATE
+  CLAUDE_CODE_STATUSLINE_TRUNCATE: $CLAUDE_CODE_STATUSLINE_TRUNCATE
   CLAUDE_STATUSLINE_LOG_LEVEL: $CLAUDE_STATUSLINE_LOG_LEVEL
 
 === Git Status ===

@@ -2,6 +2,8 @@
 
 This document provides comprehensive analysis of terminal width behavior and optimization strategies for Claude Statusline.
 
+**Implementation Status**: ✅ Smart truncation is now implemented via `CLAUDE_CODE_STATUSLINE_TRUNCATE=1` (beta feature)
+
 ## Width Breakpoint Analysis
 
 ### Responsive Design Strategy
@@ -26,30 +28,27 @@ Claude Statusline implements intelligent width management with three key princip
 
 ### Test Case: Long Project + Branch Names
 
-**Test Data**: 
+**Test Data**:
 - Project: `vibekit-claude-plugins`
 - Branch: `feature/issue-20-search-fallback-behavior`
-- Indicators: `[!?✘]`
-- Model Info: `glm-4.6 22.17.1 3.13.5 28.3.3`
+- Indicators: `[+?]`
+- Model Info: `Sonnet 4.5`
 
 ### 60 Characters (Minimum Viable)
 ```
-vibekit-claude-plugins  feature/issue-20-search-fallback-beha.. [!?✘]
-󰚩glm-4.6 22.17.1 3.13.5 28.3.3
+vibe..   feature/issue-20-search-fallback-b.. []
 ```
-**Truncation Strategy**: Project truncated, branch preserved with minimal shortening
+**Truncation Strategy**: Both project and branch truncated, model info dropped to fit
 
 ### 80 Characters (Sweet Spot)
 ```
-vibekit-claude-plugins  feature/issue-20-search-fallback-behavior [!?✘]
-󰚩glm-4.6 22.17.1 3.13.5 28.3.3
+vibekit-claude..  feature/issue-20-search-fallback-behavior [+?]
 ```
-**Truncation Strategy**: No truncation needed, optimal experience
+**Truncation Strategy**: Project truncated, branch preserved with full name, model info dropped
 
 ### 100 Characters (Optimal)
 ```
-vibekit-claude-plugins  feature/issue-20-search-fallback-behavior [!?✘]
-󰚩glm-4.6 22.17.1 3.13.5 28.3.3
+vibekit-claude-plugins  feature/issue-20-search-fallback-behavior [+?] 󰚩Sonnet 4.5
 ```
 **Truncation Strategy**: No truncation, maximum readability
 
