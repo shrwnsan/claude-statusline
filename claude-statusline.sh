@@ -94,32 +94,60 @@ write_cache() {
 # =============================================================================
 
 setup_symbols() {
-    # Enhanced nerd font detection for modern terminals
-    local has_nerd_font="false"
+    # Default ASCII symbols (shared across all modes)
+    local ascii_git="@"
+    local ascii_model="*"
+    local ascii_staged="+"
+    local ascii_conflict="C"
+    local ascii_stashed="$"
+    local ascii_ahead="A"
+    local ascii_behind="B"
+    local ascii_renamed=">"
+    local ascii_deleted="X"
 
-    # Check explicit Nerd Font indicator
-    if [[ "${NERD_FONT:-}" == "1" ]]; then
-        has_nerd_font="true"
-    # Check for modern terminal programs that typically have Nerd Fonts
-    elif [[ "${TERM_PROGRAM:-}" == "vscode" ]] || [[ "${TERM_PROGRAM:-}" == "ghostty" ]] || [[ "${TERM_PROGRAM:-}" == "wezterm" ]] || [[ "${TERM_PROGRAM:-}" == "iterm" ]]; then
-        has_nerd_font="true"
-    # Check common modern TERM values
-    elif [[ "${TERM:-}" =~ alacritty|kitty|iterm|wezterm|ghostty ]]; then
-        has_nerd_font="true"
+    # Nerd Font symbols
+    local nerd_git=""
+    local nerd_model="󰚩"
+    local nerd_staged="+"
+    local nerd_conflict="×"
+    local nerd_stashed="⚑"
+    local nerd_ahead="↑"
+    local nerd_behind="↓"
+    local nerd_renamed="»"
+    local nerd_deleted="✘"
+
+    # Determine symbol mode: ASCII, Nerd Font, or NO_EMOJI (forced ASCII)
+    local use_nerd_font="false"
+
+    if [[ "${CLAUDE_CODE_STATUSLINE_NO_EMOJI:-}" != "1" ]]; then
+        # Detect Nerd Font support (short-circuit evaluation)
+        [[ "${NERD_FONT:-}" == "1" ]] ||
+        [[ "${TERM_PROGRAM:-}" =~ ^(vscode|ghostty|wezterm|iterm)$ ]] ||
+        [[ "${TERM:-}" =~ ^(alacritty|kitty|iterm|wezterm|ghostty)$ ]] &&
+        use_nerd_font="true"
     fi
 
-    if [[ "$has_nerd_font" == "true" ]]; then
-        readonly git_symbol=""
-        readonly model_prefix="󰚩"
-        readonly staged_symbol="+"
-        readonly conflict_symbol="×"
-        readonly stashed_symbol="⚑"
+    # Set symbols based on determined mode
+    if [[ "$use_nerd_font" == "true" ]]; then
+        readonly git_symbol="$nerd_git"
+        readonly model_prefix="$nerd_model"
+        readonly staged_symbol="$nerd_staged"
+        readonly conflict_symbol="$nerd_conflict"
+        readonly stashed_symbol="$nerd_stashed"
+        readonly ahead_symbol="$nerd_ahead"
+        readonly behind_symbol="$nerd_behind"
+        readonly renamed_symbol="$nerd_renamed"
+        readonly deleted_symbol="$nerd_deleted"
     else
-        readonly git_symbol="@"
-        readonly model_prefix="*"
-        readonly staged_symbol="+"
-        readonly conflict_symbol="C"
-        readonly stashed_symbol="$"
+        readonly git_symbol="$ascii_git"
+        readonly model_prefix="$ascii_model"
+        readonly staged_symbol="$ascii_staged"
+        readonly conflict_symbol="$ascii_conflict"
+        readonly stashed_symbol="$ascii_stashed"
+        readonly ahead_symbol="$ascii_ahead"
+        readonly behind_symbol="$ascii_behind"
+        readonly renamed_symbol="$ascii_renamed"
+        readonly deleted_symbol="$ascii_deleted"
     fi
 }
 
@@ -144,23 +172,70 @@ get_git_info() {
     local status_output
     status_output=$(git status --porcelain 2>/dev/null) || return 1
 
-    # Count changes (simple parsing)
-    local staged unstaged untracked conflict stashed
-    staged=$(echo "$status_output" | grep -c '^[MADRC].*' 2>/dev/null || echo "0")
-    unstaged=$(echo "$status_output" | grep -c '^.[MTD].*' 2>/dev/null || echo "0")
-    untracked=$(echo "$status_output" | grep -c '^??' 2>/dev/null || echo "0")
-    conflict=$(echo "$status_output" | grep -c '^UU\|^AA\|^DD' 2>/dev/null || echo "0")
+    # Count changes by parsing git --porcelain format
+    # Format: XY PATH where X=staged, Y=unstaged
+    local staged unstaged untracked conflict renamed deleted stashed
+    staged=0
+    unstaged=0
+    untracked=0
+    conflict=0
+    renamed=0
+    deleted=0
+
+    while IFS= read -r line; do
+        [[ -z "$line" ]] && continue
+
+        local staged_char="${line:0:1}"
+        local unstaged_char="${line:1:1}"
+
+        # Check for conflicts
+        if [[ "$staged_char" == "U" ]] || [[ "$unstaged_char" == "U" ]] ||
+           [[ "$staged_char" == "A" && "$unstaged_char" == "A" ]] ||
+           [[ "$staged_char" == "D" && "$unstaged_char" == "D" ]]; then
+            ((conflict++))
+        # Check for untracked files
+        elif [[ "$staged_char" == "?" && "$unstaged_char" == "?" ]]; then
+            ((untracked++))
+        else
+            # Check staged changes (first character)
+            case "$staged_char" in
+                "M") ((staged++)) ;;     # Modified
+                "A") ((staged++)) ;;     # Added
+                "D") ((deleted++)) ;;    # Deleted (staged)
+                "R") ((renamed++)) ;;    # Renamed (staged)
+                "C") ((staged++)) ;;     # Copied (staged)
+            esac
+
+            # Check unstaged changes (second character)
+            case "$unstaged_char" in
+                "M") ((unstaged++)) ;;   # Modified
+                "D") ((deleted++)) ;;    # Deleted (unstaged)
+                "R") ((renamed++)) ;;    # Renamed (unstaged)
+            esac
+        fi
+    done <<< "$status_output"
 
     # Check stashes separately
     stashed=$(git stash list 2>/dev/null | wc -l | tr -d ' ')
 
-    # Build simple indicators (stashed first, like original)
+    # Check ahead/behind status
+    local ahead behind
+    local ahead_behind_count
+    ahead_behind_count=$(git rev-list --count --left-right @{u}...HEAD 2>/dev/null || echo "0	0")
+    behind=$(echo "$ahead_behind_count" | cut -f1)
+    ahead=$(echo "$ahead_behind_count" | cut -f2)
+
+    # Build indicators following Starship order: ⚑✘!+?⇡
     local indicators=""
     [[ $stashed -gt 0 ]] && indicators="${indicators}${stashed_symbol}"
+    [[ $deleted -gt 0 ]] && indicators="${indicators}${deleted_symbol}"
     [[ $unstaged -gt 0 ]] && indicators="${indicators}!"
     [[ $staged -gt 0 ]] && indicators="${indicators}${staged_symbol}"
     [[ $untracked -gt 0 ]] && indicators="${indicators}?"
+    [[ $renamed -gt 0 ]] && indicators="${indicators}${renamed_symbol}"
     [[ $conflict -gt 0 ]] && indicators="${indicators}${conflict_symbol}"
+    [[ $ahead -gt 0 ]] && indicators="${indicators}${ahead_symbol}"
+    [[ $behind -gt 0 ]] && indicators="${indicators}${behind_symbol}"
 
     # Simple output
     if [[ -n "$indicators" ]]; then
