@@ -18,8 +18,8 @@ CLAUDE_CODE_STATUSLINE_NO_EMOJI=1 echo '{"workspace":{"current_dir":"'"$PWD"'"},
 # Test without git status
 CLAUDE_CODE_STATUSLINE_NO_GITSTATUS=1 echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test Model"}}' | ./claude-statusline.sh
 
-# Test disable truncation
-CLAUDE_CODE_STATUSLINE_NO_TRUNCATE=1 echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test Model"}}' | ./claude-statusline.sh
+# Test smart truncation
+CLAUDE_CODE_STATUSLINE_TRUNCATE=1 echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Sonnet 4.5"}}' | ./claude-statusline.sh
 
 # Test performance
 start=$(($(date +%s%N)/1000000))

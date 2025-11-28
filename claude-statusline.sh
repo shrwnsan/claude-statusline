@@ -236,6 +236,26 @@ truncate_text() {
     echo "${text:0:$((max_length - 2))}.."
 }
 
+# Smart truncation (opt-in beta feature)
+smart_truncate() {
+    local project="$1" git_info="$2" max_len="$3"
+
+    # Step 1: Check if everything fits
+    [[ ${#project}$git_info} -le $max_len ]] && return 0
+
+    # Step 2: Truncate project only (preserve branch)
+    local proj_len=$((max_len - ${#git_info} - 2))
+    [[ $proj_len -ge 5 ]] && echo "${project:0:$proj_len}..$git_info" && return 0
+
+    # Step 3: Truncate project + branch (preserve indicators)
+    local indicators="${git_info#* [}" indicators="${indicators%]}"
+    local branch_len=$((max_len - ${#indicators} - 8))
+    [[ $branch_len -ge 8 ]] && echo "${project:0:4}.. ${git_info:0:$branch_len}.. [$indicators]" && return 0
+
+    # Step 4: Basic fallback
+    echo "${project:0:$max_len}.."
+}
+
 # =============================================================================
 # MAIN EXECUTION (SIMPLIFIED)
 # =============================================================================
@@ -271,11 +291,43 @@ main() {
     # Build statusline
     local statusline="$project_name$git_info $model_prefix$model_name$env_info"
 
-    # Simple truncation if needed
+    # Apply smart truncation if enabled (beta feature)
     local terminal_width
     terminal_width=$(get_terminal_width)
-    if [[ ${#statusline} -gt $((terminal_width - 10)) ]]; then
-        statusline=$(truncate_text "$statusline" $((terminal_width - 10)))
+
+    if [[ "${CLAUDE_CODE_STATUSLINE_TRUNCATE:-}" == "1" ]]; then
+        # Use 15-char margin for Claude telemetry compatibility
+        local max_len=$((terminal_width - 15))
+        [[ $max_len -lt 30 ]] && max_len=30
+
+        # Smart truncation: prioritize branch over project, preserve indicators
+        local model_env="$model_prefix$model_name$env_info"
+        local project_git="$project_name$git_info"
+
+        # Check if everything fits
+        local total_len=$((${#project_git} + ${#model_env} + 1))
+        if [[ $total_len -le $max_len ]]; then
+            statusline="$project_git $model_env"
+        elif [[ ${#project_git} -le $max_len ]]; then
+            # Truncate model part only
+            local model_max_len=$((max_len - ${#project_git} - 1))
+            model_env=$(truncate_text "$model_env" "$model_max_len")
+            statusline="$project_git $model_env"
+        else
+            # Smart truncation of project+git part
+            local truncated
+            truncated=$(smart_truncate "$project_name" "$git_info" "$max_len" 2>/dev/null)
+            if [[ -n "$truncated" ]]; then
+                statusline="$truncated"
+            else
+                statusline=$(truncate_text "$project_git" "$max_len")
+            fi
+        fi
+    else
+        # Current simple truncation (default behavior)
+        if [[ ${#statusline} -gt $((terminal_width - 10)) ]]; then
+            statusline=$(truncate_text "$statusline" $((terminal_width - 10)))
+        fi
     fi
 
     # Output

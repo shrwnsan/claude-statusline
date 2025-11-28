@@ -68,7 +68,7 @@ Available controls:
 - `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` - Force ASCII mode (no Nerd Fonts)
 - `CLAUDE_CODE_STATUSLINE_NO_GITSTATUS=1` - Disable git indicators
 - `CLAUDE_CODE_STATUSLINE_ENV_CONTEXT=1` - Show Node.js, Python, Docker versions
-- `CLAUDE_CODE_STATUSLINE_NO_TRUNCATE=1` - Disable project/branch name truncation
+- `CLAUDE_CODE_STATUSLINE_TRUNCATE=1` - Enable smart truncation with branch prioritization (beta)
 
 ## Icon Reference & Nerd Font Support
 
