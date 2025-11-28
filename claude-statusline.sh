@@ -241,16 +241,21 @@ smart_truncate() {
     local project="$1" git_info="$2" max_len="$3"
 
     # Step 1: Check if everything fits
-    [[ ${#project}$git_info} -le $max_len ]] && return 0
+    [[ $((${#project} + ${#git_info})) -le $max_len ]] && return 0
 
     # Step 2: Truncate project only (preserve branch)
     local proj_len=$((max_len - ${#git_info} - 2))
     [[ $proj_len -ge 5 ]] && echo "${project:0:$proj_len}..$git_info" && return 0
 
     # Step 3: Truncate project + branch (preserve indicators)
-    local indicators="${git_info#* [}" indicators="${indicators%]}"
+    local indicators=""
+    # Extract indicators using grep to avoid bracket pattern issues
+    if echo "$git_info" | grep -q '\['; then
+        # Use sed to extract content between brackets
+        indicators=$(echo "$git_info" | sed 's/.*\[\([^]]*\)\].*/\1/' 2>/dev/null || echo "")
+    fi
     local branch_len=$((max_len - ${#indicators} - 8))
-    [[ $branch_len -ge 8 ]] && echo "${project:0:4}.. ${git_info:0:$branch_len}.. [$indicators]" && return 0
+    [[ $branch_len -ge 8 ]] && echo "${project:0:4}..${git_info:0:$branch_len}..${indicators:+ [$indicators]}" && return 0
 
     # Step 4: Basic fallback
     echo "${project:0:$max_len}.."
