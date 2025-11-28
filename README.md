@@ -1,6 +1,6 @@
 # Claude Code Statusline
 
-Advanced statusline replacement for Claude Code with comprehensive git indicators, smart width management, and terminal width optimization.
+Simple statusline for Claude Code with git indicators. Just the essentials, none of the bloat.
 
 ![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
 ![Version](https://img.shields.io/badge/version-1.0.0-green.svg)
@@ -31,8 +31,7 @@ chmod +x claude-statusline.sh
 {
   "statusLine": {
     "type": "command",
-    "command": "/path/to/claude-statusline.sh",
-    "padding": 0
+    "command": "/path/to/claude-statusline.sh"
   }
 }
 ```
@@ -71,18 +70,53 @@ Available controls:
 - `CLAUDE_CODE_STATUSLINE_ENV_CONTEXT=1` - Show Node.js, Python, Docker versions
 - `CLAUDE_CODE_STATUSLINE_NO_TRUNCATE=1` - Disable project/branch name truncation
 
+## Icon Reference & Nerd Font Support
+
+**Nerd Font Support (Optional):** This statusline automatically detects Nerd Fonts and falls back to ASCII equivalents.
+
+For enhanced visual icons, install Nerd Fonts:
+- **macOS:** [font-jetbrains-mono-nerd-font](https://formulae.brew.sh/cask/font-jetbrains-mono-nerd-font) via Homebrew
+
+If you prefer consistent display or don't have Nerd Fonts, use ASCII mode:
+
+```bash
+export CLAUDE_CODE_STATUSLINE_NO_EMOJI=1
+```
+
+### Icon Comparison
+
+![Icon Comparison Reference](https://github.com/user-attachments/assets/4190fd65-c425-4da7-8659-a7c7a6f15bc0)
+
+**ASCII Mode Display:**
+
+| Use Case | ASCII Symbol | Environment Variable | Example |
+|----------|--------------|----------------------|---------|
+| **Git Repository** | `@` | N/A | `project @ main` |
+| **Stashed Files** | `$` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[$!⇡]` → `[$!A]` |
+| **Staged Changes** | `+` | N/A | `[+!⇡]` |
+| **Modified Files** | `!` | N/A | `[!+⇡]` |
+| **Untracked Files** | `?` | N/A | `[?!⇡]` |
+| **Merge Conflicts** | `C` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[C!⇡]` → `[C!A]` |
+| **Ahead/Behind** | `A/B` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[!⇡]` → `[!A]` |
+| **Claude Model** | `*` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `Claude Sonnet` → `*Claude Sonnet` |
+
+**Environment Context** (when `CLAUDE_CODE_STATUSLINE_ENV_CONTEXT=1`):
+- **Node.js**: `Node{version}` (e.g., `Node22.17.1`)
+- **Python**: `Py{version}` (e.g., `Py3.13.5`)
+- **Docker**: `Docker{version}` (e.g., `Docker28.3.3`)
+
 ## Examples
 
 ### Default Behavior (Smart Wrapping)
 ```bash
 # Clean two-line layout (most common)
-.dotfiles  main [⚑!⇡]
-󰚩Claude Sonnet 4.5
+.dotfiles @ main [⚑!⇡]
+*Claude Sonnet 4.5
 
 # With environment context
 CLAUDE_CODE_STATUSLINE_ENV_CONTEXT=1
-.dotfiles  main [⚑!⇡]
-󰚩Claude Sonnet 4.5 22.17.1 3.13.5 28.3.3
+.dotfiles @ main [⚑!⇡]
+*Claude Sonnet 4.5 Node22.17.1 Py3.13.5 Docker28.3.3
 ```
 
 ### ASCII Mode (Fallback)
@@ -95,8 +129,8 @@ CLAUDE_CODE_STATUSLINE_NO_EMOJI=1
 ### Long Names (Branch Prioritization)
 ```bash
 # Long project names get truncated first (branch preserved)
-vibekit-claude-plugins-super-long-name  feature/branch-name-that-is-very-long [!?✘]
-󰚩glm-4.6 22.17.1 3.13.5 28.3.3
+vibekit-claude-plugins-super-long-name @ feature/branch-name-that-is-very-long [!?✘]
+*glm-4.6 Node22.17.1 Py3.13.5 Docker28.3.3
 ```
 
 ## Performance
