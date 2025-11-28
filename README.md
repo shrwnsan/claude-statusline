@@ -50,6 +50,7 @@ The statusline automatically displays when Claude Code is active and updates bas
 - **Renamed**: » (orange/magenta, files moved/renamed)
 - **Deleted**: ✘ (red, files deleted)
 - **Conflicts**: × (red, merge conflicts)
+- **Diverged**: ⇕ (yellow, both ahead and behind upstream)
 - **Ahead**: ⇡ (green, commits ahead of upstream)
 - **Behind**: ⇣ (red, commits behind upstream)
 
@@ -91,13 +92,18 @@ export CLAUDE_CODE_STATUSLINE_NO_EMOJI=1
 | Use Case | ASCII Symbol | Environment Variable | Example |
 |----------|--------------|----------------------|---------|
 | **Git Repository** | `@` | N/A | `project @ main` |
-| **Stashed Files** | `$` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[$!⇡]` → `[$!A]` |
-| **Staged Changes** | `+` | N/A | `[+!⇡]` |
-| **Modified Files** | `!` | N/A | `[!+⇡]` |
-| **Untracked Files** | `?` | N/A | `[?!⇡]` |
-| **Merge Conflicts** | `C` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[C!⇡]` → `[C!A]` |
-| **Ahead/Behind** | `A/B` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[!⇡]` → `[!A]` |
-| **Claude Model** | `*` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `Claude Sonnet` → `*Claude Sonnet` |
+| **Stashed Files** | `$` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[$!+]` (ASCII mode) |
+| **Staged Changes** | `+` | N/A | `[$+!]` |
+| **Modified Files** | `!` | N/A | `[$!+]` |
+| **Untracked Files** | `?` | N/A | `[$!?]` |
+| **Renamed Files** | `>` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[$>!+]` |
+| **Deleted Files** | `X` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[$X!+]` |
+| **Merge Conflicts** | `C` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[$C!+]` |
+| **Ahead/Behind** | `A/B` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[$!A]` |
+| **Diverged** | `D` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[$!D]` |
+| **Claude Model** | `*` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `*Claude Sonnet` |
+
+*Note: Examples show ASCII-compatible symbols. Full statusline with Nerd Fonts shows additional symbols: ⚑✘!+?»×⇕⇡⇣*
 
 **Environment Context** (when `CLAUDE_CODE_STATUSLINE_ENV_CONTEXT=1`):
 - **Node.js**: `Node{version}` (e.g., `Node22.17.1`)

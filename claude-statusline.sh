@@ -102,6 +102,7 @@ setup_symbols() {
     local ascii_stashed="$"
     local ascii_ahead="A"
     local ascii_behind="B"
+    local ascii_diverged="D"
     local ascii_renamed=">"
     local ascii_deleted="X"
 
@@ -113,6 +114,7 @@ setup_symbols() {
     local nerd_stashed="⚑"
     local nerd_ahead="↑"
     local nerd_behind="↓"
+    local nerd_diverged="⇕"
     local nerd_renamed="»"
     local nerd_deleted="✘"
 
@@ -136,6 +138,7 @@ setup_symbols() {
         readonly stashed_symbol="$nerd_stashed"
         readonly ahead_symbol="$nerd_ahead"
         readonly behind_symbol="$nerd_behind"
+        readonly diverged_symbol="$nerd_diverged"
         readonly renamed_symbol="$nerd_renamed"
         readonly deleted_symbol="$nerd_deleted"
     else
@@ -146,6 +149,7 @@ setup_symbols() {
         readonly stashed_symbol="$ascii_stashed"
         readonly ahead_symbol="$ascii_ahead"
         readonly behind_symbol="$ascii_behind"
+        readonly diverged_symbol="$ascii_diverged"
         readonly renamed_symbol="$ascii_renamed"
         readonly deleted_symbol="$ascii_deleted"
     fi
@@ -225,7 +229,7 @@ get_git_info() {
     behind=$(echo "$ahead_behind_count" | cut -f1)
     ahead=$(echo "$ahead_behind_count" | cut -f2)
 
-    # Build indicators following Starship order: ⚑✘!+?⇡
+    # Build indicators following Starship order: ⚑✘!+?⇕⇡⇣
     local indicators=""
     [[ $stashed -gt 0 ]] && indicators="${indicators}${stashed_symbol}"
     [[ $deleted -gt 0 ]] && indicators="${indicators}${deleted_symbol}"
@@ -234,8 +238,13 @@ get_git_info() {
     [[ $untracked -gt 0 ]] && indicators="${indicators}?"
     [[ $renamed -gt 0 ]] && indicators="${indicators}${renamed_symbol}"
     [[ $conflict -gt 0 ]] && indicators="${indicators}${conflict_symbol}"
-    [[ $ahead -gt 0 ]] && indicators="${indicators}${ahead_symbol}"
-    [[ $behind -gt 0 ]] && indicators="${indicators}${behind_symbol}"
+    # Check for diverged branches (both ahead and behind) - show single symbol
+    if [[ $ahead -gt 0 && $behind -gt 0 ]]; then
+        indicators="${indicators}${diverged_symbol}"
+    else
+        [[ $ahead -gt 0 ]] && indicators="${indicators}${ahead_symbol}"
+        [[ $behind -gt 0 ]] && indicators="${indicators}${behind_symbol}"
+    fi
 
     # Simple output
     if [[ -n "$indicators" ]]; then
