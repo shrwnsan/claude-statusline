@@ -6,6 +6,8 @@ Simple statusline for Claude Code with git indicators. Just the essentials, none
 ![Version](https://img.shields.io/badge/version-1.0.0-green.svg)
 ![Bash](https://img.shields.io/badge/language-Bash-4EAA25.svg)
 
+![Demo](https://github.com/user-attachments/assets/8716dc4e-83da-410b-88f2-c47de7dd5930)
+
 ## Overview
 
 This statusline script provides a sophisticated replacement for Claude Code's default status display, featuring:
