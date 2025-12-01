@@ -23,7 +23,7 @@ This statusline script provides a sophisticated replacement for Claude Code's de
 
 ```bash
 # Download the script (or copy raw)
-curl -o claude-statusline.sh https://raw.githubusercontent.com/shrwnsan/claude-statusline/main/claude-statusline.sh
+curl -o claude-statusline.sh https://github.com/shrwnsan/claude-statusline/releases/download/v1.0.0/claude-statusline.sh
 
 # Make the script executable
 chmod +x claude-statusline.sh
@@ -35,6 +35,15 @@ chmod +x claude-statusline.sh
     "command": "./claude-statusline.sh"
   }
 }
+```
+
+### Alternative (Latest Development)
+
+If you want the latest development version:
+
+```bash
+# Download from main branch (latest development)
+curl -o claude-statusline.sh https://raw.githubusercontent.com/shrwnsan/claude-statusline/main/claude-statusline.sh
 ```
 
 ### Usage
