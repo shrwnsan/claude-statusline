@@ -53,27 +53,58 @@ Add to your `~/.claude/settings.json`:
 
 The statusline automatically displays when Claude Code is active and updates based on your git status and environment.
 
+### Verification
+
+After installation, verify it's working:
+
+1. **Check the command is available:**
+   ```bash
+   claude-statusline --help
+   ```
+
+2. **Test in a git repository:**
+   ```bash
+   cd /path/to/git/repo
+   claude-statusline
+   ```
+
+3. **Reload Claude Code** and check for the statusline at the bottom
+
+### Default Configuration
+
+claude-statusline works out-of-the-box with these defaults:
+- `envContext`: false (environment versions NOT shown)
+- `truncate`: false (basic truncation at terminal width - 10)
+- `noEmoji`: false (Nerd Font symbols preferred, ASCII fallback)
+- `noGitStatus`: false (git status shown)
+- `rightMargin`: 15 (prevents bleeding into Claude Code telemetry)
+
+To see environment versions in your statusline, create a configuration file with:
+```json
+{"envContext": true}
+```
+
 ## Features
 
 ### Git Status Indicators
 
-- **Stashed**: ⚑ (gray background with flag)
-- **Staged**: + (green, added to staging area)
-- **Modified**: ! (yellow, unstaged changes)
-- **Untracked**: ? (blue, new files not tracked)
-- **Renamed**: » (orange/magenta, files moved/renamed)
-- **Deleted**: ✘ (red, files deleted)
-- **Conflicts**: × (red, merge conflicts)
-- **Diverged**: ⇕ (yellow, both ahead and behind upstream)
-- **Ahead**: ⇡ (green, commits ahead of upstream)
-- **Behind**: ⇣ (red, commits behind upstream)
+- **Stashed**: ⚑ (stashed changes)
+- **Deleted**: ✘ (files deleted)
+- **Modified**: ! (unstaged changes)
+- **Staged**: + (added to staging area)
+- **Untracked**: ? (new files not tracked)
+- **Renamed**: » (files moved/renamed)
+- **Conflicts**: × (merge conflicts)
+- **Diverged**: ⇕ (both ahead and behind upstream)
+- **Ahead**: ⇡ (commits ahead of upstream)
+- **Behind**: ⇣ (commits behind upstream)
 
 ### Environment Context
 
 When enabled with `"envContext": true`, shows development tool versions:
 
 ```
-.dotfiles @ main [⚑!⇡]
+claude-statusline @ main [⚑!⇡]
 *Claude Sonnet 4.5 Node22.17.1 Py3.13.5 Docker28.3.3
 ```
 
@@ -115,19 +146,19 @@ For enhanced visual icons, install Nerd Fonts:
 
 ### ASCII Mode Display
 
-| Use Case | ASCII Symbol | Config Option | Example |
-|----------|--------------|---------------|---------|
-| **Git Repository** | `@` | N/A | `project @ main` |
-| **Stashed Files** | `$` | `"noEmoji": true` | `[$!+]` (ASCII mode) |
-| **Staged Changes** | `+` | N/A | `[$+!]` |
-| **Modified Files** | `!` | N/A | `[$!+]` |
-| **Untracked Files** | `?` | N/A | `[$!?]` |
-| **Renamed Files** | `>` | `"noEmoji": true` | `[$>!+]` |
-| **Deleted Files** | `X` | `"noEmoji": true` | `[$X!+]` |
-| **Merge Conflicts** | `C` | `"noEmoji": true` | `[$C!+]` |
-| **Ahead/Behind** | `A/B` | `"noEmoji": true` | `[$!A]` |
-| **Diverged** | `D` | `"noEmoji": true` | `[$!D]` |
-| **Claude Model** | `*` | `"noEmoji": true` | `*Claude Sonnet` |
+| Use Case | Default Symbol | ASCII Fallback | Notes |
+|----------|---------------|---------------|-------|
+| **Git Repository** | `@` | `@` | Always ASCII |
+| **Stashed Files** | `⚑` | `$` | ASCII when `"noEmoji": true` |
+| **Staged Changes** | `+` | `+` | Always ASCII |
+| **Modified Files** | `!` | `!` | Always ASCII |
+| **Untracked Files** | `?` | `?` | Always ASCII |
+| **Renamed Files** | `»` | `>` | ASCII when `"noEmoji": true` |
+| **Deleted Files** | `✘` | `X` | ASCII when `"noEmoji": true` |
+| **Merge Conflicts** | `×` | `C` | ASCII when `"noEmoji": true` |
+| **Ahead/Behind** | `⇡⇣` | `A/B` | ASCII when `"noEmoji": true` |
+| **Diverged** | `⇕` | `D` | ASCII when `"noEmoji": true` |
+| **Claude Model** | `🤖` | `*` | ASCII when `"noEmoji": true` |
 
 *Note: Examples show ASCII-compatible symbols. Full statusline with Nerd Fonts shows additional symbols: ⚑✘!+?»×⇕⇡⇣*
 
@@ -157,18 +188,18 @@ nano ~/.claude/.claude-statusline.json
 
 ### Default Behavior
 ```bash
-# Single line (auto-wraps when hitting right margin)
-.dotfiles @ main [⚑!⇡] *Claude Sonnet 4.5
+# Basic truncation (default) - truncated at terminal width minus 10 chars
+claude-statusline @ main [⚑!⇡] *Claude Sonnet 4.5
 
 # With environment context enabled
 # Set "envContext": true in config file
-.dotfiles @ main [⚑!⇡] *Claude Sonnet 4.5 Node22.17.1 Py3.13.5 Docker28.3.3
+claude-statusline @ main [⚑!⇡] *Claude Sonnet 4.5 Node22.17.1 Py3.13.5 Docker28.3.3
 ```
 
 ### ASCII Mode (Fallback)
 ```bash
 # With "noEmoji": true in config file
-.dotfiles @ main [$!A] *Claude Sonnet 4.5
+claude-statusline @ main [$!A] *Claude Sonnet 4.5
 ```
 
 ## Documentation
