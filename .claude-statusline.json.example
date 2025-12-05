@@ -1,0 +1,60 @@
+{
+  "_comment": "Example configuration file for claude-statusline",
+  "_note": "Copy this file to ~/.claude/.claude-statusline.json (recommended global location)",
+
+  "envContext": false,
+  "_envContext_note": "Show Node.js, Python, Docker versions. Default: false",
+
+  "truncate": false,
+  "_truncate_note": "Enable smart truncation for long statuslines. Default: false",
+
+  "noEmoji": false,
+  "_noEmoji_note": "Force ASCII mode instead of Nerd Font symbols. Default: false",
+
+  "noGitStatus": false,
+  "_noGitStatus_note": "Disable git status indicators completely. Default: false",
+
+  "debugWidth": false,
+  "_debugWidth_note": "Show terminal width detection debug info. Default: false",
+
+  "rightMargin": 15,
+  "_rightMargin_note": "Right margin for Claude telemetry compatibility. Default: 15",
+
+  "cacheTTL": 300,
+  "_cacheTTL_note": "Cache duration in seconds for git operations. Default: 300",
+
+  "_symbols_note": "Customize symbols used in statusline. Only change if noEmoji: true",
+  "symbols": {
+    "git": "",
+    "model": "󰚩",
+    "staged": "+",
+    "conflict": "×",
+    "stashed": "⚑",
+    "ahead": "↑",
+    "behind": "↓",
+    "diverged": "⇕",
+    "renamed": "»",
+    "deleted": "✘"
+  },
+
+  "_ascii_symbols_note": "Alternative ASCII symbols (automatically used when noEmoji: true)",
+  "asciiSymbols": {
+    "git": "@",
+    "model": "*",
+    "staged": "+",
+    "conflict": "C",
+    "stashed": "$",
+    "ahead": "A",
+    "behind": "B",
+    "diverged": "D",
+    "renamed": ">",
+    "deleted": "X"
+  },
+
+  "_forceWidth_note": "Override terminal width detection (for testing/debug only)",
+  "forceWidth": null,
+
+  "_softWrap_note": "Legacy soft-wrapping (not needed with truncate: true)",
+  "noSoftWrap": false,
+  "_noSoftWrap_note": "Disable soft-wrapping completely. Default: false"
+}

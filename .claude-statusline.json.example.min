@@ -1,0 +1,11 @@
+{
+  "_comment": "Minimal example with common options users typically want to enable",
+  "_location": "Copy to ~/.claude/.claude-statusline.json for global configuration",
+  "_usage": "cp .claude-statusline.json.example.min ~/.claude/.claude-statusline.json",
+
+  "envContext": true,
+  "_note": "Show your Node.js, Python, Docker versions in the statusline",
+
+  "truncate": true,
+  "_note": "Smart truncation for very long statuslines (prevents overflow)"
+}

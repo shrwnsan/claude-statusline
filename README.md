@@ -9,25 +9,12 @@ Simple statusline for Claude Code with git indicators. Now available in TypeScri
 
 ![Demo](https://github.com/user-attachments/assets/8716dc4e-83da-410b-88f2-c47de7dd5930)
 
-## Overview
-
-This statusline script provides a sophisticated replacement for Claude Code's default status display. Version 2.0 is a complete TypeScript rewrite offering:
-
-- 🚀 **2-5x Performance Improvement** over bash v1.0
-- 📦 **npm/bun Distribution** with semver support
-- ⚡ **Native JavaScript Optimizations**
-- 🔧 **Configuration File Support** (.claude-statusline.json/.yaml)
-- 🛡️ **Enhanced Security** with TypeScript type safety
-- 🌐 **Cross-Platform Compatibility** (Windows, macOS, Linux)
-- 🧪 **Comprehensive Test Suite**
-
 ## Quick Start
 
 ### Installation
 
-**🚀 Recommended: TypeScript v2.0 (Alpha)**
 ```bash
-# npm install (easiest)
+# npm install (recommended)
 npm install -g claude-statusline
 
 # Or download from releases
@@ -35,53 +22,24 @@ curl -o claude-statusline https://github.com/shrwnsan/claude-statusline/releases
 chmod +x claude-statusline
 ```
 
-**⚠️ Note:** v2.0 is currently in alpha with enhanced performance and npm distribution.
+<details>
+<summary>📦 Legacy: Bash v1.0</summary>
 
-**📦 Alternative: Bash v1.0 (Stable)**
+For users who prefer bash-only solutions:
+
 ```bash
-# Download the stable bash version
 curl -o claude-statusline.sh https://github.com/shrwnsan/claude-statusline/releases/download/v1.0.0/claude-statusline.sh
 chmod +x claude-statusline.sh
 ```
+
+*Note: v1.0 lacks Windows support, configuration files, and npm distribution. See [Feature Comparison](./docs/FEATURE_COMPARISON.md) for details.*
+
+</details>
 
 ### Claude Code Configuration
 
 Add to your `~/.claude/settings.json`:
 
-```json
-{
-  "statusLine": {
-    "type": "command",
-    "command": "claude-statusline"
-  }
-}
-```
-
-### Migrating from v1.0 to v2.0
-
-If you're upgrading from the bash version, simply:
-
-**1. Install v2.0:**
-```bash
-# Option A: npm install (recommended)
-npm install -g claude-statusline
-
-# Option B: Download from releases
-curl -o claude-statusline https://github.com/shrwnsan/claude-statusline/releases/download/v2.0.0/claude-statusline
-chmod +x claude-statusline
-```
-
-**2. Copy your settings (if any):**
-```bash
-# Check your current environment variables
-echo $CLAUDE_CODE_STATUSLINE_NO_EMOJI
-echo $CLAUDE_CODE_STATUSLINE_ENV_CONTEXT
-
-# Create .claude-statusline.json with the same settings
-# Example: {"envContext": true, "noEmoji": false}
-```
-
-**3. Update Claude Code settings:**
 ```json
 {
   "statusLine": {
@@ -97,14 +55,6 @@ The statusline automatically displays when Claude Code is active and updates bas
 
 ## Features
 
-### 🚀 Performance Improvements
-
-| Version | Execution Time | Performance | Notes |
-|---------|----------------|-------------|-------|
-| **TypeScript v2.0** | **~30-45ms** | ✅ Excellent | Native JS optimizations |
-| Bash v1.0 | ~99ms | ✅ Good | Optimized bash implementation |
-| Bash v1.0 (first run) | ~888ms | ⚠️ Slow | One-time cache population |
-
 ### Git Status Indicators
 
 - **Stashed**: ⚑ (gray background with flag)
@@ -118,88 +68,16 @@ The statusline automatically displays when Claude Code is active and updates bas
 - **Ahead**: ⇡ (green, commits ahead of upstream)
 - **Behind**: ⇣ (red, commits behind upstream)
 
-### 🎛️ Configuration
-
-#### Configuration Files
-
-Create `.claude-statusline.json` in your project root:
-
-```json
-{
-  "$schema": "https://raw.githubusercontent.com/shrwnsan/claude-statusline/main/config-schema.json",
-  "cacheTTL": 300,
-  "maxLength": 1000,
-  "noEmoji": false,
-  "noGitStatus": false,
-  "envContext": true,
-  "truncate": true,
-  "softWrap": false,
-  "rightMargin": 15,
-  "debugWidth": false,
-  "symbols": {
-    "git": "@",
-    "model": "*",
-    "staged": "+",
-    "conflict": "×",
-    "stashed": "⚑",
-    "ahead": "↑",
-    "behind": "↓",
-    "diverged": "⇕",
-    "renamed": "»",
-    "deleted": "✘"
-  }
-}
-```
-
-Or use YAML format (`.claude-statusline.yaml`):
-
-```yaml
-cacheTTL: 300
-maxLength: 1000
-noEmoji: false
-noGitStatus: false
-envContext: true
-truncate: true
-softWrap: false
-rightMargin: 15
-debugWidth: false
-symbols:
-  git: "@"
-  model: "*"
-  staged: "+"
-  conflict: "×"
-  stashed: "⚑"
-  ahead: "↑"
-  behind: "↓"
-  diverged: "⇕"
-  renamed: "»"
-  deleted: "✘"
-```
-
-**Configuration Search Order:**
-1. `./.claude-statusline.json` (project-specific)
-2. `~/.claude-statusline.json` (global)
-3. Environment variables (legacy)
-
-#### Environment Variables (Legacy Support)
-
-Environment variables are still supported for backward compatibility:
-
-- `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` - Force ASCII mode
-- `CLAUDE_CODE_STATUSLINE_NO_GITSTATUS=1` - Disable git indicators
-- `CLAUDE_CODE_STATUSLINE_ENV_CONTEXT=1` - Show Node.js, Python, Docker versions
-- `CLAUDE_CODE_STATUSLINE_TRUNCATE=1` - Enable smart truncation (includes soft-wrapping by default)
-- `CLAUDE_CODE_STATUSLINE_NO_SOFT_WRAP=1` - Disable soft-wrapping (use simple truncation only)
-- `CLAUDE_CODE_STATUSLINE_DEBUG_WIDTH=1` - Enable width debugging
-
 ### Environment Context
 
-When enabled, shows development tool versions:
+When enabled with `"envContext": true`, shows development tool versions:
 
 ```
-.dotfiles  main [⚑!⇡]
-󰚩Claude Sonnet 4.5 22.17.1 3.13.5 28.3.3
+.dotfiles @ main [⚑!⇡]
+*Claude Sonnet 4.5 Node22.17.1 Py3.13.5 Docker28.3.3
 ```
+
+*Example shows ASCII mode for universal compatibility. With Nerd Fonts enabled, ASCII symbols are replaced with icons/emojis.*
 
 Supported tools:
 - **Node.js**: `node --version` (cached 5 minutes)
@@ -237,56 +115,70 @@ For enhanced visual icons, install Nerd Fonts:
 
 ### ASCII Mode Display
 
-**ASCII Mode Display:**
-
-| Use Case | ASCII Symbol | Environment Variable | Example |
-|----------|--------------|----------------------|---------|
+| Use Case | ASCII Symbol | Config Option | Example |
+|----------|--------------|---------------|---------|
 | **Git Repository** | `@` | N/A | `project @ main` |
-| **Stashed Files** | `$` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[$!+]` (ASCII mode) |
+| **Stashed Files** | `$` | `"noEmoji": true` | `[$!+]` (ASCII mode) |
 | **Staged Changes** | `+` | N/A | `[$+!]` |
 | **Modified Files** | `!` | N/A | `[$!+]` |
 | **Untracked Files** | `?` | N/A | `[$!?]` |
-| **Renamed Files** | `>` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[$>!+]` |
-| **Deleted Files** | `X` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[$X!+]` |
-| **Merge Conflicts** | `C` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[$C!+]` |
-| **Ahead/Behind** | `A/B` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[$!A]` |
-| **Diverged** | `D` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `[$!D]` |
-| **Claude Model** | `*` | `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | `*Claude Sonnet` |
+| **Renamed Files** | `>` | `"noEmoji": true` | `[$>!+]` |
+| **Deleted Files** | `X` | `"noEmoji": true` | `[$X!+]` |
+| **Merge Conflicts** | `C` | `"noEmoji": true` | `[$C!+]` |
+| **Ahead/Behind** | `A/B` | `"noEmoji": true` | `[$!A]` |
+| **Diverged** | `D` | `"noEmoji": true` | `[$!D]` |
+| **Claude Model** | `*` | `"noEmoji": true` | `*Claude Sonnet` |
 
 *Note: Examples show ASCII-compatible symbols. Full statusline with Nerd Fonts shows additional symbols: ⚑✘!+?»×⇕⇡⇣*
 
+### 🎛️ Configuration
+
+**📖 [Complete Configuration Guide](./docs/CONFIGURATION.md)**
+
+Configure with JSON/YAML files:
+
+```bash
+# Quick setup with minimal example
+cp .claude-statusline.json.example.min ~/.claude/.claude-statusline.json
+
+# Or complete example with all options
+cp .claude-statusline.json.example ~/.claude/.claude-statusline.json
+
+# Edit your configuration
+nano ~/.claude/.claude-statusline.json
+```
+
+**Configuration search order:**
+1. `./.claude-statusline.json` (project-specific)
+2. `~/.claude/.claude-statusline.json` (global) ← **Recommended**
+3. Environment variables (legacy)
+
 ## Examples
 
-### Default Behavior (Smart Wrapping)
+### Default Behavior
 ```bash
-# Clean two-line layout (most common)
-.dotfiles @ main [⚑!⇡]
-*Claude Sonnet 4.5
+# Single line (auto-wraps when hitting right margin)
+.dotfiles @ main [⚑!⇡] *Claude Sonnet 4.5
 
-# With environment context
-.envContext=1
-.dotfiles @ main [⚑!⇡]
-*Claude Sonnet 4.5 Node22.17.1 Py3.13.5 Docker28.3.3
+# With environment context enabled
+# Set "envContext": true in config file
+.dotfiles @ main [⚑!⇡] *Claude Sonnet 4.5 Node22.17.1 Py3.13.5 Docker28.3.3
 ```
 
 ### ASCII Mode (Fallback)
 ```bash
-.noEmoji=true
-.dotfiles @ main [$!A]
-*Claude Sonnet 4.5
+# With "noEmoji": true in config file
+.dotfiles @ main [$!A] *Claude Sonnet 4.5
 ```
 
-## Performance
+## Documentation
 
-The script is optimized for performance with smart caching:
+📚 **Complete documentation available in the [`docs/`](./docs) directory:**
 
-**Bash v1.0 Performance:**
-- **Execution Time**: ~99ms (optimized from ~888ms first run)
-- **Cache Performance**: 83% faster after initial cache population
-
-**TypeScript v2.0 (Expected):**
-- **Execution Time**: ~30-45ms (2-3x faster with native JS optimizations)
-- **Benchmark**: `npm run benchmark` (when testing v2.0)
+- **[Configuration Guide](./docs/CONFIGURATION.md)** - Complete configuration options and examples
+- **[Migration Guide](./docs/MIGRATION.md)** - Migrating from bash v1.0 to TypeScript v2.0
+- **[Feature Comparison](./docs/FEATURE_COMPARISON.md)** - Detailed comparison between versions
+- **[Documentation Index](./docs/README.md)** - Overview of all documentation
 
 ## Security
 
@@ -309,12 +201,6 @@ Enhanced security with input validation and type safety:
 - **Performance issues**: Clear cache `rm -rf /tmp/.claude-statusline-cache/`
 - **Symbol display**: Force ASCII mode with `"noEmoji": true` in config
 
-## Roadmap
-
-**Version 2.0 (Alpha)**: TypeScript rewrite with enhanced performance and npm distribution
-
-**Future**: Plugin system, custom indicators, theme support
-
 ## Contributing
 
 See our [Contributing Guidelines](./CONTRIBUTING.md) for development setup and pull requests.
@@ -323,6 +209,3 @@ See our [Contributing Guidelines](./CONTRIBUTING.md) for development setup and p
 
 Apache License 2.0 - see [LICENSE](LICENSE) file for details.
 
----
-
-**🚀 Version 2.0 is currently in alpha. Feedback welcome!**
