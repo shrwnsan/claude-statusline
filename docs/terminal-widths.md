@@ -265,6 +265,8 @@ test_width() {
 for width in 50 60 70 80 90 100 120 150; do
     test_width $width
 done
+
+Note: The test_width function is also available in the tests/ directory as a standalone testing script.
 ```
 
 ### Visual Width Testing

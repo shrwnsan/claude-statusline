@@ -1,0 +1,73 @@
+{
+  "name": "claude-statusline",
+  "version": "2.0.0",
+  "description": "Simple statusline for Claude Code with git indicators. TypeScript rewrite for performance and npm distribution.",
+  "main": "dist/index.js",
+  "bin": {
+    "claude-statusline": "bin/claude-statusline"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "test": "node --test",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts",
+    "benchmark": "node scripts/benchmark.js",
+    "prepublishOnly": "npm run build && npm test",
+    },
+  "keywords": [
+    "claude-code",
+    "statusline",
+    "git",
+    "cli",
+    "terminal",
+    "productivity"
+  ],
+  "author": "shrwnsan",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shrwnsan/claude-statusline.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shrwnsan/claude-statusline/issues"
+  },
+  "homepage": "https://github.com/shrwnsan/claude-statusline#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "simple-git": "^3.25.0",
+    "yaml": "^2.6.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2"
+  },
+  "files": [
+    "dist/",
+    "bin/",
+    "README.md",
+    "LICENSE",
+    "docs/"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./config": {
+      "import": "./dist/core/config.js",
+      "types": "./dist/core/config.d.ts"
+    }
+  }
+}

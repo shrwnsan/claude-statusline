@@ -1,0 +1,21 @@
+#!/usr/bin/env node
+
+/**
+ * Claude Statusline - TypeScript v2.0
+ * Executable wrapper for the TypeScript implementation
+ */
+
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Import the main module
+try {
+  const { main } = await import(join(__dirname, '..', 'dist', 'index.js'));
+  await main();
+} catch (error) {
+  console.error('[ERROR] Failed to load claude-statusline:', error instanceof Error ? error.message : String(error));
+  process.exit(1);
+}
