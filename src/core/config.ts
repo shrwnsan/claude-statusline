@@ -94,8 +94,8 @@ export function loadConfig(cwd: string = process.cwd()): Config {
  * Load configuration from file in the current directory or home directory
  */
 function loadConfigFile(cwd: string): Partial<Config> {
-  // Search in current directory first, then parent directories, then home
-  const searchPaths = [cwd, dirname(cwd), homedir()];
+  // Search in current directory first, then parent directories, then ~/.claude/
+  const searchPaths = [cwd, dirname(cwd), join(homedir(), '.claude')];
 
   for (const searchPath of searchPaths) {
     for (const filename of CONFIG_FILES) {

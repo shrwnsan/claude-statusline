@@ -117,7 +117,7 @@ export class EnvironmentDetector {
         // Extract version number from "Python 3.x.y" format
         const versionMatch = version.match(/(\d+\.\d+\.\d+)/);
         if (versionMatch) {
-          return versionMatch[1];
+          return versionMatch[1] || null;
         }
       }
     } catch {
@@ -138,7 +138,7 @@ export class EnvironmentDetector {
         // Extract version number from "Python 3.x.y" or "Python 2.x.y" format
         const versionMatch = version.match(/(\d+\.\d+\.\d+)/);
         if (versionMatch) {
-          return versionMatch[1];
+          return versionMatch[1] || null;
         }
       }
     } catch {
@@ -167,7 +167,7 @@ export class EnvironmentDetector {
         // Extract version number from "Docker version 20.x.y" format
         const versionMatch = version.match(/Docker version (\d+\.\d+\.\d+)/);
         if (versionMatch) {
-          return versionMatch[1];
+          return versionMatch[1] || null;
         }
       }
 
@@ -251,7 +251,7 @@ export class EnvironmentDetector {
       shellVersion = process.env.FISH_VERSION;
     }
 
-    return { shell, shellVersion };
+    return shellVersion ? { shell, shellVersion } : { shell };
   }
 
   /**
@@ -262,7 +262,7 @@ export class EnvironmentDetector {
     const arch = process.arch;
     const release = process.env.OSTYPE || process.env.OS;
 
-    return { platform, arch, release };
+    return release ? { platform, arch, release } : { platform, arch };
   }
 }
 

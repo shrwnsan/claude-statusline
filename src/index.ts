@@ -10,7 +10,7 @@ import { loadConfig, Config } from './core/config.js';
 import { validateInput, validateDirectory } from './core/security.js';
 import { Cache } from './core/cache.js';
 import { GitOperations } from './git/status.js';
-import { detectSymbols, getEnvironmentSymbols } from './ui/symbols.js';
+import { detectSymbols, getEnvironmentSymbols, SymbolSet } from './ui/symbols.js';
 import { getTerminalWidth, truncateText, smartTruncate, debugWidthDetection } from './ui/width.js';
 import { EnvironmentDetector, EnvironmentFormatter } from './env/context.js';
 
@@ -122,7 +122,7 @@ async function buildStatusline(params: {
   modelName: string;
   gitInfo: any;
   envInfo: any;
-  symbols: any;
+  symbols: SymbolSet;
   terminalWidth: number;
   config: Config;
 }): Promise<string> {
@@ -160,6 +160,7 @@ async function buildStatusline(params: {
       modelString,
       terminalWidth,
       config,
+      symbols,
     });
   } else {
     // Apply basic truncation (current behavior)
@@ -182,8 +183,9 @@ function applySmartTruncation(params: {
   modelString: string;
   terminalWidth: number;
   config: Config;
+  symbols: SymbolSet;
 }): string {
-  const { statusline, projectName, gitStatus, modelString, terminalWidth, config } = params;
+  const { statusline, projectName, gitStatus, modelString, terminalWidth, config, symbols } = params;
 
   // Use 15-char margin for Claude telemetry compatibility
   const maxLen = Math.max(terminalWidth - config.rightMargin, 30);

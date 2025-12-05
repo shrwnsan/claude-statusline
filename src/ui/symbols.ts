@@ -209,7 +209,7 @@ async function detectViaFontList(): Promise<{ hasNerdFont: boolean; font: string
           // Try to extract font name
           const match = stdout.match(/([^:\n]*)(?=\s*(nerd|symbols))/i);
           const fontName = match ? match[1] : 'Nerd Font';
-          return { hasNerdFont: true, font: fontName.trim() };
+          return { hasNerdFont: true, font: fontName?.trim() || 'Nerd Font' };
         }
       }
     }
@@ -356,7 +356,7 @@ export function getEnvironmentSymbols(symbolSet: SymbolSet): { [key: string]: st
 /**
  * Test if symbols can be displayed properly
  */
-export async function testSymbolDisplay(symbols: SymbolSet): Promise<boolean> {
+export async function testSymbolDisplay(_symbols: SymbolSet): Promise<boolean> {
   // In a terminal environment, we can't easily test if symbols display correctly
   // For now, we'll assume that if we detected Nerd Font support, they can be displayed
   return true;

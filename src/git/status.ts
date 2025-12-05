@@ -1,5 +1,5 @@
 import { Config } from '../core/config.js';
-import { Cache, cachedCommand, CacheKeys } from '../core/cache.js';
+import { Cache, CacheKeys } from '../core/cache.js';
 import simpleGit, { SimpleGit } from 'simple-git';
 
 /**
@@ -81,7 +81,7 @@ export class GitOperations {
       }
 
       // Get status indicators
-      const indicators = await this.getGitIndicators(git, directory);
+      const indicators = await this.getGitIndicators(git);
 
       return { branch, indicators };
 
@@ -148,7 +148,7 @@ export class GitOperations {
   /**
    * Get comprehensive git status indicators
    */
-  private async getGitIndicators(git: SimpleGit, directory: string): Promise<GitIndicators> {
+  private async getGitIndicators(git: SimpleGit): Promise<GitIndicators> {
     const indicators = { ...EMPTY_INDICATORS };
 
     try {
@@ -251,8 +251,8 @@ export class GitOperations {
       const counts = result.trim().split('\t');
 
       if (counts.length === 2) {
-        const behind = parseInt(counts[0], 10) || 0;
-        const ahead = parseInt(counts[1], 10) || 0;
+        const behind = parseInt(counts[0] || '0', 10);
+        const ahead = parseInt(counts[1] || '0', 10);
         return { ahead, behind };
       }
 

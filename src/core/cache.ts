@@ -8,10 +8,6 @@ import { Config } from './config.js';
  * Ported from bash implementation with Node.js optimizations
  */
 
-interface CacheEntry<T = string> {
-  data: T;
-  timestamp: number;
-}
 
 /**
  * Cache wrapper that handles TTL and file operations

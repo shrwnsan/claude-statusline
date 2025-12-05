@@ -137,8 +137,8 @@ describe('Test Runner and Main Functionality', () => {
   });
 
   describe('Configuration System', () => {
-    it('should load test configuration', () => {
-      const { loadConfig } = require('../dist/core/config.js');
+    it('should load test configuration', async () => {
+      const { loadConfig } = await import('../dist/core/config.js');
       const config = loadConfig();
 
       assert.ok(typeof config === 'object', 'Should load configuration object');
@@ -146,15 +146,13 @@ describe('Test Runner and Main Functionality', () => {
       assert.ok(typeof config.maxLength === 'number', 'Should have maxLength setting');
     });
 
-    it('should respect environment variable overrides', () => {
+    it('should respect environment variable overrides', async () => {
       // Set environment variable
       const originalValue = process.env.CLAUDE_CODE_STATUSLINE_NO_EMOJI;
       process.env.CLAUDE_CODE_STATUSLINE_NO_EMOJI = '1';
 
       try {
-        // Clear require cache to get fresh config
-        delete require.cache[require.resolve('../dist/core/config.js')];
-        const { loadConfig } = require('../dist/core/config.js');
+        const { loadConfig } = await import('../dist/core/config.js');
         const config = loadConfig();
 
         assert.strictEqual(config.noEmoji, true, 'Should override with environment variable');
@@ -170,9 +168,10 @@ describe('Test Runner and Main Functionality', () => {
   });
 
   describe('Security Module', () => {
-    it('should validate input correctly', () => {
-      const { validateInput } = require('../dist/core/security.js');
-      const config = require('../dist/core/config.js').defaultConfig;
+    it('should validate input correctly', async () => {
+      const { validateInput } = await import('../dist/core/security.js');
+      const { defaultConfig } = await import('../dist/core/config.js');
+      const config = defaultConfig;
 
       assert.strictEqual(
         validateInput('{"test":"value"}', config),
@@ -193,8 +192,8 @@ describe('Test Runner and Main Functionality', () => {
       );
     });
 
-    it('should validate paths correctly', () => {
-      const { validatePath } = require('../dist/core/security.js');
+    it('should validate paths correctly', async () => {
+      const { validatePath } = await import('../dist/core/security.js');
 
       assert.strictEqual(
         validatePath('/home/user/project'),
@@ -217,7 +216,7 @@ describe('Test Runner and Main Functionality', () => {
   });
 
   describe('Module Integration', () => {
-    it('should import all modules without errors', () => {
+    it('should import all modules without errors', async () => {
       // Test that all modules can be imported
       const modules = [
         '../dist/core/config.js',
@@ -231,23 +230,23 @@ describe('Test Runner and Main Functionality', () => {
 
       for (const modulePath of modules) {
         try {
-          require(modulePath);
+          await import(modulePath);
         } catch (error) {
           assert.fail(`Failed to import module ${modulePath}: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
     });
 
-    it('should have proper module exports', () => {
-      const configModule = require('../dist/core/config.js');
+    it('should have proper module exports', async () => {
+      const configModule = await import('../dist/core/config.js');
       assert.ok(typeof configModule.loadConfig === 'function', 'Config module should export loadConfig');
       assert.ok(typeof configModule.defaultConfig === 'object', 'Config module should export defaultConfig');
 
-      const securityModule = require('../dist/core/security.js');
+      const securityModule = await import('../dist/core/security.js');
       assert.ok(typeof securityModule.validateInput === 'function', 'Security module should export validateInput');
       assert.ok(typeof securityModule.validatePath === 'function', 'Security module should export validatePath');
 
-      const cacheModule = require('../dist/core/cache.js');
+      const cacheModule = await import('../dist/core/cache.js');
       assert.ok(typeof cacheModule.Cache === 'function', 'Cache module should export Cache class');
     });
   });

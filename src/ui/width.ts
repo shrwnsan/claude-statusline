@@ -112,13 +112,12 @@ async function tryStty(): Promise<number | null> {
     const { stdout } = await execAsync('stty size', {
       timeout: 1000,
       encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
     });
 
     // stty size returns: "rows cols"
     const parts = stdout.trim().split(' ');
     if (parts.length === 2) {
-      const width = parseInt(parts[1], 10);
+      const width = parseInt(parts[1] || '0', 10);
       if (!isNaN(width) && width > 0) {
         return width;
       }
@@ -213,7 +212,7 @@ export function smartTruncate(
   project: string,
   gitInfo: string,
   maxLen: number,
-  config: Config
+  _config: Config
 ): string {
   // Step 1: Check if everything fits
   if (project.length + gitInfo.length <= maxLen) {
@@ -230,7 +229,7 @@ export function smartTruncate(
   let indicators = '';
   const bracketMatch = gitInfo.match(/\[([^\]]+)\]/);
   if (bracketMatch) {
-    indicators = bracketMatch[1];
+    indicators = bracketMatch[1] || '';
   }
 
   const branchLen = maxLen - indicators.length - 8;
