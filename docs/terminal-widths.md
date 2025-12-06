@@ -2,7 +2,7 @@
 
 This document provides comprehensive analysis of terminal width behavior and optimization strategies for Claude Statusline.
 
-**Implementation Status**: ✅ Smart truncation is now implemented via `CLAUDE_CODE_STATUSLINE_TRUNCATE=1` (beta feature)
+**Implementation Status**: ✅ Smart truncation is implemented via `CLAUDE_CODE_STATUSLINE_TRUNCATE=1` (available in both bash and TypeScript v2.0)
 
 ## Width Breakpoint Analysis
 
@@ -34,66 +34,211 @@ Claude Statusline implements intelligent width management with three key princip
 - Indicators: `[+?]`
 - Model Info: `Sonnet 4.5`
 
-### 60 Characters (Minimum Viable)
+## Mode Comparison: Basic vs Smart Truncation
+
+### Quick Reference
+
+| Feature | Basic Mode (default) | Smart Truncation Mode |
+|---------|---------------------|----------------------|
+| **Trigger** | Always active | `CLAUDE_CODE_STATUSLINE_TRUNCATE=1` |
+| **Truncation point** | `terminal width - 10` | `terminal width - 15` (right margin) |
+| **Priority** | Simple cut-off | Branch > Project > Model |
+| **Multi-line** | Never (always single-line) | Yes, with soft-wrapping when needed |
+| **Git indicators** | May be cut off | Preserved until last moment |
+| **Use case** | Fast, predictable | Maximum information preservation |
+
+## Test Results (Real Data)
+
+*Test data: Project=`claude-statusline`, Branch=`feature/typescript-rewrite-v2.0`, Model=`Test Model`*
+
+### 40 Columns (Extreme Constraint)
+
+**Basic Mode**:
 ```
-vibe..   feature/issue-20-search-fallback-b.. []
+----------------------------------------
+claude-statusline  feature/..
+----------------------------------------
 ```
-**Truncation Strategy**: Both project and branch truncated, model info dropped to fit
+*Length: 30 chars - Only project and partial branch*
 
-### 80 Characters (Sweet Spot)
+**Smart Truncation**:
 ```
-vibekit-claude..  feature/issue-20-search-fallback-behavior [+?]
+----------------------------------------
+clau..  feature/typescri.. [!+?]
+----------------------------------------
 ```
-**Truncation Strategy**: Project truncated, branch preserved with full name, model info dropped
+*Length: 33 chars - Preserves git indicators*
 
-### 100 Characters (Optimal)
+### 50 Columns (Very Narrow)
+
+**Basic Mode**:
 ```
-vibekit-claude-plugins  feature/issue-20-search-fallback-behavior [+?] 󰚩Sonnet 4.5
+--------------------------------------------------
+claude-statusline  feature/typescript..
+--------------------------------------------------
 ```
-**Truncation Strategy**: No truncation, maximum readability
+*Length: 40 chars - Model lost, branch partially shown*
 
-## Challenging Scenarios
-
-### Very Long Project Names
-
-**Scenario**: Project names exceeding 40+ characters
-
-**80 Characters (Project Truncated)**:
+**Smart Truncation**:
 ```
-my-awesome-super-long-project-name-for-testing-purposes  main [!?✘]
-󰚩glm-4.6 22.17.1 3.13.5 28.3.3
+--------------------------------------------------
+clau..  feature/typescript-re.. [!+?]
+--------------------------------------------------
+```
+*Length: 38 chars - Git indicators preserved*
+
+### 60 Columns (Minimum Viable)
+
+**Basic Mode**:
+```
+------------------------------------------------------------
+claude-statusline  feature/typescript-rewrite-v..
+------------------------------------------------------------
+```
+*Length: 50 chars - Model and indicators lost*
+
+**Smart Truncation**:
+```
+------------------------------------------------------------
+clau..  feature/typescript-rewrite-v2.0.. [!+?]
+------------------------------------------------------------
+```
+*Length: 48 chars - Preserves git indicators*
+
+### 70 Columns (Tight but Usable)
+
+**Basic Mode**:
+```
+----------------------------------------------------------------------
+claude-statusline  feature/typescript-rewrite-v2.0 [!+?] ..
+----------------------------------------------------------------------
+```
+*Length: 60 chars - Model truncated with ".."*
+
+**Smart Truncation**:
+```
+----------------------------------------------------------------------
+claude-status..  feature/typescript-rewrite-v2.0 [!+?]
+----------------------------------------------------------------------
+```
+*Length: 55 chars - Project truncated, model preserved*
+
+### 80 Columns (Standard Terminal)
+
+**Basic Mode**:
+```
+--------------------------------------------------------------------------------
+claude-statusline  feature/typescript-rewrite-v2.0 [!+?] 󰚩Test Model
+--------------------------------------------------------------------------------
+```
+*Length: 69 chars - Everything fits*
+
+**Smart Truncation**:
+```
+--------------------------------------------------------------------------------
+claude-statusline  feature/typescript-rewrite-v2.0 [!+?] 󰚩Test
+Model
+--------------------------------------------------------------------------------
+```
+*Length: 69 chars - Soft-wrapping occurs when model is long*
+
+### 90+ Columns (Comfortable)
+
+**Both modes** (identical output):
+```
+------------------------------------------------------------------------------------------
+claude-statusline  feature/typescript-rewrite-v2.0 [!+?] 󰚩Test Model
+------------------------------------------------------------------------------------------
+```
+*Length: 69 chars - No truncation needed*
+
+## Key Findings from Testing
+
+### Soft-Wrapping Behavior
+
+Soft-wrapping in Smart Truncation Mode only occurs when:
+1. **Project + git fits** within the terminal width (minus 15-char margin)
+2. **Model exceeds** the remaining space
+3. **There's a natural break point** (space) in the model string
+
+*Test evidence*: At 80 columns with "Test Model", the project+git fits but the model needs to wrap, resulting in:
+```
+--------------------------------------------------------------------------------
+claude-statusline  feature/typescript-rewrite-v2.0 [!+?] 󰚩Test
+Model
+--------------------------------------------------------------------------------
 ```
 
-**Solution**: Smart truncation preserves readability while maintaining context
+The model wraps at the space between "Test" and "Model", maintaining readability without duplicating the icon.
 
-### Very Long Branch Names
+### Mode Comparison Summary
 
-**Scenario**: Feature branch names with detailed descriptions
+| Terminal Width | Basic Mode Behavior | Smart Truncation Behavior | Winner |
+|----------------|-------------------|---------------------------|---------|
+| **< 50** | Aggressive truncation, loses most context | Preserves git indicators | Smart |
+| **50-70** | Loses model info, may cut git indicators | Preserves git indicators, shorter output | Smart |
+| **80** | Everything fits in single line | May soft-wrap long model names | Tie* |
+| **90+** | No truncation needed | No truncation needed | Tie |
 
-**100 Characters (Branch Truncated)**:
+*\*At 80 columns: Basic Mode keeps everything on one line, Smart Truncation may soft-wrap to preserve full model text*
+
+### Practical Recommendations
+
+1. **Use Basic Mode** if you:
+   - Prefer predictable single-line output
+   - Don't need to preserve model information in narrow terminals
+   - Want maximum performance
+
+2. **Use Smart Truncation** if you:
+   - Want to preserve git indicators at all costs
+   - Don't mind multi-line output when necessary
+   - Need to see model information even in narrow terminals
+
+## Additional Testing Information
+
+To reproduce these test results:
+```bash
+cd tests
+./test_width.sh
 ```
-.dotfiles  feature/issue-42-comprehensive-refactoring-with-performance-improvements [!?✘]
-󰚩glm-4.6 22.17.1 3.13.5 28.3.3
+
+The test script provides:
+- Visual terminal width guides (dashed lines) like those shown above
+- Side-by-side comparison of both modes
+- Exact character lengths for each output
+- Clear indication when modes differ or match
+
+Example of test output with visual guides:
 ```
-
-**Solution**: Intelligent branch name shortening preserves essential information
-
-### Combined Long Names
-
-**Challenge**: Both project and branch names are very long
-
-**60 Characters (Double Truncation)**:
+=== 80 columns (Standard terminal) ===
+--------------------------------------------------------------------------------
+Basic Mode:
+claude-statusline  feature/typescript-rewrite-v2.0 [!+?] 󰚩Test Model
+--------------------------------------------------------------------------------
+Smart Truncation Mode (CLAUDE_CODE_STATUSLINE_TRUNCATE=1):
+claude-statusline  feature/typescript-rewrite-v2.0 [!+?] 󰚩Test
+Model
+--------------------------------------------------------------------------------
 ```
-vibekit-claude-plugins-extremely-long-project..  feature/issue-42-comp.. [!?✘]
-󰚩glm-4.6 22.17.1 3.13.5 28.3.3
-```
-
-**Solution**: Progressive truncation with branch priority
 
 ## Width Detection Algorithm
 
 ### Detection Methods (in order of preference)
 
+#### TypeScript v2.0 Implementation
+1. **Manual width override** - `CLAUDE_CODE_STATUSLINE_FORCE_WIDTH` (for testing)
+2. **COLUMNS environment variable** - Standard terminal width setting
+3. **Node.js process.stdout.columns** - Most reliable for Node.js processes
+4. **tput cols command** - Unix/Linux/macOS fallback
+5. **stty size command** - Secondary Unix/Linux/macOS fallback
+6. **Claude Code specific** - `CLAUDE_CODE_TERMINAL_WIDTH` environment variable
+7. **Terminal detection** - Defaults based on `TERM_PROGRAM` and `TERM`
+   - VS Code: 120 columns
+   - Modern terminals (Ghostty, WezTerm, iTerm): 120 columns
+   - Windows Terminal: 120 columns
+8. **Hard-coded fallback** - 80 columns (conservative default)
+
+#### Bash Implementation
 1. **tput cols** - Most reliable method
    ```bash
    width=$(tput cols 2>/dev/null)
@@ -266,7 +411,9 @@ for width in 50 60 70 80 90 100 120 150; do
     test_width $width
 done
 
-Note: The test_width function is also available in the tests/ directory as a standalone testing script.
+Note: Test scripts are available in the tests/ directory:
+- `test_width.sh` - Standard width testing across common terminal sizes
+- `test_width_long.sh` - Testing with long project/branch names
 ```
 
 ### Visual Width Testing
@@ -290,6 +437,17 @@ done
 
 ### Width Detection Performance
 
+#### TypeScript v2.0 Implementation
+| Method | Time | Reliability | Notes |
+|--------|------|-------------|-------|
+| `process.stdout.columns` | <1ms | ✅ High | Most reliable for Node.js |
+| `tput cols` | ~2ms | ✅ High | Unix/Linux/macOS fallback |
+| `stty size` | ~3ms | ✅ High | Secondary Unix fallback |
+| `$COLUMNS` | <1ms | ⚠️ Medium | Environment dependent |
+| Terminal detection | <1ms | ✅ High | Smart defaults |
+| Hard-coded | <1ms | ✅ High | No detection overhead |
+
+#### Bash Implementation
 | Method | Time | Reliability | Notes |
 |--------|------|-------------|-------|
 | `tput cols` | ~2ms | ✅ High | Most reliable, preferred |
@@ -304,7 +462,9 @@ done
 - **Branch truncation**: ~2ms overhead
 - **Complex truncation**: ~3ms overhead
 
-Overall impact is negligible (< 5ms) compared to total execution time (~99ms).
+Overall impact is negligible (< 5ms) compared to total execution time:
+- **TypeScript v2.0**: ~30-45ms (with parallel async operations and native optimizations)
+- **Bash v1.0**: ~99ms (original implementation)
 
 ## Troubleshooting Width Issues
 

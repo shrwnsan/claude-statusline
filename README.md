@@ -104,8 +104,7 @@ To see environment versions in your statusline, create a configuration file with
 When enabled with `"envContext": true`, shows development tool versions:
 
 ```
-claude-statusline @ main [⚑!⇡]
-*Claude Sonnet 4.5 Node22.17.1 Py3.13.5 Docker28.3.3
+claude-statusline @ main [⚑!⇡] *Claude Sonnet 4.5 Node22.17.1 Py3.13.5 Docker28.3.3
 ```
 
 *Example shows ASCII mode for universal compatibility. With Nerd Fonts enabled, ASCII symbols are replaced with icons/emojis.*
@@ -117,10 +116,20 @@ Supported tools:
 
 ### Smart Width Management
 
-- **15-character right margin** prevents bleeding into Claude Code telemetry
-- **Branch prioritization**: Branch names preserved over project names
-- **Progressive truncation**: Project → Branch → Indicators (if absolutely necessary)
-- **Responsive design**: Adapts to terminal width from 60-200+ characters
+Two modes available:
+
+1. **Basic Mode** (default):
+   - Simple truncation at `terminal width - 10` characters
+   - Always single-line
+   - Fast and predictable
+
+2. **Smart Truncation Mode** (`CLAUDE_CODE_STATUSLINE_TRUNCATE=1`):
+   - 15-character right margin prevents bleeding into Claude Code telemetry
+   - Branch prioritization: Branch names preserved over project names
+   - Progressive truncation: Project → Branch → Indicators (if absolutely necessary)
+   - Optional soft-wrapping: Can wrap model/environment info to preserve more context
+   - Responsive design: Adapts to terminal width from 60-200+ characters
+   - Disable soft-wrapping with `"noSoftWrap": true` to force single-line
 
 ### Width Breakpoints
 

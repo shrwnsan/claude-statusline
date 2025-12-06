@@ -185,7 +185,7 @@ function applySmartTruncation(params: {
   config: Config;
   symbols: SymbolSet;
 }): string {
-  const { statusline, projectName, gitStatus, modelString, terminalWidth, config, symbols } = params;
+  const { statusline, projectName, gitStatus, modelString, terminalWidth, config } = params;
 
   // Use 15-char margin for Claude telemetry compatibility
   const maxLen = Math.max(terminalWidth - config.rightMargin, 30);
@@ -208,7 +208,7 @@ function applySmartTruncation(params: {
     } else {
       // Default: soft-wrap model part
       const modelMaxLen = maxLen - projectGit.length - 1;
-      const wrappedModel = applySoftWrap(modelString, modelMaxLen, symbols.model);
+      const wrappedModel = applySoftWrap(modelString, modelMaxLen);
       return `${projectGit} ${wrappedModel}`;
     }
   }
@@ -226,7 +226,7 @@ function applySmartTruncation(params: {
 /**
  * Apply soft wrapping to text
  */
-function applySoftWrap(text: string, maxLength: number, modelPrefix: string): string {
+function applySoftWrap(text: string, maxLength: number): string {
   if (text.length <= maxLength) {
     return text;
   }
@@ -259,7 +259,7 @@ function applySoftWrap(text: string, maxLength: number, modelPrefix: string): st
 
   // Only wrap if second line has meaningful content
   if (secondLine) {
-    return `${firstLine}\n${modelPrefix}${secondLine}`;
+    return `${firstLine}\n${secondLine}`;
   } else {
     return firstLine;
   }
