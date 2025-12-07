@@ -66,12 +66,8 @@ export const defaultConfig: Config = ConfigSchema.parse({});
  * Configuration file names to search for (in order of preference)
  */
 const CONFIG_FILES = [
-  '.claude-statusline.json',
-  '.claude-statusline.yaml',
-  '.claude-statusline.yml',
   'claude-statusline.json',
   'claude-statusline.yaml',
-  'claude-statusline.yml',
 ];
 
 /**
@@ -107,7 +103,7 @@ function loadConfigFile(cwd: string): Partial<Config> {
 
           if (filename.endsWith('.json')) {
             return JSON.parse(content);
-          } else if (filename.endsWith('.yaml') || filename.endsWith('.yml')) {
+          } else if (filename.endsWith('.yaml')) {
             return parseYaml(content);
           }
         } catch (error) {
@@ -176,8 +172,8 @@ function loadEnvConfig(): Partial<Config> {
  * Get configuration file path for writing
  */
 export function getConfigFilePath(cwd: string = process.cwd()): string | null {
-  // Prefer .claude-statusline.json in the current directory
-  const configPath = join(cwd, '.claude-statusline.json');
+  // Prefer claude-statusline.json in the current directory
+  const configPath = join(cwd, 'claude-statusline.json');
   return configPath;
 }
 

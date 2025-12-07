@@ -3,7 +3,7 @@
 Simple statusline for Claude Code with git indicators. Now available in TypeScript v2.0 with enhanced performance and npm distribution!
 
 ![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
-![Version](https://img.shields.io/badge/version-2.0.0--alpha-green.svg)
+![Version](https://img.shields.io/badge/version-2.0.1-green.svg)
 ![TypeScript](https://img.shields.io/badge/language-TypeScript-3178C6.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)
 
@@ -22,19 +22,6 @@ curl -o claude-statusline https://github.com/shrwnsan/claude-statusline/releases
 chmod +x claude-statusline
 ```
 
-<details>
-<summary>📦 Legacy: Bash v1.0</summary>
-
-For users who prefer bash-only solutions:
-
-```bash
-curl -o claude-statusline.sh https://github.com/shrwnsan/claude-statusline/releases/download/v1.0.0/claude-statusline.sh
-chmod +x claude-statusline.sh
-```
-
-*Note: v1.0 lacks Windows support, configuration files, and npm distribution. See [Feature Comparison](./docs/FEATURE_COMPARISON.md) for details.*
-
-</details>
 
 ### Claude Code Configuration
 
@@ -55,20 +42,20 @@ The statusline automatically displays when Claude Code is active and updates bas
 
 ### Verification
 
-After installation, verify it's working:
+After installation, verify it's working using any of these methods:
 
 1. **Check the command is available:**
    ```bash
    claude-statusline --help
    ```
 
-2. **Test in a git repository:**
+2. **Reload Claude Code** and check for the statusline at the bottom
+
+3. **Test in a git repository** (if you have a local clone):
    ```bash
    cd /path/to/git/repo
    claude-statusline
    ```
-
-3. **Reload Claude Code** and check for the statusline at the bottom
 
 ### Default Configuration
 
@@ -179,19 +166,22 @@ Configure with JSON/YAML files:
 
 ```bash
 # Quick setup with minimal example
-cp .claude-statusline.json.example.min ~/.claude/.claude-statusline.json
+cp .claude-statusline.json.example.min ~/.claude/claude-statusline.json
 
 # Or complete example with all options
-cp .claude-statusline.json.example ~/.claude/.claude-statusline.json
+cp .claude-statusline.json.example ~/.claude/claude-statusline.json
 
 # Edit your configuration
-nano ~/.claude/.claude-statusline.json
+nano ~/.claude/claude-statusline.json
 ```
 
 **Configuration search order:**
-1. `./.claude-statusline.json` (project-specific)
-2. `~/.claude/.claude-statusline.json` (global) ← **Recommended**
-3. Environment variables (legacy)
+1. `./claude-statusline.json` or `./claude-statusline.yaml` (project-level)
+2. Parent directories (searches up the tree)
+3. `~/.claude/claude-statusline.{json,yaml}` (global) ← **Recommended**
+4. Environment variables (legacy v1.0 support)
+
+*Only JSON and YAML formats are supported. First configuration file found is used.*
 
 ## Examples
 
@@ -245,7 +235,30 @@ Enhanced security with input validation and type safety:
 
 See our [Contributing Guidelines](./CONTRIBUTING.md) for development setup and pull requests.
 
+## Changelog
+
+View [CHANGELOG.md](./CHANGELOG.md) for detailed version history and updates.
+
 ## License
 
 Apache License 2.0 - see [LICENSE](LICENSE) file for details.
+
+## 📦 Legacy: Bash v1.0
+
+> **Note:** Version 2.0 (TypeScript) is recommended for all users. Bash v1.0 is maintained for legacy environments only.
+
+For environments where Node.js/npm is not available:
+
+```bash
+curl -o claude-statusline.sh https://github.com/shrwnsan/claude-statusline/releases/download/v1.0.0/claude-statusline.sh
+chmod +x claude-statusline.sh
+```
+
+**Limitations of v1.0:**
+- Unix/Linux only (no Windows support)
+- No configuration files
+- No npm distribution
+- Basic width detection only
+
+See [Feature Comparison](./docs/FEATURE_COMPARISON.md) for details.
 
