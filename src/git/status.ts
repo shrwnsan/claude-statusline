@@ -1,6 +1,13 @@
 import { Config } from '../core/config.js';
 import { Cache, CacheKeys } from '../core/cache.js';
-import simpleGit, { SimpleGit } from 'simple-git';
+import {
+  checkIsRepo,
+  getCurrentBranch,
+  getPorcelainStatus,
+  getStashList,
+  getUpstreamRef,
+  getAheadBehind,
+} from './native.js';
 
 /**
  * Git status information interface
@@ -64,24 +71,20 @@ export class GitOperations {
     }
 
     try {
-      const git = simpleGit(directory, {
-        timeout: { block: 5000 },
-      });
-
       // Check if this is a git repository
-      const isRepo = await git.checkIsRepo();
+      const isRepo = await checkIsRepo(directory);
       if (!isRepo) {
         return null;
       }
 
       // Get current branch
-      const branch = await this.getCurrentBranch(git, directory);
+      const branch = await this.getCurrentBranch(directory);
       if (!branch) {
         return null;
       }
 
       // Get status indicators
-      const indicators = await this.getGitIndicators(git);
+      const indicators = await this.getGitIndicators(directory);
 
       return { branch, indicators };
 
@@ -94,7 +97,7 @@ export class GitOperations {
   /**
    * Get current branch name with caching
    */
-  private async getCurrentBranch(git: SimpleGit, directory: string): Promise<string | null> {
+  private async getCurrentBranch(directory: string): Promise<string | null> {
     const cacheKey = `${CacheKeys.GIT_BRANCH(directory)}_current`;
 
     // Try cache first
@@ -104,37 +107,11 @@ export class GitOperations {
     }
 
     try {
-      // Try multiple methods to get branch name
-      let branch: string | null = null;
+      const branch = await getCurrentBranch(directory);
 
-      // Method 1: git branch --show-current (most reliable)
-      try {
-        const result = await git.raw(['branch', '--show-current']);
-        branch = result.trim();
-      } catch {
-        // Method 2: git rev-parse --abbrev-ref HEAD
-        try {
-          const result = await git.raw(['rev-parse', '--abbrev-ref', 'HEAD']);
-          branch = result.trim();
-          // Filter out HEAD if not on a branch
-          if (branch === 'HEAD') {
-            branch = null;
-          }
-        } catch {
-          // Method 3: Parse git branch output
-          try {
-            const branches = await git.branch();
-            branch = branches.current || null;
-          } catch {
-            // All methods failed
-          }
-        }
-      }
-
-      if (branch && branch.trim()) {
-        const finalBranch = branch.trim();
-        await this.cache.set(cacheKey, finalBranch);
-        return finalBranch;
+      if (branch) {
+        await this.cache.set(cacheKey, branch);
+        return branch;
       }
 
       return null;
@@ -148,12 +125,12 @@ export class GitOperations {
   /**
    * Get comprehensive git status indicators
    */
-  private async getGitIndicators(git: SimpleGit): Promise<GitIndicators> {
+  private async getGitIndicators(directory: string): Promise<GitIndicators> {
     const indicators = { ...EMPTY_INDICATORS };
 
     try {
       // Get porcelain status for parsing
-      const statusResult = await git.raw(['status', '--porcelain']);
+      const statusResult = await getPorcelainStatus(directory);
       const statusLines = statusResult.split('\n')
         .map(line => line.trimEnd()) // Only trim trailing whitespace, not leading!
         .filter(line => line.length > 0);
@@ -210,10 +187,10 @@ export class GitOperations {
       }
 
       // Get stashed changes count
-      indicators.stashed = await this.getStashedCount(git);
+      indicators.stashed = await this.getStashedCount(directory);
 
       // Get ahead/behind information
-      const { ahead, behind } = await this.getAheadBehind(git);
+      const { ahead, behind } = await this.getAheadBehind(directory);
       indicators.ahead = ahead;
       indicators.behind = behind;
       indicators.diverged = ahead > 0 && behind > 0;
@@ -228,9 +205,9 @@ export class GitOperations {
   /**
    * Get number of stashed changes
    */
-  private async getStashedCount(git: SimpleGit): Promise<number> {
+  private async getStashedCount(directory: string): Promise<number> {
     try {
-      const stashList = await git.raw(['stash', 'list']);
+      const stashList = await getStashList(directory);
       return stashList.trim().split('\n').filter(line => line.trim().length > 0).length;
     } catch {
       return 0;
@@ -240,23 +217,16 @@ export class GitOperations {
   /**
    * Get ahead/behind count for tracking branch
    */
-  private async getAheadBehind(git: SimpleGit): Promise<{ ahead: number; behind: number }> {
+  private async getAheadBehind(directory: string): Promise<{ ahead: number; behind: number }> {
     try {
       // Check if we have an upstream branch
-      const upstream = await git.raw(['rev-parse', '--abbrev-ref', '@{u}']);
-      if (!upstream.trim()) {
+      const upstream = await getUpstreamRef(directory);
+      if (!upstream) {
         return { ahead: 0, behind: 0 };
       }
 
       // Get ahead/behind count
-      const result = await git.raw(['rev-list', '--count', '--left-right', '@{u}...HEAD']);
-      const counts = result.trim().split('\t');
-
-      if (counts.length === 2) {
-        const behind = parseInt(counts[0] || '0', 10);
-        const ahead = parseInt(counts[1] || '0', 10);
-        return { ahead, behind };
-      }
+      return await getAheadBehind(directory);
 
     } catch {
       // No upstream or other error

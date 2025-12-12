@@ -71,17 +71,41 @@ async function benchmarkTypeScript(testData, config = {}) {
  */
 async function runTypeScriptOnce(testData) {
   try {
-    const { exec } = await import('child_process');
-    const { promisify } = await import('util');
-    const execAsync = promisify(exec);
+    const { spawn } = await import('child_process');
 
-    const { stdout } = await execAsync('node dist/index.js', {
-      input: JSON.stringify(testData),
-      timeout: BENCHMARK_CONFIG.timeoutMs,
-      encoding: 'utf-8',
+    return new Promise((resolve, reject) => {
+      const child = spawn('node', ['dist/index.js'], {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: BENCHMARK_CONFIG.timeoutMs,
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      child.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      child.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      child.on('close', (code) => {
+        if (code === 0) {
+          resolve(stdout.trim());
+        } else {
+          reject(new Error(`Exit code ${code}: ${stderr || stdout}`));
+        }
+      });
+
+      child.on('error', (error) => {
+        reject(new Error(`Spawn error: ${error.message}`));
+      });
+
+      // Send input
+      child.stdin.write(JSON.stringify(testData));
+      child.stdin.end();
     });
-
-    return stdout.trim();
   } catch (error) {
     throw new Error(`TypeScript execution failed: ${error.message}`);
   }
