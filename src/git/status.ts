@@ -154,7 +154,9 @@ export class GitOperations {
     try {
       // Get porcelain status for parsing
       const statusResult = await git.raw(['status', '--porcelain']);
-      const statusLines = statusResult.trim().split('\n').filter(line => line.trim());
+      const statusLines = statusResult.split('\n')
+        .map(line => line.trimEnd()) // Only trim trailing whitespace, not leading!
+        .filter(line => line.length > 0);
 
       // Parse each status line
       for (const line of statusLines) {
@@ -229,7 +231,7 @@ export class GitOperations {
   private async getStashedCount(git: SimpleGit): Promise<number> {
     try {
       const stashList = await git.raw(['stash', 'list']);
-      return stashList.trim().split('\n').filter(line => line.trim()).length;
+      return stashList.trim().split('\n').filter(line => line.trim().length > 0).length;
     } catch {
       return 0;
     }
