@@ -24,7 +24,7 @@ export class EnvironmentDetector {
     this.cache = cache;
   }
 
-  /**
+    /**
    * Get environment information if context is enabled
    */
   async getEnvironmentInfo(): Promise<EnvironmentInfo | null> {
@@ -66,9 +66,12 @@ export class EnvironmentDetector {
    */
   private async getNodeVersion(): Promise<string | null> {
     const cacheKey = CacheKeys.NODE_VERSION;
+    // Environment versions change rarely, cache for 8 hours (96x default TTL)
+    // Covers a full workday - users rarely update Node/Python/Docker multiple times per day
+    const envCacheTTL = this.config.cacheTTL * 96;
 
     // Try cache first
-    const cached = await this.cache.get<string>(cacheKey, this.config.cacheTTL);
+    const cached = await this.cache.get<string>(cacheKey, envCacheTTL);
     if (cached) {
       return cached;
     }
@@ -80,7 +83,7 @@ export class EnvironmentDetector {
         cacheKey,
         'node',
         ['--version'],
-        this.config.cacheTTL
+        envCacheTTL
       );
 
       if (version) {
@@ -102,6 +105,9 @@ export class EnvironmentDetector {
   private async getPythonVersion(): Promise<string | null> {
     const python3Key = CacheKeys.PYTHON3_VERSION;
     const pythonKey = CacheKeys.PYTHON_VERSION;
+    // Environment versions change rarely, cache for 8 hours (96x default TTL)
+    // Covers a full workday - users rarely update Node/Python/Docker multiple times per day
+    const envCacheTTL = this.config.cacheTTL * 96;
 
     // Try python3 first
     try {
@@ -110,7 +116,7 @@ export class EnvironmentDetector {
         python3Key,
         'python3',
         ['--version'],
-        this.config.cacheTTL
+        envCacheTTL
       );
 
       if (version) {
@@ -131,7 +137,7 @@ export class EnvironmentDetector {
         pythonKey,
         'python',
         ['--version'],
-        this.config.cacheTTL
+        envCacheTTL
       );
 
       if (version) {
@@ -160,7 +166,7 @@ export class EnvironmentDetector {
         cacheKey,
         'docker',
         ['--version'],
-        this.config.cacheTTL * 6 // Longer TTL for Docker (30 minutes vs 5 minutes)
+        this.config.cacheTTL * 96 // Longer TTL for Docker (8 hours vs 5 minutes)
       );
 
       if (version) {
