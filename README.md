@@ -14,12 +14,15 @@ Simple statusline for Claude Code with git indicators. Now available in TypeScri
 ### Installation
 
 ```bash
-# bun install (recommended or use npm, pnpm, yarn)
+# Bun install (recommended - 5x faster than Node.js)
 bun install -g claude-statusline
 
-# Or download from releases
-curl -o claude-statusline https://github.com/shrwnsan/claude-statusline/releases/download/v2.0.0/claude-statusline
-chmod +x claude-statusline
+# Or npm install (works well too)
+npm install -g claude-statusline
+
+# Or pnpm/yarn
+pnpm add -g claude-statusline
+yarn global add claude-statusline
 ```
 
 
@@ -88,7 +91,7 @@ bun install -g claude-statusline  # Downloads 19KB in <1 second
 
 **Fun fact**: We started with a fast bash script (~60ms), accidentally made it slower with TypeScript (~327ms), then optimized it to be 12x faster than the original (~5ms with Bun)!
 
-*See [Performance Guide](docs/performance.md) for the full optimization story*
+*See [Performance Guide](docs/guide-03-performance.md) for the full optimization story*
 
 ## Features
 

@@ -144,3 +144,9 @@ The difference is startup time vs execution time. For CLI tools, what matters is
 We started with a fast bash script (~60ms), accidentally made it slower with TypeScript (~327ms), then through systematic optimizations achieved something 12x faster than the original (~5ms).
 
 **The moral**: Performance optimization is a journey, not a destination. Sometimes you need to take a step back to leap forward.
+
+---
+
+### Interested in the Technical Details?
+
+For the complete optimization strategy, implementation decisions, and why we chose not to pursue certain optimizations, see the [TypeScript Performance Optimization Plan](./prd-01-typescript-perf-optimization.md).

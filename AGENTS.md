@@ -138,10 +138,11 @@ claude-statusline/
 ├── README.md              # Project documentation
 ├── AGENTS.md              # This file - agent operational guidance
 └── docs/                  # Detailed documentation
-    ├── performance.md     # Performance analysis and benchmarks
-    ├── configuration.md   # Environment variables and options
-    ├── terminal-widths.md # Width management and responsive design
-    └── troubleshooting.md  # Debug guide and common issues
+    ├── guide-03-performance.md     # Performance analysis and benchmarks
+    ├── guide-01-configuration.md   # Environment variables and options
+    ├── eval-01-terminal-widths.md # Width management and responsive design
+    ├── guide-04-troubleshooting.md  # Debug guide and common issues
+    ├── prd-01-typescript-perf-optimization.md # Performance optimization plan
 ```
 
 ### Editing Guidelines
@@ -167,7 +168,7 @@ Before committing changes, ensure:
 ### Adding New Features
 1. Implement feature in `claude-statusline.sh`
 2. Add environment variable control if needed
-3. Update `docs/configuration.md` with new options
+3. Update `docs/guide-01-configuration.md` with new options
 4. Add tests to this AGENTS.md file
 5. Update README.md if feature affects user experience
 6. Test performance impact
@@ -177,15 +178,15 @@ Before committing changes, ensure:
 1. Benchmark current performance
 2. Implement optimization
 3. Measure improvement
-4. Update `docs/performance.md` with new benchmarks
+4. Update `docs/guide-03-performance.md` with new benchmarks
 5. Test edge cases and compatibility
-6. Document optimization technique in performance.md
+6. Document optimization technique in guide-03-performance.md
 
 ### Bug Fixes
 1. Identify root cause
 2. Implement fix
 3. Add regression test to AGENTS.md
-4. Update troubleshooting.md if applicable
+4. Update guide-04-troubleshooting.md if applicable
 5. Test across different environments
 6. Document fix in commit message
 
