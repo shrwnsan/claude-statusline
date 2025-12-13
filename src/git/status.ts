@@ -241,13 +241,13 @@ export class GitOperations {
   formatIndicators(indicators: GitIndicators, symbols: Config['symbols']): string {
     const indicatorChars: string[] = [];
 
-    // Follow Starship order: ⚑✘!+?⇕⇡⇣
-    if (indicators.stashed > 0) indicatorChars.push(symbols.stashed);
-    if (indicators.deleted > 0) indicatorChars.push(symbols.deleted);
+    // Follow actual Starship order: »!?+✘⚑×⇕⇡⇣
+    if (indicators.renamed > 0) indicatorChars.push(symbols.renamed);
+    if (indicators.untracked > 0) indicatorChars.push('?');
     if (indicators.modified > 0) indicatorChars.push('!');
     if (indicators.staged > 0) indicatorChars.push(symbols.staged);
-    if (indicators.untracked > 0) indicatorChars.push('?');
-    if (indicators.renamed > 0) indicatorChars.push(symbols.renamed);
+    if (indicators.deleted > 0) indicatorChars.push(symbols.deleted);
+    if (indicators.stashed > 0) indicatorChars.push(symbols.stashed);
     if (indicators.conflicts > 0) indicatorChars.push(symbols.conflict);
 
     // Ahead/behind status
