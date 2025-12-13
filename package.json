@@ -2,25 +2,35 @@
   "name": "claude-statusline",
   "version": "2.0.1",
   "description": "Simple statusline for Claude Code with git indicators. TypeScript rewrite for performance and npm distribution.",
-  "main": "dist/index.js",
+  "main": "dist/index.bundle.js",
   "bin": {
     "claude-statusline": "bin/claude-statusline"
   },
   "type": "module",
   "scripts": {
     "build": "tsc",
+    "build:bundle": "node esbuild.config.js",
+    "build:prod": "node esbuild.prod.config.js && npm run build:types",
+    "build:types": "tsc --emitDeclarationOnly",
     "dev": "tsc --watch",
+    "dev:bundle": "node esbuild.config.js --watch",
     "start": "node dist/index.js",
+    "start:bundle": "node dist/index.js",
     "test": "node --test --experimental-strip-types tests/**/*.test.ts",
+    "test:bundle": "npm run build:bundle && npm test",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
     "benchmark": "node scripts/benchmark.js",
-    "prepublishOnly": "npm run build && npm test",
+    "benchmark:bundle": "npm run build:bundle && npm run benchmark",
+    "prepublishOnly": "npm run build:prod && npm test",
     "bun:build": "bun build src/index.ts --outdir dist --target node",
+    "bun:build:bundle": "node esbuild.config.js",
     "bun:dev": "bun --watch src/index.ts",
     "bun:start": "bun src/index.ts",
+    "bun:start:bundle": "bun dist/index.js",
     "bun:test": "bun test tests/**/*.test.ts",
-    "bun:benchmark": "bun scripts/benchmark.js"
+    "bun:benchmark": "bun scripts/benchmark.js",
+    "bun:benchmark:bundle": "npm run build:bundle && bun scripts/benchmark.js"
   },
   "keywords": [
     "claude-code",
@@ -52,6 +62,7 @@
     "@types/node": "^22.10.1",
     "@typescript-eslint/eslint-plugin": "^8.18.0",
     "@typescript-eslint/parser": "^8.18.0",
+    "esbuild": "^0.27.1",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
@@ -67,7 +78,7 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.js",
+      "import": "./dist/index.bundle.js",
       "types": "./dist/index.d.ts"
     },
     "./config": {
