@@ -64,12 +64,21 @@ export async function main(): Promise<void> {
     }
 
     // Get components (run in parallel for better performance)
-    const [gitInfo, envInfo, symbols, terminalWidth] = await Promise.all([
+    const operations: Promise<any>[] = [
       gitOps.getGitInfo(fullDir),
       envDetector.getEnvironmentInfo(),
       detectSymbols(config),
-      getTerminalWidth(config),
-    ]);
+    ];
+
+    // Only get terminal width if truncation or wrapping features are enabled
+    let terminalWidth: number | undefined;
+    if (config.truncate || config.softWrap || config.noSoftWrap === false) {
+      operations.push(getTerminalWidth(config));
+    }
+
+    const results = await Promise.all(operations);
+    const [gitInfo, envInfo, symbols] = results;
+    terminalWidth = results[3]; // Will be undefined if not requested
 
     // Build statusline
     const statusline = await buildStatusline({
@@ -78,7 +87,7 @@ export async function main(): Promise<void> {
       gitInfo,
       envInfo,
       symbols,
-      terminalWidth,
+      terminalWidth: terminalWidth || 80, // Default if not detected
       config,
     });
 

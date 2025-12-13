@@ -1,6 +1,11 @@
 import { Config } from '../core/config.js';
 
 /**
+ * Symbol detection cache - symbols don't change during runtime
+ */
+const symbolCache = new Map<string, SymbolSet>();
+
+/**
  * Symbol detection and management
  * Ported from bash implementation with enhanced Nerd Font detection
  */
@@ -64,24 +69,38 @@ interface TerminalInfo {
 }
 
 /**
- * Detect Nerd Font support and return appropriate symbols
+ * Detect Nerd Font support and return appropriate symbols (with caching)
  */
 export async function detectSymbols(config: Config): Promise<SymbolSet> {
+  // Create cache key based on config
+  const cacheKey = config.noEmoji ? 'ascii' : 'detect';
+
+  // Check cache first
+  if (symbolCache.has(cacheKey)) {
+    return symbolCache.get(cacheKey)!;
+  }
+
+  let symbols: SymbolSet;
+
   // If emoji/nerd font is explicitly disabled, use ASCII
   if (config.noEmoji) {
-    return { ...ASCII_SYMBOLS, ...config.symbols, ...config.asciiSymbols };
-  }
-
-  // Try to detect Nerd Font support
-  const detection = await detectNerdFontSupport();
-
-  if (detection.hasNerdFont) {
-    // Merge user's custom symbols with Nerd Font defaults
-    return { ...NERD_FONT_SYMBOLS, ...config.symbols };
+    symbols = { ...ASCII_SYMBOLS, ...config.symbols, ...config.asciiSymbols };
   } else {
-    // Merge user's custom ASCII symbols with ASCII defaults
-    return { ...ASCII_SYMBOLS, ...config.asciiSymbols };
+    // Try to detect Nerd Font support
+    const detection = await detectNerdFontSupport();
+
+    if (detection.hasNerdFont) {
+      // Merge user's custom symbols with Nerd Font defaults
+      symbols = { ...NERD_FONT_SYMBOLS, ...config.symbols };
+    } else {
+      // Merge user's custom ASCII symbols with ASCII defaults
+      symbols = { ...ASCII_SYMBOLS, ...config.asciiSymbols };
+    }
   }
+
+  // Cache the result
+  symbolCache.set(cacheKey, symbols);
+  return symbols;
 }
 
 /**
