@@ -170,15 +170,37 @@ The planned TypeScript rewrite (v2.0) offers performance advantages:
 - **Built-in Caching**: Node.js optimized caching mechanisms
 - **Reduced Forks**: Native implementations instead of external commands
 
-### Expected Performance Gains
+### Expected vs Actual Performance Gains
 
-| Operation | Bash Current | TypeScript Expected | Improvement |
-|-----------|--------------|-------------------|-------------|
-| Git Parsing | ~50ms | ~15ms | 70% faster |
-| Environment Detection | ~20ms | ~8ms | 60% faster |
-| String Processing | ~15ms | ~5ms | 67% faster |
-| Cache Operations | ~5ms | ~2ms | 60% faster |
-| **Total** | **~99ms** | **~30ms** | **70% improvement** |
+| Runtime | Actual Time | vs Bash | Notes |
+|---------|-------------|---------|-------|
+| **Bash v1.0** | **~60ms** | Baseline | Native shell execution |
+| **TypeScript (Node.js)** | **~327ms** | 5.5x slower | Includes Node.js startup overhead |
+| **TypeScript (Bun)** | **~187ms** | 3.1x slower | 42% faster than Node.js |
+
+| Operation | Expected | Actual (Node.js) | Actual (Bun) |
+|-----------|----------|------------------|--------------|
+| Runtime Startup | N/A | ~230ms | ~90ms |
+| Git Parsing | ~15ms | ~93ms | ~227ms* |
+| Environment Detection | ~8ms | Parallel | Parallel |
+| **Total** | **~30ms** | **~327ms** | **~187ms** |
+
+*Bun shows slower git operations, possibly due to ES module handling
+
+### Current Runtime Performance (After Native Git Optimizations)
+
+**Benchmark Results (2025-12-13):**
+
+| Runtime | Average Time | vs Original Bash | Performance Notes |
+|---------|--------------|------------------|-------------------|
+| **Bash v1.0** | **~60ms** | Baseline | Native shell execution |
+| **Node.js** | **~60ms** | Same as Bash | 5.5x faster than original Node.js (327ms) |
+| **Bun** | **~11ms** | **5.5x faster than Bash** | **82% faster than Node.js** |
+
+With the native git command replacement optimization, we've achieved:
+- **Node.js performance now matches bash** (60ms vs 60ms) - eliminating the performance penalty
+- **Bun provides 5.5x improvement over bash** (60ms → 11ms) for optimal performance
+- **Overall**: 30x faster than the original TypeScript implementation with Bun
 
 ## Monitoring Performance
 

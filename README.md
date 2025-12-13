@@ -14,8 +14,8 @@ Simple statusline for Claude Code with git indicators. Now available in TypeScri
 ### Installation
 
 ```bash
-# npm install (recommended)
-npm install -g claude-statusline
+# bun install (recommended or use npm, pnpm, yarn)
+bun install -g claude-statusline
 
 # Or download from releases
 curl -o claude-statusline https://github.com/shrwnsan/claude-statusline/releases/download/v2.0.0/claude-statusline
@@ -40,23 +40,6 @@ Add to your `~/.claude/settings.json`:
 
 The statusline automatically displays when Claude Code is active and updates based on your git status and environment.
 
-### Verification
-
-After installation, verify it's working using any of these methods:
-
-1. **Check the command is available:**
-   ```bash
-   claude-statusline --help
-   ```
-
-2. **Reload Claude Code** and check for the statusline at the bottom
-
-3. **Test in a git repository** (if you have a local clone):
-   ```bash
-   cd /path/to/git/repo
-   claude-statusline
-   ```
-
 ### Default Configuration
 
 claude-statusline works out-of-the-box with these defaults:
@@ -70,6 +53,7 @@ To see environment versions in your statusline, create a configuration file with
 ```json
 {"envContext": true}
 ```
+*See the [🎛️ Configuration](#-configuration) section below for how to create and manage config files*
 
 ## Features
 
@@ -220,8 +204,8 @@ Enhanced security with input validation and type safety:
 
 ## Dependencies
 
-- **Required**: Node.js >= 18.0.0, Git (for status parsing)
-- **Runtime**: simple-git, yaml, zod
+- **Required**: Node.js >= 18.0.0 or Bun >= 1.0.0, Git (for status parsing)
+- **Runtime**: yaml, zod
 - **Development**: TypeScript, ESLint, Prettier
 
 ## Troubleshooting

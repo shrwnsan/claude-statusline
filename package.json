@@ -15,7 +15,12 @@
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
     "benchmark": "node scripts/benchmark.js",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "npm run build && npm test",
+    "bun:build": "bun build src/index.ts --outdir dist --target node",
+    "bun:dev": "bun --watch src/index.ts",
+    "bun:start": "bun src/index.ts",
+    "bun:test": "bun test tests/**/*.test.ts",
+    "bun:benchmark": "bun scripts/benchmark.js"
   },
   "keywords": [
     "claude-code",
@@ -36,7 +41,8 @@
   },
   "homepage": "https://github.com/shrwnsan/claude-statusline#readme",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
   },
   "dependencies": {
     "yaml": "^2.6.1",
