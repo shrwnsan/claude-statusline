@@ -51,7 +51,7 @@
   },
   "homepage": "https://github.com/shrwnsan/claude-statusline#readme",
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=22.6.0",
     "bun": ">=1.0.0"
   },
   "dependencies": {

@@ -274,9 +274,6 @@ function applySoftWrap(text: string, maxLength: number): string {
   }
 }
 
-// Helper function to access git operations
-const gitOps = new GitOperations(loadConfig(), new Cache(loadConfig()));
-
 // Run main function if this file is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   main();
