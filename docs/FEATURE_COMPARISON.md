@@ -1,6 +1,6 @@
 # Feature Comparison: TypeScript v2.0 vs Bash v1.0
 
-Comprehensive comparison between the stable bash implementation and the next-generation TypeScript rewrite.
+Comprehensive comparison between Bash v1.0 and TypeScript v2.0 implementations.
 
 **Ready to upgrade?** See the [Migration Guide](./MIGRATION.md) for step-by-step instructions.
 
@@ -8,7 +8,7 @@ Comprehensive comparison between the stable bash implementation and the next-gen
 
 | Version | Execution Time | Performance | Notes |
 |---------|----------------|-------------|-------|
-| **TypeScript v2.0** | **~30-45ms** | ✅ Excellent | Native JS optimizations |
+| **TypeScript v2.0** | **~5ms (Bun) / ~28ms (Node.js)** | ✅ Excellent | Native JS optimizations |
 | Bash v1.0 | ~99ms | ✅ Good | Optimized bash implementation |
 | Bash v1.0 (first run) | ~888ms | ⚠️ Slow | One-time cache population |
 

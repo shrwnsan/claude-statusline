@@ -3,9 +3,9 @@
 Simple statusline for Claude Code with git indicators. Now available in TypeScript v2.0 with enhanced performance and npm distribution!
 
 ![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
-![Version](https://img.shields.io/badge/version-2.0.1-green.svg)
+![Version](https://img.shields.io/badge/version-2.0.0-green.svg)
 ![TypeScript](https://img.shields.io/badge/language-TypeScript-3178C6.svg)
-![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)
+![Node](https://img.shields.io/badge/node-%3E%3D22.6.0-brightgreen.svg)
 
 ![Demo](https://github.com/user-attachments/assets/8716dc4e-83da-410b-88f2-c47de7dd5930)
 
@@ -182,7 +182,7 @@ For enhanced visual icons, install Nerd Fonts:
 
 ### 🎛️ Configuration
 
-**📖 [Complete Configuration Guide](./docs/CONFIGURATION.md)**
+**📖 [Complete Configuration Guide](./docs/guide-01-configuration.md)**
 
 Configure with JSON/YAML files:
 
@@ -227,7 +227,7 @@ claude-statusline @ main [$!A] *Claude Sonnet 4.5
 
 📚 **Complete documentation available in the [`docs/`](./docs) directory:**
 
-- **[Configuration Guide](./docs/CONFIGURATION.md)** - Complete configuration options and examples
+- **[Configuration Guide](./docs/guide-01-configuration.md)** - Complete configuration options and examples
 - **[Migration Guide](./docs/MIGRATION.md)** - Migrating from bash v1.0 to TypeScript v2.0
 - **[Feature Comparison](./docs/FEATURE_COMPARISON.md)** - Detailed comparison between versions
 - **[Documentation Index](./docs/README.md)** - Overview of all documentation
@@ -242,7 +242,7 @@ Enhanced security with input validation and type safety:
 
 ## Dependencies
 
-- **Required**: Node.js >= 18.0.0 or Bun >= 1.0.0, Git (for status parsing)
+- **Required**: Node.js >= 22.6.0 or Bun >= 1.0.0, Git (for status parsing)
 - **Runtime**: yaml, zod
 - **Development**: TypeScript, ESLint, Prettier
 

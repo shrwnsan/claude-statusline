@@ -1,6 +1,6 @@
 # Migration Guide
 
-Complete guide for migrating from bash v1.0 to TypeScript v2.0.
+Complete guide for migrating from bash v1.0 to TypeScript v2.0 (Released).
 
 **Not sure if you should upgrade?** See the [Feature Comparison](./FEATURE_COMPARISON.md) to compare versions.
 

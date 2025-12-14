@@ -264,6 +264,16 @@ CLAUDE_CODE_STATUSLINE_TRUNCATE=1 \
 
 ### Enabling Debug Logging
 
+**TypeScript v2.0 (Node.js/Bun)**:
+```bash
+# Enable debug logging
+DEBUG=claude-statusline:* claude-statusline
+
+# Or with verbose flag
+claude-statusline --verbose
+```
+
+**Bash v1.0 (Legacy)**:
 For debugging statusline behavior, use bash built-in debugging:
 ```bash
 # Enable execution tracing for one run

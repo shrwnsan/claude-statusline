@@ -113,9 +113,9 @@ The difference is startup time vs execution time. For CLI tools, what matters is
 | Version | Time | Optimization | Story |
 |---------|------|--------------|-------|
 | **v1.0 (Bash)** | **~60ms** | Native shell execution | ✅ Solid performance, pure bash implementation |
-| **v2.0-alpha (TypeScript)** | **~327ms** | Initial rewrite | 😅 Oops! Node.js startup overhead killed performance |
-| **v2.0-beta (Native Git)** | **~135ms** | Replaced simple-git | 🚀 59% improvement - back on track! |
-| **v2.0 (Bun + Bundle)** | **~5ms** | Bun runtime + esbuild | ⚡ 12x faster than original bash! |
+| **v2.0 (Development)** | **~135ms** | Native git operations | 🚀 59% improvement with native git |
+| **v2.0 (Bun Runtime)** | **~5ms** | Bun + optimizations | ⚡ 12x faster than original bash! |
+| **v2.0 (Node.js Runtime)** | **~28ms** | Node.js + optimizations | 🚀 2x faster than original bash! |
 
 ### What We Learned
 

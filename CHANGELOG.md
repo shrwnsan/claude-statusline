@@ -5,26 +5,17 @@ All notable changes to claude-statusline will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.1] - 2024-12-07
 
-### Changed
-- Simplified configuration file patterns to only `claude-statusline.{json,yaml}`
-- Removed support for `.claude-statusline.*` and `.yml` file extensions
-- Updated configuration search order documentation for clarity
-
-### Improved
-- Moved Legacy Bash v1.0 section to bottom with de-emphasis
-- Clarified JSON as preferred configuration format
-- Enhanced README organization for better user experience
-
-## [2.0.0] - 2024-12-05
+## [2.0.0] - 2025-12-14
 
 ### Major Changes
-- Complete rewrite from Bash to TypeScript (deb8af2)
+- Complete rewrite from Bash to TypeScript (deb8af2) - 16 commits over 9 days
 - npm distribution for easier installation and updates (13dddbd)
 - Cross-platform support including Windows
 
 ### Added
+- Published to npm registry for global installation
+- Available via `npm install -g claude-statusline` and `bun install -g claude-statusline`
 - Configuration file support (JSON/YAML) with schema validation
 - Enhanced terminal width detection (8 methods vs 3 in v1.0)
 - Smart truncation with soft-wrapping to preserve information
@@ -56,7 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced terminal width documentation (8e29200)
 - Added feature comparison and migration guides
 
-## [1.0.0] - 2024-12-01
+## [1.0.0] - 2025-12-01
 
 ### Added
 - Initial Bash implementation (7400080)
@@ -80,6 +71,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Icon reference section
 - Installation and setup instructions
 
-[2.0.1]: https://github.com/shrwnsan/claude-statusline/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/shrwnsan/claude-statusline/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/shrwnsan/claude-statusline/releases/tag/v1.0.0

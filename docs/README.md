@@ -7,19 +7,19 @@ Comprehensive documentation for the Claude Code statusline tool.
 ### Getting Started
 - [**Main README**](../README.md) - Installation, quick start, and overview
 - [**Migration Guide**](MIGRATION.md) - Migrating from bash v1.0 to TypeScript v2.0
-- [**Configuration Guide**](CONFIGURATION.md) - Complete configuration options and examples
+- [**Configuration Guide**](guide-01-configuration.md) - Complete configuration options and examples
 
 ### Reference
 - [**Feature Comparison**](FEATURE_COMPARISON.md) - Detailed comparison between versions
-- [**Architecture**](ARCHITECTURE.md) - Technical architecture and design (TODO)
-- [**Contributing**](CONTRIBUTING.md) - How to contribute to the project (TODO)
+- [**Architecture**](ARCHITECTURE.md) - Technical architecture and design
+- [**Contributing**](../CONTRIBUTING.md) - How to contribute to the project
 
 ## Quick Links
 
 ### For New Users
 1. [Installation Guide](../README.md#installation)
-2. [Quick Configuration](CONFIGURATION.md#quick-setup)
-3. [Popular Configurations](CONFIGURATION.md#popular-configurations)
+2. [Quick Configuration](guide-01-configuration.md#quick-setup)
+3. [Popular Configurations](guide-01-configuration.md#popular-configurations)
 
 ### For Existing Users (bash v1.0)
 1. [Migration Guide](MIGRATION.md)
@@ -27,14 +27,14 @@ Comprehensive documentation for the Claude Code statusline tool.
 3. [Configuration Changes](MIGRATION.md#step-2-convert-environment-variables-to-configuration)
 
 ### For Advanced Users
-1. [Complete Configuration Reference](CONFIGURATION.md#configuration-options)
+1. [Complete Configuration Reference](guide-01-configuration.md#configuration-options)
 2. [Performance Comparison](FEATURE_COMPARISON.md#performance-benchmarks)
 3. [Feature Matrix](FEATURE_COMPARISON.md#feature-matrix)
 
 ## Version-Specific Information
 
-### TypeScript v2.0 (Current)
-- **Performance**: 19.5x faster cold starts (~45ms vs 888ms)
+### TypeScript v2.0 (Stable)
+- **Performance**: ~5ms with Bun runtime, ~28ms with Node.js runtime
 - **Features**: Configuration files, Windows support, npm distribution
 - **Recommended for**: New users, Windows users, performance-critical setups
 
@@ -53,15 +53,15 @@ Comprehensive documentation for the Claude Code statusline tool.
 
 ### Installation Options
 ```bash
-# npm (recommended)
-npm install -g claude-statusline
-
-# bun
+# Bun install (recommended - 5x faster than Node.js)
 bun install -g claude-statusline
 
-# manual download
-curl -o claude-statusline https://github.com/shrwnsan/claude-statusline/releases/download/v2.0.0/claude-statusline
-chmod +x claude-statusline
+# Or npm install (works well too)
+npm install -g claude-statusline
+
+# Or pnpm/yarn
+pnpm add -g claude-statusline
+yarn global add claude-statusline
 ```
 
 ### Common Configurations

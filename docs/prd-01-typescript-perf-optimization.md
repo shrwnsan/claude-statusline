@@ -200,7 +200,7 @@
 - Installed esbuild dependency
 - Created development config with sourcemaps
 - Created production config with minification
-- Configured for Node.js 18+ target
+- Configured for Node.js 22.6.0+ target
 
 2.1.2 ✅ Bundle core modules (1 hour)
 - Bundled all TypeScript modules into single file
@@ -233,7 +233,7 @@
 **Subtasks**:
 2.2.1 Set up pkg configuration (3 hours)
 - Install pkg dependency
-- Configure for Node.js 18+ target
+- Configure for Node.js 22.6.0+ target
 - Package all dependencies
 
 2.2.2 Create platform-specific binaries (2 hours)

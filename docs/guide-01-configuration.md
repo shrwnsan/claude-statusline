@@ -218,6 +218,6 @@ Environment variables are still supported for backward compatibility. These work
 
 - `.claude-statusline.json` - JSON format (recommended for editor support)
 - `.claude-statusline.yaml` - YAML format (more minimal syntax)
-- `.claude-statusline.yml` - YAML format (alternative extension)
+- `.claude-statusline.yml` - YAML format (deprecated, use `.yaml` instead)
 
 Both formats support exactly the same configuration options.
