@@ -89,6 +89,7 @@ export async function main(): Promise<void> {
       symbols,
       terminalWidth: terminalWidth || 80, // Default if not detected
       config,
+      gitOps,
     });
 
     // Output result
@@ -134,8 +135,9 @@ async function buildStatusline(params: {
   symbols: SymbolSet;
   terminalWidth: number;
   config: Config;
+  gitOps: GitOperations;
 }): Promise<string> {
-  const { fullDir, modelName, gitInfo, envInfo, symbols, terminalWidth, config } = params;
+  const { fullDir, modelName, gitInfo, envInfo, symbols, terminalWidth, config, gitOps } = params;
 
   // Get project name
   const projectName = fullDir.split('/').pop() || fullDir.split('\\').pop() || 'project';
