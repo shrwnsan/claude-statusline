@@ -28,6 +28,7 @@ yarn global add claude-statusline
 
 ### Claude Code Configuration
 
+#### Standard Configuration (Node.js Runtime)
 Add to your `~/.claude/settings.json`:
 
 ```json
@@ -38,6 +39,21 @@ Add to your `~/.claude/settings.json`:
   }
 }
 ```
+
+#### ⚡ Performance-Optimized Configuration (Bun Runtime)
+For maximum performance (~5ms response time), explicitly use the Bun runtime:
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "bun claude-statusline"
+  }
+}
+```
+
+> **Why specify "bun claude-statusline"?**
+> Even when installed with `bun install -g`, the executable's shebang defaults to Node.js. Using "bun claude-statusline" ensures you get the full Bun performance benefits.
 
 ### Usage
 
@@ -62,8 +78,8 @@ To see environment versions in your statusline, create a configuration file with
 
 🚀 **claude-statusline is lightning fast**
 
-- **With Bun**: ~5ms response time
-- **With Node.js**: ~28ms response time
+- **With Bun runtime**: ~5ms response time (5x faster)
+- **With Node.js runtime**: ~28ms response time (still instant)
 - **Installation**: 19KB (tiny single-file bundle)
 
 ### Real-world experience
@@ -71,17 +87,22 @@ To see environment versions in your statusline, create a configuration file with
 # Install instantly
 bun install -g claude-statusline  # Downloads 19KB in <1 second
 
-# Add to Claude Code settings
+# Add to Claude Code settings for maximum performance
 # ~/.claude/settings.json
 {
   "statusLine": {
     "type": "command",
-    "command": "claude-statusline"
+    "command": "bun claude-statusline"
   }
 }
 
-# Enjoy instant git status updates! (~5ms with Bun)
+# Enjoy instant git status updates! (~5ms with Bun vs ~28ms with Node.js)
 ```
+
+**Performance Comparison:**
+- With `bun claude-statusline`: ~5ms ⚡
+- With `claude-statusline` (Node.js): ~28ms ✅
+- Both work perfectly - choose based on your preference
 
 ### Why so fast?
 - ✅ Native git commands (no slow libraries)
@@ -263,7 +284,7 @@ A: Yes! With Bun it runs in ~5ms, which is instantaneous for human perception. E
 A: Those include system startup overhead. The actual execution time is much faster (~5ms with Bun). What matters is that it feels instant to users.
 
 **Q: Should I use Bun or Node.js?**
-A: Use Bun if you can - it's 5x faster. But Node.js is still plenty fast at ~28ms.
+A: Use Bun if you can - it's 5x faster (~5ms vs ~28ms). Configure it as "bun claude-statusline" in your settings.json to get the performance benefits. Node.js is still plenty fast for daily use.
 
 ### Installation
 **Q: Why is the download only 19KB?**

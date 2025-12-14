@@ -134,7 +134,7 @@ export CLAUDE_CODE_STATUSLINE_NO_GITSTATUS=0
 
 If you previously had bash v1.0 in your settings, update the path:
 
-### settings.json
+### Standard Configuration (Node.js Runtime)
 ```json
 {
   "statusLine": {
@@ -144,6 +144,20 @@ If you previously had bash v1.0 in your settings, update the path:
   }
 }
 ```
+
+### Performance-Optimized Configuration (Bun Runtime)
+For best performance (~5ms), explicitly use Bun:
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "bun claude-statusline",
+    "padding": 0
+  }
+}
+```
+
+> **Performance Note**: Using "bun claude-statusline" gives you ~5ms response time vs ~28ms with standard Node.js. Both work perfectly - choose based on your performance needs.
 
 ### With Custom Path (if not in PATH)
 ```json
@@ -331,6 +345,7 @@ If you encounter issues during migration:
 After migrating to TypeScript v2.0, you'll enjoy:
 
 - ✅ **19.5x faster cold starts** (45ms vs 888ms)
+- ✅ **5x faster runtime with Bun** (~5ms vs ~28ms with Node.js)
 - ✅ **Native Windows support**
 - ✅ **Configuration file support**
 - ✅ **Package manager integration**

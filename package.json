@@ -1,6 +1,6 @@
 {
   "name": "claude-statusline",
-  "version": "2.0.1",
+  "version": "2.0.0",
   "description": "Simple statusline for Claude Code with git indicators. TypeScript rewrite for performance and npm distribution.",
   "main": "dist/index.bundle.js",
   "bin": {

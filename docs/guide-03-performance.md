@@ -14,7 +14,12 @@
 ### Installation Experience
 ```bash
 bun install -g claude-statusline  # Downloads instantly (19KB)
-claude-statusline                   # Runs in under 5ms with Bun
+
+# For maximum performance in Claude Code settings:
+# "command": "bun claude-statusline"  # ~5ms response
+
+# Standard configuration:
+# "command": "claude-statusline"     # ~28ms response (Node.js)
 ```
 
 ### Performance Numbers Explained
@@ -61,6 +66,15 @@ brew install bun
 # Install claude-statusline
 bun install -g claude-statusline
 
+# Configure Claude Code for maximum performance:
+# ~/.claude/settings.json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "bun claude-statusline"
+  }
+}
+
 # Enjoy ~5ms response times!
 ```
 
@@ -71,9 +85,19 @@ npm install -g claude-statusline
 # OR
 bun install -g claude-statusline
 
-# Run with Node.js (default)
-claude-statusline  # ~28ms response time
+# Configure Claude Code:
+# ~/.claude/settings.json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "claude-statusline"
+  }
+}
+
+# Runs with Node.js (~28ms response time)
 ```
+
+> **Important**: Even with `bun install -g`, you must explicitly use "bun claude-statusline" in your settings to get Bun's performance benefits.
 
 ## Performance Optimizations We've Made
 
@@ -87,9 +111,16 @@ claude-statusline  # ~28ms response time
 
 ### Feeling slow? Check:
 
-1. **Using Node.js?** Try Bun for 5x speedup
+1. **Using "claude-statusline" instead of "bun claude-statusline"?**
+   - Change your settings.json to use "bun claude-statusline" for 5x speedup
 2. **First run?** Cache warming speeds up subsequent runs
 3. **Complex git repo?** Large repos take slightly longer
+4. **Not sure which runtime you're using?**
+   ```bash
+   # Check if you're getting Bun performance
+   time claude-statusline
+   # Should show ~5ms with Bun, ~28ms with Node.js
+   ```
 
 ### Always fast operations:
 - Reading configuration files

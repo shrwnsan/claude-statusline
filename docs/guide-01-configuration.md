@@ -21,6 +21,56 @@ cp .claude-statusline.json.example.min ~/.claude/.claude-statusline.json
 nano ~/.claude/.claude-statusline.json
 ```
 
+## Runtime Selection for Maximum Performance
+
+### Understanding the Performance Difference
+
+claude-statusline can run on either Node.js or Bun runtimes, with significant performance differences:
+
+| Runtime | Response Time | Performance | When to Use |
+|---------|---------------|------------|-------------|
+| **Bun** | ~5ms | ⚡⚡⚡⚡⚡ | Recommended for best performance |
+| **Node.js** | ~28ms | ⚡⚡⚡ | Good fallback, widely available |
+
+> **Important**: Even when installed with `bun install -g`, the executable's shebang defaults to Node.js. To get Bun's performance benefits, you must explicitly specify it in your Claude Code configuration.
+
+### Claude Code Configuration Options
+
+#### Option 1: Maximum Performance (Recommended)
+Use Bun runtime explicitly:
+
+```json
+// ~/.claude/settings.json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "bun claude-statusline"
+  }
+}
+```
+
+#### Option 2: Standard Configuration
+Uses Node.js runtime (default shebang):
+
+```json
+// ~/.claude/settings.json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "claude-statusline"
+  }
+}
+```
+
+### Installation vs Runtime
+
+**Installation Method ≠ Runtime Used:**
+- `bun install -g claude-statusline` - Just downloads the package
+- `bun claude-statusline` - Actually uses Bun runtime for execution
+- `claude-statusline` - Uses Node.js runtime (via shebang)
+
+Both configurations work perfectly. The Bun runtime is 5x faster but requires Bun to be installed. Node.js is more widely available and still provides instant response times.
+
 ## Configuration Search Order
 
 1. `./.claude-statusline.json` (project-specific)
