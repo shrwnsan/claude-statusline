@@ -243,30 +243,78 @@ function applySoftWrap(text: string, maxLength: number): string {
   }
 
   // Find a good break point
-  let breakPos = maxLength;
   let foundBreak = false;
 
-  // Look for spaces to break at
-  for (let i = Math.min(maxLength - 1, text.length - 1); i > Math.max(maxLength - 20, 0) && i >= 0; i--) {
-    if (text[i] === ' ') {
-      breakPos = i;
+  // Work with actual Unicode characters to avoid splitting multi-byte sequences
+  const chars = Array.from(text); // This splits by actual Unicode characters
+  let charCount = 0;
+  let breakCharIndex = chars.length; // Default to no break
+  let lastSpaceIndex = -1;
+
+  // Find the best break point by character count
+  for (let i = 0; i < chars.length; i++) {
+    const char = chars[i];
+
+    // Track spaces for potential break points
+    if (char === ' ') {
+      lastSpaceIndex = i;
+    }
+
+    // Estimate display width (this is approximate)
+    // Most Unicode icons count as 1 display character
+    // ASCII characters count as 1
+    charCount++;
+
+    // Check if we've exceeded the max length
+    if (charCount > maxLength) {
+      // If we found a space before this point, use it
+      if (lastSpaceIndex >= 0) {
+        breakCharIndex = lastSpaceIndex;
+      } else {
+        // No space found, break before current character
+        breakCharIndex = i;
+      }
+      foundBreak = lastSpaceIndex >= 0;
+      break;
+    }
+  }
+
+  // If everything fits, return as is
+  if (breakCharIndex >= chars.length) {
+    return text;
+  }
+
+  // If no safe break found and we're very close to max_length, just fit without wrapping
+  // But only if we're not dealing with a model string that starts with an icon
+  const firstChar = chars.length > 0 ? chars[0] : '';
+  const startsWithIcon = firstChar && firstChar !== ' ' && Buffer.byteLength(firstChar, 'utf8') > 1;
+  if (!foundBreak && maxLength - charCount > -3 && !startsWithIcon) {
+    return text;
+  }
+
+  // Special case: if we're starting with an icon and breaking very early,
+  // try to keep at least the icon and 1-2 more characters
+  if (startsWithIcon && breakCharIndex <= 2 && maxLength >= 3) {
+    // Find a better break point after at least 3 characters total
+    for (let i = 2; i < Math.min(chars.length, maxLength); i++) {
+      breakCharIndex = i;
       foundBreak = true;
       break;
     }
   }
 
-  // If no safe break found and we're very close to max_length, just fit without wrapping
-  if (!foundBreak && maxLength - text.length > -3) {
-    return text;
-  }
-
-  const firstLine = text.substring(0, breakPos);
-  let secondLine = text.substring(breakPos);
+  // Build the strings using character indices
+  const firstChars = chars.slice(0, breakCharIndex);
+  const secondChars = chars.slice(breakCharIndex);
 
   // Remove leading space from second line if we broke at space
-  if (secondLine.startsWith(' ')) {
-    secondLine = secondLine.substring(1);
+  if (secondChars.length > 0 && secondChars[0] === ' ') {
+    secondChars.shift();
   }
+
+  // Join characters back into strings
+  const firstLine = firstChars.join('');
+  const secondLine = secondChars.join('');
 
   // Only wrap if second line has meaningful content
   if (secondLine) {

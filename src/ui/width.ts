@@ -275,6 +275,12 @@ export function softWrapText(
       return text;
     }
 
+    // Adjust break position to avoid splitting multi-byte UTF-8 characters
+    // UTF-8 continuation bytes have their two most significant bits set to 10 (0x80 to 0xBF)
+    while (breakPos > 0 && (text.charCodeAt(breakPos) & 0xC0) === 0x80) {
+      breakPos--;
+    }
+
     const firstLine = text.substring(0, breakPos);
     let secondLine = text.substring(breakPos);
 
@@ -291,8 +297,16 @@ export function softWrapText(
     }
   } else {
     // Use space separator for wrapping
-    const firstLine = text.substring(0, maxLength);
-    const secondLine = text.substring(maxLength);
+    let breakPos = maxLength;
+
+    // Adjust break position to avoid splitting multi-byte UTF-8 characters
+    // UTF-8 continuation bytes have their two most significant bits set to 10 (0x80 to 0xBF)
+    while (breakPos > 0 && (text.charCodeAt(breakPos) & 0xC0) === 0x80) {
+      breakPos--;
+    }
+
+    const firstLine = text.substring(0, breakPos);
+    const secondLine = text.substring(breakPos);
     return `${firstLine} ${secondLine}`;
   }
 }
