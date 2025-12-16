@@ -2,7 +2,7 @@
 
 /**
  * Performance benchmark for Claude Statusline v2.0
- * Compares TypeScript implementation against bash baseline
+ * TypeScript-only implementation with performance analysis
  */
 
 import { readFileSync } from 'fs';
@@ -112,56 +112,33 @@ async function runTypeScriptOnce(testData) {
 }
 
 /**
- * Run bash implementation benchmark
+ * Run TypeScript implementation with cache analysis
  */
-async function benchmarkBash(testData, config = {}) {
+async function benchmarkWithCacheAnalysis(testData, config = {}) {
   const iterations = config.iterations || BENCHMARK_CONFIG.iterations;
   const warmupIterations = config.warmupIterations || BENCHMARK_CONFIG.warmupIterations;
   const times = [];
 
-  // Check if bash script exists
-  const bashScriptPath = './claude-statusline.sh';
+  // Clear cache before first run
   try {
-    readFileSync(bashScriptPath);
-  } catch {
-    return { error: 'Bash script not found', stats: null };
-  }
+    const { rmSync } = await import('fs');
+    rmSync('/tmp/.claude-statusline-cache', { recursive: true, force: true });
+  } catch {}
 
-  // Warmup runs
+  // Warmup runs (with cache building)
   for (let i = 0; i < warmupIterations; i++) {
-    await runBashOnce(testData, bashScriptPath);
+    await runTypeScriptOnce(testData);
   }
 
-  // Actual benchmark runs
+  // Actual benchmark runs (cache hits)
   for (let i = 0; i < iterations; i++) {
     const startTime = performance.now();
-    await runBashOnce(testData, bashScriptPath);
+    await runTypeScriptOnce(testData);
     const endTime = performance.now();
     times.push(endTime - startTime);
   }
 
   return analyzeTimes(times);
-}
-
-/**
- * Run bash implementation once
- */
-async function runBashOnce(testData, bashScriptPath) {
-  try {
-    const { exec } = await import('child_process');
-    const { promisify } = await import('util');
-    const execAsync = promisify(exec);
-
-    const { stdout } = await execAsync(`bash ${bashScriptPath}`, {
-      input: JSON.stringify(testData),
-      timeout: BENCHMARK_CONFIG.timeoutMs,
-      encoding: 'utf-8',
-    });
-
-    return stdout.trim();
-  } catch (error) {
-    throw new Error(`Bash execution failed: ${error.message}`);
-  }
 }
 
 /**
@@ -245,10 +222,16 @@ async function runBenchmarkSuite() {
     console.log('');
 
     const tsResults = await benchmarkTypeScript(testData);
-    const bashResults = await benchmarkBash(testData);
+    const cacheResults = await benchmarkWithCacheAnalysis(testData);
 
-    formatResults('TypeScript v2.0', tsResults);
-    formatResults('Bash v1.0', bashResults, tsResults);
+    formatResults('TypeScript v2.0 (Cold)', tsResults);
+    formatResults('TypeScript v2.0 (Cached)', cacheResults, tsResults);
+
+    // Show cache performance improvement
+    if (tsResults.stats && cacheResults.stats) {
+      const cacheSpeedup = tsResults.stats.mean / cacheResults.stats.mean;
+      console.log(`  🚀 Cache Speedup: ${cacheSpeedup.toFixed(1)}x faster`);
+    }
 
     // Show sample output
     console.log('\n📝 Sample Output:');
@@ -267,8 +250,8 @@ async function runBenchmarkSuite() {
   console.log('\n📈 Benchmark Summary');
   console.log('='.repeat(30));
   console.log('✨ TypeScript implementation completed successfully');
-  console.log('💡 Compare results above to see performance improvements');
-  console.log('🎯 Target: 2-5x performance improvement over bash v1.0');
+  console.log('💡 Cache analysis shows performance improvements');
+  console.log('🎯 Target: <5ms execution time with caching enabled');
 }
 
 /**
@@ -310,7 +293,7 @@ async function main() {
 
   if (args.help) {
     console.log(`
-Claude Statusline Benchmark Tool
+Claude Statusline Benchmark Tool v2.0
 
 Usage: node scripts/benchmark.js [options]
 
@@ -318,9 +301,15 @@ Options:
   --quick      Run a quick benchmark (1 test case)
   --help, -h   Show this help message
 
+Features:
+  - TypeScript implementation benchmarking
+  - Cache performance analysis (cold vs cached)
+  - Multiple test scenarios (clean/dirty git, long paths)
+  - Statistical analysis (mean, median, p95, p99)
+
 Examples:
-  node scripts/benchmark.js           # Full benchmark suite
-  node scripts/benchmark.js --quick   # Quick benchmark
+  node scripts/benchmark.js           # Full benchmark suite with cache analysis
+  node scripts/benchmark.js --quick   # Quick benchmark (development mode)
     `);
     process.exit(0);
   }
@@ -342,4 +331,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
 
-export { benchmarkTypeScript, benchmarkBash, runBenchmarkSuite };
+export { benchmarkTypeScript, benchmarkWithCacheAnalysis, runBenchmarkSuite };

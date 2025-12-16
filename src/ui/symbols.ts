@@ -2,13 +2,10 @@ import { Config } from '../core/config.js';
 
 /**
  * Symbol detection cache - symbols don't change during runtime
+ * Added cache version to handle potential stale data issues
  */
-const symbolCache = new Map<string, SymbolSet>();
-
-/**
- * Symbol detection and management
- * Ported from bash implementation with enhanced Nerd Font detection
- */
+const symbolCache = new Map<string, { symbols: SymbolSet; timestamp: number }>();
+const CACHE_VERSION = 1; // Increment to invalidate all caches
 
 /**
  * Symbol configuration interface
@@ -51,8 +48,8 @@ const NERD_FONT_SYMBOLS: SymbolSet = {
   staged: '+',
   conflict: '×',
   stashed: '⚑',
-  ahead: '↑',
-  behind: '↓',
+  ahead: '⇡',
+  behind: '⇣',
   diverged: '⇕',
   renamed: '»',
   deleted: '✘',
@@ -72,12 +69,14 @@ interface TerminalInfo {
  * Detect Nerd Font support and return appropriate symbols (with caching)
  */
 export async function detectSymbols(config: Config): Promise<SymbolSet> {
-  // Create cache key based on config
-  const cacheKey = config.noEmoji ? 'ascii' : 'detect';
+  // Create cache key based on config and environment
+  const envFingerprint = process.env.NERD_FONT + '|' + process.env.TERM_PROGRAM + '|' + process.env.TERM;
+  const cacheKey = `${CACHE_VERSION}:${config.noEmoji ? 'ascii' : 'nerd'}:${envFingerprint}`;
 
-  // Check cache first
-  if (symbolCache.has(cacheKey)) {
-    return symbolCache.get(cacheKey)!;
+  // Check cache first with timestamp validation
+  const cached = symbolCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < 60000) { // 1 minute cache TTL
+    return cached.symbols;
   }
 
   let symbols: SymbolSet;
@@ -98,8 +97,8 @@ export async function detectSymbols(config: Config): Promise<SymbolSet> {
     }
   }
 
-  // Cache the result
-  symbolCache.set(cacheKey, symbols);
+  // Cache the result with timestamp
+  symbolCache.set(cacheKey, { symbols, timestamp: Date.now() });
   return symbols;
 }
 

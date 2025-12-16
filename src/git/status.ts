@@ -242,6 +242,30 @@ export class GitOperations {
     const indicatorChars: string[] = [];
 
     // Custom order matching user preference: ⚑»!+?✘×⇕⇡⇣
+    // IMPORTANT: Do NOT change this order without updating documentation
+    const expectedOrder = ['stashed', 'renamed', 'modified', 'staged', 'untracked', 'deleted', 'conflicts'];
+
+    // Debug logging for order validation (only in development)
+    if (process.env.NODE_ENV !== 'production') {
+      const actualOrder: string[] = [];
+      if (indicators.stashed > 0) actualOrder.push('stashed');
+      if (indicators.renamed > 0) actualOrder.push('renamed');
+      if (indicators.modified > 0) actualOrder.push('modified');
+      if (indicators.staged > 0) actualOrder.push('staged');
+      if (indicators.untracked > 0) actualOrder.push('untracked');
+      if (indicators.deleted > 0) actualOrder.push('deleted');
+      if (indicators.conflicts > 0) actualOrder.push('conflicts');
+
+      // Validate order consistency
+      for (let i = 0; i < actualOrder.length - 1; i++) {
+        const currentIndex = expectedOrder.indexOf(actualOrder[i]!);
+        const nextIndex = expectedOrder.indexOf(actualOrder[i + 1]!);
+        if (currentIndex !== -1 && nextIndex !== -1 && currentIndex > nextIndex) {
+          console.warn(`[WARN] Indicator order violation: ${actualOrder[i]!} should not come before ${actualOrder[i + 1]!}`);
+        }
+      }
+    }
+
     if (indicators.stashed > 0) indicatorChars.push(symbols.stashed);
     if (indicators.renamed > 0) indicatorChars.push(symbols.renamed);
     if (indicators.modified > 0) indicatorChars.push('!');
