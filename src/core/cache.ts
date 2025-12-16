@@ -69,7 +69,10 @@ export class Cache {
       const currentTime = Math.floor(Date.now() / 1000);
       const age = currentTime - timestamp;
 
-      if (age >= ttl) {
+      // In development, reduce cache TTL to prevent stale data
+      const effectiveTTL = process.env.NODE_ENV === 'development' ? Math.min(ttl, 5) : ttl;
+
+      if (age >= effectiveTTL) {
         // Cache expired
         return null;
       }
