@@ -70,15 +70,19 @@ export async function main(): Promise<void> {
       detectSymbols(config),
     ];
 
-    // Only get terminal width if truncation or wrapping features are enabled
+    // Only get terminal width if smart truncation is enabled
     let terminalWidth: number | undefined;
-    if (config.truncate || config.softWrap || config.noSoftWrap === false) {
+    if (config.truncate) {
       operations.push(getTerminalWidth(config));
     }
 
     const results = await Promise.all(operations);
     const [gitInfo, envInfo, symbols] = results;
-    terminalWidth = results[3]; // Will be undefined if not requested
+
+    // Extract terminal width from results if it was requested
+    if (config.truncate && results.length > 3) {
+      terminalWidth = results[3];
+    }
 
     // Build statusline
     const statusline = await buildStatusline({
@@ -87,7 +91,7 @@ export async function main(): Promise<void> {
       gitInfo,
       envInfo,
       symbols,
-      terminalWidth: terminalWidth || 80, // Default if not detected
+      ...(terminalWidth && { terminalWidth }), // Only include if defined
       config,
       gitOps,
     });
@@ -133,7 +137,7 @@ async function buildStatusline(params: {
   gitInfo: any;
   envInfo: any;
   symbols: SymbolSet;
-  terminalWidth: number;
+  terminalWidth?: number; // Optional - only needed for smart truncation
   config: Config;
   gitOps: GitOperations;
 }): Promise<string> {
@@ -162,8 +166,12 @@ async function buildStatusline(params: {
   // Initial statusline
   let statusline = `${projectName}${gitStatus} ${modelString}`;
 
-  // Apply truncation if enabled
+  // Apply smart truncation if enabled
   if (config.truncate) {
+    if (!terminalWidth) {
+      console.error('[ERROR] Smart truncation enabled but terminal width not available');
+      process.exit(1);
+    }
     statusline = applySmartTruncation({
       statusline,
       projectName,
@@ -173,13 +181,8 @@ async function buildStatusline(params: {
       config,
       symbols,
     });
-  } else {
-    // Apply basic truncation (current behavior)
-    const maxWidth = terminalWidth - 10;
-    if (statusline.length > maxWidth) {
-      statusline = truncateText(statusline, maxWidth);
-    }
   }
+  // No basic truncation - let terminal handle overflow
 
   return statusline;
 }
