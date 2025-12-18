@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Added
+- Context window usage display (e669571, 0eec6fa)
+  - Shows percentage of context window consumed when data is available
+  - Uses ⚡︎ symbol (Nerd Font) or # symbol (ASCII)
+  - Can be disabled with `noContextWindow: true` or `CLAUDE_CODE_STATUSLINE_NO_CONTEXT_WINDOW=1`
+
+### Fixed
+- Restored git symbol () that was accidentally removed in Nerd Font symbol set (e669571)
+
 ## [2.0.0] - 2025-12-14
 
 ### Major Changes

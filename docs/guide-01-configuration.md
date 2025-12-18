@@ -95,6 +95,7 @@ Both configurations work perfectly. The Bun runtime is 5x faster but requires Bu
 |--------|------|---------|-------------|
 | `noEmoji` | boolean | `false` | Force ASCII mode instead of Nerd Font symbols |
 | `noGitStatus` | boolean | `false` | Disable git status indicators completely |
+| `noContextWindow` | boolean | `false` | Disable context window usage display |
 | `envContext` | boolean | `false` | Show Node.js, Python, Docker versions |
 | `truncate` | boolean | `false` | Enable smart truncation for long statuslines |
 | `debugWidth` | boolean | `false` | Show terminal width detection debug info |
@@ -114,11 +115,12 @@ Both configurations work perfectly. The Bun runtime is 5x faster but requires Bu
 "symbols": {
   "git": "",        // Git icon
   "model": "󰚩",     // AI model icon
+  "contextWindow": "⚡︎", // Context window usage
   "staged": "+",       // Staged changes
   "conflict": "×",     // Merge conflicts
   "stashed": "⚑",     // Stashed changes
-  "ahead": "↑",        // Ahead of upstream
-  "behind": "↓",       // Behind upstream
+  "ahead": "⇡",        // Ahead of upstream
+  "behind": "⇣",       // Behind upstream
   "diverged": "⇕",    // Both ahead and behind
   "renamed": "»",     // Renamed files
   "deleted": "✘"      // Deleted files
@@ -130,6 +132,7 @@ Both configurations work perfectly. The Bun runtime is 5x faster but requires Bu
 "asciiSymbols": {
   "git": "@",         // Git icon
   "model": "*",        // AI model icon
+  "contextWindow": "#", // Context window usage
   "staged": "+",       // Staged changes
   "conflict": "C",     // Merge conflicts
   "stashed": "$",     // Stashed changes
@@ -210,6 +213,7 @@ Environment variables are still supported for backward compatibility. These work
 ### TypeScript v2.0 Only (New Features)
 - `CLAUDE_CODE_STATUSLINE_NO_SOFT_WRAP=1` - Disable soft-wrapping
 - `CLAUDE_CODE_STATUSLINE_DEBUG_WIDTH=1` - Enable width debugging
+- `CLAUDE_CODE_STATUSLINE_NO_CONTEXT_WINDOW=1` - Disable context window usage display
 
 > **Note**: Environment variables are considered legacy. Configuration files are recommended for better organization and more options.
 

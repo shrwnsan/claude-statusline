@@ -129,6 +129,20 @@ bun install -g claude-statusline  # Downloads 19KB in <1 second
 - **Ahead**: ⇡ (commits ahead of upstream)
 - **Behind**: ⇣ (commits behind upstream)
 
+### Context Window Usage
+
+Automatically displays context window usage percentage when available (requires Claude Code to send context window data):
+
+```
+claude-statusline  main [⚑!] 󰚩Opus ⚡︎27%
+```
+
+Shows percentage of context window consumed in the current conversation. The symbol varies by mode:
+- **Nerd Font**: ⚡︎ (lightning bolt)
+- **ASCII**: # (hash symbol)
+
+Can be disabled with `"noContextWindow": true` or `CLAUDE_CODE_STATUSLINE_NO_CONTEXT_WINDOW=1`.
+
 ### Environment Context
 
 When enabled with `"envContext": true`, shows development tool versions:
@@ -198,6 +212,7 @@ For enhanced visual icons, install Nerd Fonts:
 | **Ahead/Behind** | `⇡⇣` | `A/B` | ASCII when `"noEmoji": true` |
 | **Diverged** | `⇕` | `D` | ASCII when `"noEmoji": true` |
 | **Claude Model** | `🤖` | `*` | ASCII when `"noEmoji": true` |
+| **Context Window** | `⚡︎` | `#` | ASCII when `"noEmoji": true` |
 
 *Note: Examples show ASCII-compatible symbols. Full statusline with Nerd Fonts shows additional symbols: ⚑✘!+?»×⇕⇡⇣*
 
