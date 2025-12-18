@@ -6,8 +6,9 @@
 # Ensure we're in the project root
 cd "$(dirname "$0")/.."
 
-# First, build the TypeScript code
-npm run build
+# First, build the TypeScript code (Bun preferred for speed)
+bun run build:prod
+# or npm run build
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -40,7 +41,7 @@ compare_modes() {
 
     # Basic Mode
     echo -e "${BLUE}Basic Mode:${NC}"
-    basic_output=$(CLAUDE_CODE_STATUSLINE_FORCE_WIDTH=$width node dist/index.js <<< "$TEST_INPUT")
+    basic_output=$(CLAUDE_CODE_STATUSLINE_FORCE_WIDTH=$width bun dist/index.bundle.js <<< "$TEST_INPUT")
     echo "$basic_output"
     local basic_length=${#basic_output}
     echo -e "${CYAN}Length: $basic_length characters${NC}"
@@ -48,7 +49,7 @@ compare_modes() {
 
     # Smart Truncation Mode
     echo -e "${BLUE}Smart Truncation Mode (CLAUDE_CODE_STATUSLINE_TRUNCATE=1):${NC}"
-    smart_output=$(CLAUDE_CODE_STATUSLINE_TRUNCATE=1 CLAUDE_CODE_STATUSLINE_FORCE_WIDTH=$width node dist/index.js <<< "$TEST_INPUT")
+    smart_output=$(CLAUDE_CODE_STATUSLINE_TRUNCATE=1 CLAUDE_CODE_STATUSLINE_FORCE_WIDTH=$width bun dist/index.bundle.js <<< "$TEST_INPUT")
     echo "$smart_output"
     local smart_length=${#smart_output}
     echo -e "${CYAN}Length: $smart_length characters${NC}"
@@ -74,10 +75,10 @@ test_width() {
     echo -e "${GREEN}=== $width columns${NC} ${YELLOW}$description${NC}"
 
     # Run the statusline with forced width
-    CLAUDE_CODE_STATUSLINE_FORCE_WIDTH=$width node dist/index.js <<< "$TEST_INPUT"
+    CLAUDE_CODE_STATUSLINE_FORCE_WIDTH=$width bun dist/index.bundle.js <<< "$TEST_INPUT"
 
     # Get the actual length
-    local output_length=$(CLAUDE_CODE_STATUSLINE_FORCE_WIDTH=$width node dist/index.js <<< "$TEST_INPUT" | wc -c)
+    local output_length=$(CLAUDE_CODE_STATUSLINE_FORCE_WIDTH=$width bun dist/index.bundle.js <<< "$TEST_INPUT" | wc -c)
     echo "Length: ${output_length} characters"
     echo ""
 }

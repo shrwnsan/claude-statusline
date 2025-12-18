@@ -2,6 +2,8 @@
 
 This file provides operational guidance to AI agents when working with this claude-statusline repository. For project overview and structure, see README.md.
 
+**Current Version**: TypeScript v2.1.0 (not bash v1.0)
+
 ## Essential Agent Commands
 
 ### Project Setup and Testing
@@ -16,7 +18,10 @@ CLAUDE_CODE_STATUSLINE_ENV_CONTEXT=1 echo '{"workspace":{"current_dir":"'"$PWD"'
 CLAUDE_CODE_STATUSLINE_NO_EMOJI=1 echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test Model"}}' | ./claude-statusline.sh
 
 # Test without git status
-CLAUDE_CODE_STATUSLINE_NO_GITSTATUS=1 echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test Model"}}' | ./claude-statusline.sh
+CLAUDE_CODE_STATUSLINE_NO_GITSTATUS=1 echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test Model"}}' | bun dist/index.bundle.js
+
+# Test without context window
+CLAUDE_CODE_STATUSLINE_NO_CONTEXT_WINDOW=1 echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test Model"}}' | bun dist/index.bundle.js
 
 # Test smart truncation
 CLAUDE_CODE_STATUSLINE_TRUNCATE=1 echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Sonnet 4.5"}}' | ./claude-statusline.sh
@@ -31,11 +36,13 @@ echo "Execution time: ${duration}ms"
 
 ### Debug and Development Commands
 ```bash
-# Check script syntax
-bash -n ./claude-statusline.sh
+# Check TypeScript compilation (Bun preferred)
+bun run build
+# or npm run build
 
-# Run with bash debugging
-bash -x ./claude-statusline.sh <<< '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}'
+# Run with Bun debugging
+bun --inspect dist/index.bundle.js
+# or node --inspect dist/index.bundle.js
 
 # Check cache status
 ls -la /tmp/.claude-statusline-cache/
@@ -43,15 +50,17 @@ ls -la /tmp/.claude-statusline-cache/
 # Clear cache for testing
 rm -rf /tmp/.claude-statusline-cache/
 
-# Test script permissions
-chmod +x ./claude-statusline.sh
+# Run tests
+bun test
+# or npm test
 
-# Test with different terminal widths
-for width in 60 80 100 120; do
-    echo "=== $width columns ==="
-    COLUMNS=$width echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | ./claude-statusline.sh
-    echo ""
-done
+# Run linting
+bun run lint
+# or npm run lint
+
+# Performance benchmark
+bun run benchmark
+# or npm run benchmark
 ```
 
 ## Critical Agent Reminders
@@ -133,23 +142,38 @@ All modifications must implement:
 ### Project Organization
 ```
 claude-statusline/
-├── claude-statusline.sh    # Main executable script
-├── LICENSE                 # Apache 2.0 license
-├── README.md              # Project documentation
-├── AGENTS.md              # This file - agent operational guidance
-└── docs/                  # Detailed documentation
-    ├── guide-03-performance.md     # Performance analysis and benchmarks
-    ├── guide-01-configuration.md   # Environment variables and options
-    ├── eval-01-terminal-widths.md # Width management and responsive design
-    ├── guide-04-troubleshooting.md  # Debug guide and common issues
-    ├── prd-01-typescript-perf-optimization.md # Performance optimization plan
+├── src/                    # TypeScript source code
+│   ├── index.ts           # Main entry point
+│   ├── core/              # Core functionality
+│   ├── git/               # Git operations
+│   ├── ui/                # UI formatting
+│   ├── env/               # Environment detection
+│   └── utils/             # Utility functions
+├── dist/                   # Compiled JavaScript output
+│   ├── index.bundle.js   # Production bundle (for releases)
+│   └── index.js          # Development build
+├── bin/                    # Executable wrappers
+│   └── claude-statusline # npm package entry point
+├── docs/                  # Detailed documentation
+│   ├── guide-01-configuration.md   # Configuration options
+│   ├── guide-03-performance.md     # Performance analysis
+│   ├── MIGRATION.md               # v1.0 to v2.0 migration guide
+│   └── CHANGELOG.md               # Version history
+├── tests/                 # Test files
+├── package.json           # npm configuration
+├── tsconfig.json         # TypeScript configuration
+├── esbuild.config.js     # Build configuration
+├── LICENSE               # Apache 2.0 license
+├── README.md             # Project documentation
+└── AGENTS.md             # This file - agent operational guidance
 ```
 
 ### Editing Guidelines
-- **Main Script**: Edit `claude-statusline.sh` directly for functionality changes
+- **Main Code**: Edit TypeScript files in `src/` directory
+- **Build**: Run `bun run build:prod` for production, `bun run build` for development
 - **Documentation**: Update relevant documentation files for any feature changes
-- **Performance**: Always measure impact after optimizations
-- **Security**: Validate all inputs and maintain security posture
+- **Performance**: Target ~5ms with Bun, ~28ms with Node.js
+- **Security**: TypeScript provides compile-time safety, validate inputs at runtime
 - **Testing**: Run comprehensive test suite before commits
 
 ## Testing Before Commits
@@ -189,6 +213,32 @@ Before committing changes, ensure:
 4. Update guide-04-troubleshooting.md if applicable
 5. Test across different environments
 6. Document fix in commit message
+
+## Release Process
+
+### GitHub Release Management
+```bash
+# Build production bundle
+npm run build:prod
+
+# Create standalone executable for release
+echo '#!/usr/bin/env node' > claude-statusline && cat dist/index.bundle.js >> claude-statusline
+chmod +x claude-statusline
+
+# Create release with proper asset (follow npm package naming)
+gh release create vX.Y.Z --title "vX.Y.Z: Description" --notes "Release notes" claude-statusline
+```
+
+**Critical Release Requirements**:
+- Use `claude-statusline` as asset name (not versioned) for npm package consistency
+- Include bundled JavaScript (20KB), not wrapper script (685 bytes)
+- Test binary works: `./claude-statusline` should execute (may need proper Claude Code context)
+
+### Documentation Updates
+- **README.md examples**: Use ASCII symbols for GitHub compatibility (Nerd Font icons don't render)
+- **Context Window examples**: Mark as "(ASCII version)" to avoid broken icon display
+- **Configuration files**: Keep Nerd Font symbols as defaults (they're actual defaults)
+- **Release notes**: Include installation methods and asset format
 
 ## Integration Points
 

@@ -29,8 +29,8 @@ claude-statusline can run on either Node.js or Bun runtimes, with significant pe
 
 | Runtime | Response Time | Performance | When to Use |
 |---------|---------------|------------|-------------|
-| **Bun** | ~5ms | ⚡⚡⚡⚡⚡ | Recommended for best performance |
-| **Node.js** | ~28ms | ⚡⚡⚡ | Good fallback, widely available |
+| **Bun** | ~5ms | Excellent (5x faster) | Recommended for best performance |
+| **Node.js** | ~28ms | Good | Good fallback, widely available |
 
 > **Important**: Even when installed with `bun install -g`, the executable's shebang defaults to Node.js. To get Bun's performance benefits, you must explicitly specify it in your Claude Code configuration.
 

@@ -136,7 +136,7 @@ bun install -g claude-statusline  # Downloads 19KB in <1 second
 Automatically displays context window usage percentage when available (requires Claude Code to send context window data):
 
 ```
-claude-statusline  main [⚑!] 󰚩Opus ⚡︎27%
+claude-statusline @ main [$!] *Opus #27% (ASCII version)
 ```
 
 Shows percentage of context window consumed in the current conversation. The symbol varies by mode:
@@ -157,7 +157,7 @@ Some users have noted differences between the statusline percentage and `/contex
 When enabled with `"envContext": true`, shows development tool versions:
 
 ```
-claude-statusline @ main [⚑!⇡] *Claude Sonnet 4.5 Node22.17.1 Py3.13.5 Docker28.3.3
+claude-statusline @ main [$!A] *Claude Sonnet 4.5 Node22.17.1 Py3.13.5 Docker28.3.3 (ASCII version)
 ```
 
 *Example shows ASCII mode for universal compatibility. With Nerd Fonts enabled, ASCII symbols are replaced with icons/emojis.*
@@ -223,7 +223,7 @@ For enhanced visual icons, install Nerd Fonts:
 | **Claude Model** | `🤖` | `*` | ASCII when `"noEmoji": true` |
 | **Context Window** | `⚡︎` | `#` | ASCII when `"noEmoji": true` |
 
-*Note: Examples show ASCII-compatible symbols. Full statusline with Nerd Fonts shows additional symbols: ⚑✘!+?»×⇕⇡⇣*
+*Note: Examples show ASCII-compatible symbols. Full statusline with Nerd Fonts shows additional symbols: $X!+?>CADAB*
 
 ### 🎛️ Configuration
 
@@ -250,16 +250,16 @@ nano ~/.claude/claude-statusline.json
 
 *Only JSON and YAML formats are supported. First configuration file found is used.*
 
-## Examples
+## Examples (ASCII)
 
 ### Default Behavior
 ```bash
 # Basic truncation (default) - truncated at terminal width minus 10 chars
-claude-statusline @ main [⚑!⇡] *Claude Sonnet 4.5
+claude-statusline @ main [$!A] *Claude Sonnet 4.5 #27%
 
 # With environment context enabled
 # Set "envContext": true in config file
-claude-statusline @ main [⚑!⇡] *Claude Sonnet 4.5 Node22.17.1 Py3.13.5 Docker28.3.3
+claude-statusline @ main [$!A] *Claude Sonnet 4.5 Node22.17.1 Py3.13.5 Docker28.3.3 #27%
 ```
 
 ### ASCII Mode (Fallback)
