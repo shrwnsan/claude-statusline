@@ -6,16 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [2.1.0] - 2025-12-18
 
 ### Added
-- Context window usage display (e669571, 0eec6fa)
+- Context window usage display (Beta) (e669571, 0eec6fa, 121f613)
   - Shows percentage of context window consumed when data is available
   - Uses ⚡︎ symbol (Nerd Font) or # symbol (ASCII)
   - Can be disabled with `noContextWindow: true` or `CLAUDE_CODE_STATUSLINE_NO_CONTEXT_WINDOW=1`
+  - **Note**: Implementation follows official Claude Code documentation but may show different values compared to `/context` command
+  - Calculation includes input tokens + cache tokens (excludes output tokens per spec)
 
 ### Fixed
 - Restored git symbol () that was accidentally removed in Nerd Font symbol set (e669571)
+- Updated context window calculation to strictly follow official Claude Code documentation (121f613)
 
 ## [2.0.0] - 2025-12-14
 
@@ -82,5 +85,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Icon reference section
 - Installation and setup instructions
 
+[2.1.0]: https://github.com/shrwnsan/claude-statusline/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/shrwnsan/claude-statusline/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/shrwnsan/claude-statusline/releases/tag/v1.0.0

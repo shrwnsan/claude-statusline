@@ -129,7 +129,9 @@ bun install -g claude-statusline  # Downloads 19KB in <1 second
 - **Ahead**: ⇡ (commits ahead of upstream)
 - **Behind**: ⇣ (commits behind upstream)
 
-### Context Window Usage
+### Context Window Usage (Beta Feature)
+
+**⚠️ Beta Feature:** Context window usage display is currently in beta. The calculation follows the official Claude Code documentation but may show different values compared to Claude Code's built-in `/context` command.
 
 Automatically displays context window usage percentage when available (requires Claude Code to send context window data):
 
@@ -141,7 +143,14 @@ Shows percentage of context window consumed in the current conversation. The sym
 - **Nerd Font**: ⚡︎ (lightning bolt)
 - **ASCII**: # (hash symbol)
 
-Can be disabled with `"noContextWindow": true` or `CLAUDE_CODE_STATUSLINE_NO_CONTEXT_WINDOW=1`.
+**Important Notes:**
+- Calculation follows [official Claude Code documentation](https://code.claude.com/docs/en/statusline#context-window-usage)
+- May differ from `/context` command due to different data sources or calculation methods
+- Only shows when Claude Code provides context window data
+- Can be disabled with `"noContextWindow": true` or `CLAUDE_CODE_STATUSLINE_NO_CONTEXT_WINDOW=1`
+
+**Known Discrepancy:**
+Some users have noted differences between the statusline percentage and `/context` command output. This appears to be a difference in how Claude Code internally calculates context usage versus what's provided through the statusline API.
 
 ### Environment Context
 
