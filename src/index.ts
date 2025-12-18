@@ -216,21 +216,31 @@ async function buildStatusline(params: {
 function calculateContextWindowPercentage(contextWindow: NonNullable<ClaudeInput['context_window']>): number | null {
   try {
     const { current_usage, context_window_size } = contextWindow;
-    
-    if (!current_usage || !context_window_size || context_window_size === 0) {
+
+    if (!context_window_size || context_window_size === 0) {
       return null;
     }
 
-    // Calculate total tokens used (input + output from current usage)
-    const totalUsed = current_usage.input_tokens + current_usage.output_tokens;
-    
+    // If current_usage is null or undefined, we cannot calculate the percentage
+    // This matches the official Claude Code documentation behavior
+    if (!current_usage) {
+      return 0;
+    }
+
+    // Calculate total tokens used (input + cache tokens from current_usage)
+    // Note: Output tokens are NOT included in context window calculation
+    // per Claude Code documentation
+    const totalUsed = current_usage.input_tokens +
+                     (current_usage.cache_creation_input_tokens || 0) +
+                     (current_usage.cache_read_input_tokens || 0);
+
     // Calculate percentage
     const percentage = Math.round((totalUsed / context_window_size) * 100);
-    
+
     // Cap at 100% and ensure non-negative
     return Math.max(0, Math.min(100, percentage));
   } catch {
-    return null;
+    return 0;
   }
 }
 
