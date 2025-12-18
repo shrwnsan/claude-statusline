@@ -16,6 +16,7 @@ export const ConfigSchema = z.object({
   // Feature toggles
   noEmoji: z.boolean().default(false), // Force ASCII mode
   noGitStatus: z.boolean().default(false), // Disable git indicators
+  noContextWindow: z.boolean().default(false), // Disable context window usage
   envContext: z.boolean().default(false), // Show environment versions
   truncate: z.boolean().default(false), // Smart truncation
   softWrap: z.boolean().default(false), // Soft wrapping (legacy)
@@ -28,8 +29,9 @@ export const ConfigSchema = z.object({
 
   // Symbol settings
   symbols: z.object({
-    git: z.string().default(''),
+    git: z.string().default(''),
     model: z.string().default('󰚩'),
+    contextWindow: z.string().default('⚡︎'),
     staged: z.string().default('+'),
     conflict: z.string().default('×'),
     stashed: z.string().default('⚑'),
@@ -44,6 +46,7 @@ export const ConfigSchema = z.object({
   asciiSymbols: z.object({
     git: z.string().default('@'),
     model: z.string().default('*'),
+    contextWindow: z.string().default('#'),
     staged: z.string().default('+'),
     conflict: z.string().default('C'),
     stashed: z.string().default('$'),
@@ -132,6 +135,10 @@ function loadEnvConfig(): Partial<Config> {
     env.noGitStatus = true;
   }
 
+  if (process.env.CLAUDE_CODE_STATUSLINE_NO_CONTEXT_WINDOW === '1') {
+    env.noContextWindow = true;
+  }
+
   if (process.env.CLAUDE_CODE_STATUSLINE_ENV_CONTEXT === '1') {
     env.envContext = true;
   }
@@ -190,6 +197,7 @@ export function generateSampleConfig(): string {
     // Feature toggles
     noEmoji: false, // Set to true to force ASCII mode
     noGitStatus: false, // Set to true to disable git indicators
+    noContextWindow: false, // Set to true to disable context window usage
     envContext: true, // Set to true to show Node.js, Python versions
     truncate: true, // Set to true to enable smart truncation
     softWrap: false, // Set to true to enable soft wrapping
@@ -200,8 +208,9 @@ export function generateSampleConfig(): string {
 
     // Custom symbols (optional - will use defaults if not specified)
     symbols: {
-      git: '',
+      git: '',
       model: '󰚩',
+      contextWindow: '⚡︎',
       staged: '+',
       conflict: '×',
       stashed: '⚑',

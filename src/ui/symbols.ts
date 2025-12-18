@@ -13,6 +13,7 @@ const CACHE_VERSION = 1; // Increment to invalidate all caches
 export interface SymbolSet {
   git: string;
   model: string;
+  contextWindow: string;
   staged: string;
   conflict: string;
   stashed: string;
@@ -29,6 +30,7 @@ export interface SymbolSet {
 const ASCII_SYMBOLS: SymbolSet = {
   git: '@',
   model: '*',
+  contextWindow: '#',
   staged: '+',
   conflict: 'C',
   stashed: '$',
@@ -43,8 +45,9 @@ const ASCII_SYMBOLS: SymbolSet = {
  * Nerd Font symbol set (enhanced)
  */
 const NERD_FONT_SYMBOLS: SymbolSet = {
-  git: '',
+  git: '',
   model: '󰚩',
+  contextWindow: '⚡︎',
   staged: '+',
   conflict: '×',
   stashed: '⚑',

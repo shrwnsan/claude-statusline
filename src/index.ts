@@ -24,6 +24,17 @@ interface ClaudeInput {
   model: {
     display_name: string;
   };
+  context_window?: {
+    total_input_tokens: number;
+    total_output_tokens: number;
+    context_window_size: number;
+    current_usage: {
+      input_tokens: number;
+      output_tokens: number;
+      cache_creation_input_tokens: number;
+      cache_read_input_tokens: number;
+    };
+  };
 }
 
 /**
@@ -50,7 +61,7 @@ export async function main(): Promise<void> {
     }
 
     // Extract information from input
-    const { fullDir, modelName } = extractInputInfo(input);
+    const { fullDir, modelName, contextWindow } = extractInputInfo(input);
     if (!fullDir || !modelName) {
       console.error('[ERROR] Failed to extract required information from input');
       process.exit(1);
@@ -88,6 +99,7 @@ export async function main(): Promise<void> {
     const statusline = await buildStatusline({
       fullDir,
       modelName,
+      contextWindow,
       gitInfo,
       envInfo,
       symbols,
@@ -121,11 +133,12 @@ async function readInput(): Promise<ClaudeInput> {
 /**
  * Extract directory and model name from Claude input
  */
-function extractInputInfo(input: ClaudeInput): { fullDir: string; modelName: string } {
+function extractInputInfo(input: ClaudeInput): { fullDir: string; modelName: string; contextWindow?: ClaudeInput['context_window'] } {
   const fullDir = input.workspace?.current_dir || '';
   const modelName = input.model?.display_name || 'Unknown';
+  const contextWindow = input.context_window;
 
-  return { fullDir, modelName };
+  return { fullDir, modelName, contextWindow };
 }
 
 /**
@@ -134,6 +147,7 @@ function extractInputInfo(input: ClaudeInput): { fullDir: string; modelName: str
 async function buildStatusline(params: {
   fullDir: string;
   modelName: string;
+  contextWindow?: ClaudeInput['context_window'];
   gitInfo: any;
   envInfo: any;
   symbols: SymbolSet;
@@ -141,7 +155,7 @@ async function buildStatusline(params: {
   config: Config;
   gitOps: GitOperations;
 }): Promise<string> {
-  const { fullDir, modelName, gitInfo, envInfo, symbols, terminalWidth, config, gitOps } = params;
+  const { fullDir, modelName, contextWindow, gitInfo, envInfo, symbols, terminalWidth, config, gitOps } = params;
 
   // Get project name
   const projectName = fullDir.split('/').pop() || fullDir.split('\\').pop() || 'project';
@@ -160,8 +174,17 @@ async function buildStatusline(params: {
     envContext = ` ${envFormatter.formatWithIcons(envInfo)}`;
   }
 
+    // Build context window usage string
+    let contextUsage = '';
+    if (contextWindow && !config.noContextWindow) {
+      const percentage = calculateContextWindowPercentage(contextWindow);
+      if (percentage !== null) {
+        contextUsage = ` ${symbols.contextWindow}${percentage}%`;
+      }
+    }
+
   // Build model string
-  const modelString = `${symbols.model}${modelName}${envContext}`;
+  const modelString = `${symbols.model}${modelName}${envContext}${contextUsage}`;
 
   // Initial statusline
   let statusline = `${projectName}${gitStatus} ${modelString}`;
@@ -185,6 +208,30 @@ async function buildStatusline(params: {
   // No basic truncation - let terminal handle overflow
 
   return statusline;
+}
+
+/**
+ * Calculate context window usage percentage
+ */
+function calculateContextWindowPercentage(contextWindow: NonNullable<ClaudeInput['context_window']>): number | null {
+  try {
+    const { current_usage, context_window_size } = contextWindow;
+    
+    if (!current_usage || !context_window_size || context_window_size === 0) {
+      return null;
+    }
+
+    // Calculate total tokens used (input + output from current usage)
+    const totalUsed = current_usage.input_tokens + current_usage.output_tokens;
+    
+    // Calculate percentage
+    const percentage = Math.round((totalUsed / context_window_size) * 100);
+    
+    // Cap at 100% and ensure non-negative
+    return Math.max(0, Math.min(100, percentage));
+  } catch {
+    return null;
+  }
 }
 
 /**
