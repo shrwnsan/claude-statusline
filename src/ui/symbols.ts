@@ -45,7 +45,7 @@ const ASCII_SYMBOLS: SymbolSet = {
  * Nerd Font symbol set (enhanced)
  */
 const NERD_FONT_SYMBOLS: SymbolSet = {
-  git: '',
+  git: '',
   model: '󰚩',
   contextWindow: '⚡︎',
   staged: '+',

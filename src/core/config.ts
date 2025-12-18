@@ -29,7 +29,7 @@ export const ConfigSchema = z.object({
 
   // Symbol settings
   symbols: z.object({
-    git: z.string().default(''),
+    git: z.string().default(''),
     model: z.string().default('󰚩'),
     contextWindow: z.string().default('⚡︎'),
     staged: z.string().default('+'),
@@ -208,7 +208,7 @@ export function generateSampleConfig(): string {
 
     // Custom symbols (optional - will use defaults if not specified)
     symbols: {
-      git: '',
+      git: '',
       model: '󰚩',
       contextWindow: '⚡︎',
       staged: '+',
