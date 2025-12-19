@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.1.2] - 2025-12-19
+
+### Fixed
+- Ensure entire model string wraps to next line when exceeding width, preventing mid-word splits
+- Model indicator and context usage now stay together as intended
+
 ## [2.1.1] - 2025-12-19
 
 ### Fixed

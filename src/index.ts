@@ -279,6 +279,15 @@ function applySmartTruncation(params: {
     } else {
       // Default: soft-wrap model part
       const modelMaxLen = maxLen - projectGit.length - 1;
+
+      // If model string needs wrapping and it starts with model icon,
+      // prefer wrapping the entire model string to next line
+      const modelIconPattern = /^[󰚩*]/;
+      if (modelIconPattern.test(modelString) && modelString.length > modelMaxLen) {
+        // Wrap entire model to next line
+        return `${projectGit}\n${modelString}`;
+      }
+
       const wrappedModel = applySoftWrap(modelString, modelMaxLen);
       return `${projectGit} ${wrappedModel}`;
     }

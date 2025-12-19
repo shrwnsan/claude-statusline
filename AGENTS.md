@@ -2,7 +2,7 @@
 
 This file provides operational guidance to AI agents when working with this claude-statusline repository. For project overview and structure, see README.md.
 
-**Current Version**: TypeScript v2.1.1 (not bash v1.0)
+**Current Version**: TypeScript v2.1.2 (not bash v1.0)
 
 ## Essential Agent Commands
 
