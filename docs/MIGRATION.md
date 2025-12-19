@@ -27,7 +27,7 @@ bun install -g claude-statusline
 ### Option C: Manual Download
 ```bash
 # Download the latest binary for your platform
-curl -o claude-statusline https://github.com/shrwnsan/claude-statusline/releases/download/v2.0.0/claude-statusline
+curl -L -o claude-statusline https://github.com/shrwnsan/claude-statusline/releases/download/v2.0.0/claude-statusline
 chmod +x claude-statusline
 ```
 

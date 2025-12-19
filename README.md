@@ -1,11 +1,12 @@
 # Claude Code Statusline
 
-Simple statusline for Claude Code with git indicators. Now available in TypeScript v2.0 with enhanced performance and npm distribution!
+Simple statusline for Claude Code with project-branch, git indicators, and context usage. Optimized for speed with bun. Just the essentials, none of the bloat.
 
 ![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
-![Version](https://img.shields.io/badge/version-2.0.0-green.svg)
+![Version](https://img.shields.io/badge/version-2.1.0-green.svg)
 ![TypeScript](https://img.shields.io/badge/language-TypeScript-3178C6.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D22.6.0-brightgreen.svg)
+![Bun](https://img.shields.io/badge/runtime-Bun-black.svg)
 
 ![Demo](https://github.com/user-attachments/assets/8716dc4e-83da-410b-88f2-c47de7dd5930)
 
@@ -66,7 +67,11 @@ claude-statusline works out-of-the-box with these defaults:
 - `truncate`: false (basic truncation at terminal width - 10)
 - `noEmoji`: false (Nerd Font symbols preferred, ASCII fallback)
 - `noGitStatus`: false (git status shown)
+- `noContextWindow`: false (context window usage shown)
+- `noSoftWrap`: false (soft wrapping enabled when truncate=true, set to true to disable)
 - `rightMargin`: 15 (prevents bleeding into Claude Code telemetry)
+- `cacheTTL`: 300 (5-minute cache for environment info)
+- `maxLength`: 1000 (maximum input length for security)
 
 To see environment versions in your statusline, create a configuration file with:
 ```json
@@ -343,7 +348,7 @@ Apache License 2.0 - see [LICENSE](LICENSE) file for details.
 For environments where Node.js/npm is not available:
 
 ```bash
-curl -o claude-statusline.sh https://github.com/shrwnsan/claude-statusline/releases/download/v1.0.0/claude-statusline.sh
+curl -L -o claude-statusline.sh https://github.com/shrwnsan/claude-statusline/releases/download/v1.0.0/claude-statusline.sh
 chmod +x claude-statusline.sh
 ```
 
