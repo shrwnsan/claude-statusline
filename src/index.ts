@@ -302,6 +302,12 @@ function applySoftWrap(text: string, maxLength: number): string {
     return text;
   }
 
+  // Check if this is a model string (starts with model icon)
+  const modelIconPattern = /^[󰚩*]/; // Nerd Font or ASCII model icon
+  if (modelIconPattern.test(text)) {
+    return applySoftWrapToModelString(text, maxLength);
+  }
+
   // Find a good break point
   let foundBreak = false;
 
@@ -382,6 +388,99 @@ function applySoftWrap(text: string, maxLength: number): string {
   } else {
     return firstLine;
   }
+}
+
+/**
+ * Apply soft wrapping specifically to model strings, keeping the model icon
+ * with the model name and context usage as a unit
+ */
+function applySoftWrapToModelString(text: string, maxLength: number): string {
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  const chars = Array.from(text);
+
+  // Find all space positions to understand the structure
+  const spacePositions: number[] = [];
+  for (let i = 0; i < chars.length; i++) {
+    if (chars[i] === ' ') {
+      spacePositions.push(i);
+    }
+  }
+
+  // If we have context usage (marked by context window icon like ⚡︎ or #)
+  // The structure is: [icon][model] [env] [context icon][percentage]
+  // We want to prefer keeping: [icon][model] [context icon][percentage] together if possible
+
+  let contextIconIndex = -1;
+  for (let i = 0; i < chars.length; i++) {
+    const char = chars[i];
+    if (char === '⚡' || char === '#') {
+      contextIconIndex = i;
+      break;
+    }
+  }
+
+  // Strategy 1: If we have context usage, try to keep it with the model on the second line
+  // This ensures the icon and percentage stay together
+  if (contextIconIndex > 0) {
+    // Find the space before context usage
+    const spaceBeforeContext = chars.findIndex((c, i) => i < contextIconIndex && c === ' ');
+
+    if (spaceBeforeContext > 0) {
+      // Check if we can fit model + icon + percentage on second line
+      const contextPart = chars.slice(spaceBeforeContext + 1).join('');
+      if (contextPart.length <= maxLength) {
+        // Put model name on first line, context on second line
+        const modelPart = chars.slice(0, spaceBeforeContext).join('');
+        return `${modelPart}\n${contextPart}`;
+      }
+    }
+  }
+
+  // Strategy 2: Try to find a break point that keeps the model icon with model name
+  // Look for first space after model name (if no context or if context doesn't fit)
+  if (spacePositions.length > 0) {
+    const firstSpaceAfterModel = spacePositions[0];
+    if (firstSpaceAfterModel !== undefined && firstSpaceAfterModel > 1) {
+      // Check if the model part fits
+      const modelPart = chars.slice(0, firstSpaceAfterModel).join('');
+      if (modelPart.length <= maxLength) {
+        const remainingPart = chars.slice(firstSpaceAfterModel + 1).join('');
+        if (remainingPart) {
+          return `${modelPart}\n${remainingPart}`;
+        }
+        return modelPart;
+      }
+    }
+  }
+
+  // Strategy 3: Try to break at a reasonable point that doesn't split the model icon
+  // We want to keep at least the icon + first few characters together
+  const minKeepLength = Math.min(5, maxLength); // Keep at least 5 chars or maxLength
+  if (minKeepLength >= 3 && chars.length > minKeepLength) {
+    // Find a character break point after the minimum keep length
+    const breakPoint = Math.min(maxLength, chars.length - 1);
+    const firstPart = chars.slice(0, breakPoint).join('');
+    const secondPart = chars.slice(breakPoint).join('');
+    if (secondPart) {
+      return `${firstPart}\n${secondPart}`;
+    }
+    return firstPart;
+  }
+
+  // Last resort: simple character-based truncation
+  if (maxLength >= 3) {
+    const firstPart = chars.slice(0, maxLength).join('');
+    const secondPart = chars.slice(maxLength).join('');
+    if (secondPart) {
+      return `${firstPart}\n${secondPart}`;
+    }
+    return firstPart;
+  }
+
+  return text;
 }
 
 // Run main function if this file is executed directly
