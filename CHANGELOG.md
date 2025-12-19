@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.1.1] - 2025-12-19
+
+### Fixed
+- Improved soft wrapping for long model strings to prevent truncation issues (f811a8a)
+- Removed legacy bash script references from documentation and fixed curl download commands (73224f1)
+
+### Documentation
+- Updated AGENTS.md to reflect current version 2.1.1
+- Cleaned up installation documentation to remove deprecated bash script references
+
 ## [2.1.0] - 2025-12-18
 
 ### Added
@@ -85,6 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Icon reference section
 - Installation and setup instructions
 
+[2.1.1]: https://github.com/shrwnsan/claude-statusline/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/shrwnsan/claude-statusline/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/shrwnsan/claude-statusline/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/shrwnsan/claude-statusline/releases/tag/v1.0.0
