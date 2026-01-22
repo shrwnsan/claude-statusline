@@ -28,7 +28,11 @@ interface ClaudeInput {
     total_input_tokens: number;
     total_output_tokens: number;
     context_window_size: number;
-    current_usage: {
+    // New in Claude Code v2.1.15: Pre-calculated percentages
+    used_percentage?: number;
+    remaining_percentage?: number;
+    // Legacy: Current usage for manual calculation
+    current_usage?: {
       input_tokens: number;
       output_tokens: number;
       cache_creation_input_tokens: number;
@@ -212,9 +216,19 @@ async function buildStatusline(params: {
 
 /**
  * Calculate context window usage percentage
+ *
+ * Prioritizes the pre-calculated used_percentage field (Claude Code v2.1.15+)
+ * Falls back to manual calculation from current_usage if not available
  */
 function calculateContextWindowPercentage(contextWindow: NonNullable<ClaudeInput['context_window']>): number | null {
   try {
+    // Try pre-calculated percentage first (Claude Code v2.1.15+)
+    if (contextWindow.used_percentage !== undefined && contextWindow.used_percentage !== null) {
+      // Cap at 100% and ensure non-negative
+      return Math.max(0, Math.min(100, Math.round(contextWindow.used_percentage)));
+    }
+
+    // Fall back to manual calculation for older Claude Code versions
     const { current_usage, context_window_size } = contextWindow;
 
     if (!context_window_size || context_window_size === 0) {
@@ -222,7 +236,6 @@ function calculateContextWindowPercentage(contextWindow: NonNullable<ClaudeInput
     }
 
     // If current_usage is null or undefined, we cannot calculate the percentage
-    // This matches the official Claude Code documentation behavior
     if (!current_usage) {
       return 0;
     }

@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.1.4] - 2025-01-22
+
+### Fixed
+- Context percentage now displays correctly with Claude Code v2.1.15+
+- Added support for new `context_window.used_percentage` field
+- Maintains backward compatibility with manual calculation fallback
+
+## [2.1.3] - 2025-01-22
+
+### Fixed
+- Use display width instead of character count in soft wrapping (#19)
+- Prevents garbled output with multi-byte characters (emojis, CJK)
+
+### Changed
+- Normalized package.json repository URL per npm standards
+
 ## [2.1.2] - 2025-12-19
 
 ### Fixed
@@ -101,6 +117,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Icon reference section
 - Installation and setup instructions
 
+[2.1.4]: https://github.com/shrwnsan/claude-statusline/compare/v2.1.3...v2.1.4
+[2.1.3]: https://github.com/shrwnsan/claude-statusline/compare/v2.1.2...v2.1.3
+[2.1.2]: https://github.com/shrwnsan/claude-statusline/compare/v2.1.1...v2.1.2
 [2.1.1]: https://github.com/shrwnsan/claude-statusline/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/shrwnsan/claude-statusline/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/shrwnsan/claude-statusline/compare/v1.0.0...v2.0.0
