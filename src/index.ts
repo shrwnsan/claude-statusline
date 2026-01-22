@@ -11,7 +11,7 @@ import { validateInput, validateDirectory } from './core/security.js';
 import { Cache } from './core/cache.js';
 import { GitOperations } from './git/status.js';
 import { detectSymbols, getEnvironmentSymbols, SymbolSet } from './ui/symbols.js';
-import { getTerminalWidth, truncateText, smartTruncate, debugWidthDetection } from './ui/width.js';
+import { getTerminalWidth, truncateText, smartTruncate, debugWidthDetection, getStringDisplayWidth } from './ui/width.js';
 import { EnvironmentDetector, EnvironmentFormatter } from './env/context.js';
 
 /**
@@ -262,28 +262,31 @@ function applySmartTruncation(params: {
   const maxLen = Math.max(terminalWidth - config.rightMargin, 30);
   const projectGit = `${projectName}${gitStatus}`;
 
-  // Check if everything fits
-  if (statusline.length <= maxLen) {
+  // Check if everything fits (using display width for accuracy)
+  const statuslineDisplayWidth = getStringDisplayWidth(statusline);
+  if (statuslineDisplayWidth <= maxLen) {
     return statusline;
   }
 
-  // Check if project + space fits, truncate model part only
-  if (projectGit.length + 1 <= maxLen) {
+  // Check if project + space fits, truncate model part only (using display width)
+  const projectGitDisplayWidth = getStringDisplayWidth(projectGit);
+  if (projectGitDisplayWidth + 1 <= maxLen) {
     // Smart truncation with soft-wrapping (default behavior)
     // Allow disabling soft-wrapping with config setting
     if (config.noSoftWrap) {
       // Legacy behavior: simple truncation only
-      const modelMaxLen = maxLen - projectGit.length - 1;
+      const modelMaxLen = maxLen - projectGitDisplayWidth - 1;
       const truncatedModel = truncateText(modelString, modelMaxLen);
       return `${projectGit} ${truncatedModel}`;
     } else {
       // Default: soft-wrap model part
-      const modelMaxLen = maxLen - projectGit.length - 1;
+      const modelMaxLen = maxLen - projectGitDisplayWidth - 1;
 
       // If model string needs wrapping and it starts with model icon,
       // prefer wrapping the entire model string to next line
       const modelIconPattern = /^[󰚩*]/;
-      if (modelIconPattern.test(modelString) && modelString.length > modelMaxLen) {
+      const modelDisplayWidth = getStringDisplayWidth(modelString);
+      if (modelIconPattern.test(modelString) && modelDisplayWidth > modelMaxLen) {
         // Wrap entire model to next line
         return `${projectGit}\n${modelString}`;
       }
@@ -307,7 +310,9 @@ function applySmartTruncation(params: {
  * Apply soft wrapping to text
  */
 function applySoftWrap(text: string, maxLength: number): string {
-  if (text.length <= maxLength) {
+  // Use display width for accurate measurement
+  const displayWidth = getStringDisplayWidth(text);
+  if (displayWidth <= maxLength) {
     return text;
   }
 
@@ -317,31 +322,31 @@ function applySoftWrap(text: string, maxLength: number): string {
     return applySoftWrapToModelString(text, maxLength);
   }
 
-  // Find a good break point
+  // Find a good break point using display width
   let foundBreak = false;
 
   // Work with actual Unicode characters to avoid splitting multi-byte sequences
   const chars = Array.from(text); // This splits by actual Unicode characters
-  let charCount = 0;
+  let currentDisplayWidth = 0;
   let breakCharIndex = chars.length; // Default to no break
   let lastSpaceIndex = -1;
 
-  // Find the best break point by character count
+  // Find the best break point by display width
   for (let i = 0; i < chars.length; i++) {
     const char = chars[i];
+    if (!char) break;
 
     // Track spaces for potential break points
     if (char === ' ') {
       lastSpaceIndex = i;
     }
 
-    // Estimate display width (this is approximate)
-    // Most Unicode icons count as 1 display character
-    // ASCII characters count as 1
-    charCount++;
+    // Calculate display width for this character
+    const charWidth = getStringDisplayWidth(char);
+    currentDisplayWidth += charWidth;
 
     // Check if we've exceeded the max length
-    if (charCount > maxLength) {
+    if (currentDisplayWidth > maxLength) {
       // If we found a space before this point, use it
       if (lastSpaceIndex >= 0) {
         breakCharIndex = lastSpaceIndex;
@@ -363,18 +368,24 @@ function applySoftWrap(text: string, maxLength: number): string {
   // But only if we're not dealing with a model string that starts with an icon
   const firstChar = chars.length > 0 ? chars[0] : '';
   const startsWithIcon = firstChar && firstChar !== ' ' && Buffer.byteLength(firstChar, 'utf8') > 1;
-  if (!foundBreak && maxLength - charCount > -3 && !startsWithIcon) {
+  if (!foundBreak && maxLength - currentDisplayWidth > -3 && !startsWithIcon) {
     return text;
   }
 
   // Special case: if we're starting with an icon and breaking very early,
   // try to keep at least the icon and 1-2 more characters
   if (startsWithIcon && breakCharIndex <= 2 && maxLength >= 3) {
-    // Find a better break point after at least 3 characters total
-    for (let i = 2; i < Math.min(chars.length, maxLength); i++) {
-      breakCharIndex = i;
-      foundBreak = true;
-      break;
+    // Find a better break point after at least 3 characters total (by display width)
+    let testWidth = 0;
+    for (let i = 0; i < chars.length; i++) {
+      const char = chars[i];
+      if (!char) break;
+      testWidth += getStringDisplayWidth(char);
+      if (testWidth >= 3 || testWidth >= maxLength) {
+        breakCharIndex = i;
+        foundBreak = true;
+        break;
+      }
     }
   }
 
@@ -404,7 +415,9 @@ function applySoftWrap(text: string, maxLength: number): string {
  * with the model name and context usage as a unit
  */
 function applySoftWrapToModelString(text: string, maxLength: number): string {
-  if (text.length <= maxLength) {
+  // Use display width for accurate measurement
+  const displayWidth = getStringDisplayWidth(text);
+  if (displayWidth <= maxLength) {
     return text;
   }
 
@@ -438,9 +451,10 @@ function applySoftWrapToModelString(text: string, maxLength: number): string {
     const spaceBeforeContext = chars.findIndex((c, i) => i < contextIconIndex && c === ' ');
 
     if (spaceBeforeContext > 0) {
-      // Check if we can fit model + icon + percentage on second line
+      // Check if we can fit model + icon + percentage on second line (using display width)
       const contextPart = chars.slice(spaceBeforeContext + 1).join('');
-      if (contextPart.length <= maxLength) {
+      const contextPartWidth = getStringDisplayWidth(contextPart);
+      if (contextPartWidth <= maxLength) {
         // Put model name on first line, context on second line
         const modelPart = chars.slice(0, spaceBeforeContext).join('');
         return `${modelPart}\n${contextPart}`;
@@ -453,9 +467,10 @@ function applySoftWrapToModelString(text: string, maxLength: number): string {
   if (spacePositions.length > 0) {
     const firstSpaceAfterModel = spacePositions[0];
     if (firstSpaceAfterModel !== undefined && firstSpaceAfterModel > 1) {
-      // Check if the model part fits
+      // Check if the model part fits (using display width)
       const modelPart = chars.slice(0, firstSpaceAfterModel).join('');
-      if (modelPart.length <= maxLength) {
+      const modelPartWidth = getStringDisplayWidth(modelPart);
+      if (modelPartWidth <= maxLength) {
         const remainingPart = chars.slice(firstSpaceAfterModel + 1).join('');
         if (remainingPart) {
           return `${modelPart}\n${remainingPart}`;
@@ -465,24 +480,26 @@ function applySoftWrapToModelString(text: string, maxLength: number): string {
     }
   }
 
-  // Strategy 3: Try to break at a reasonable point that doesn't split the model icon
-  // We want to keep at least the icon + first few characters together
-  const minKeepLength = Math.min(5, maxLength); // Keep at least 5 chars or maxLength
-  if (minKeepLength >= 3 && chars.length > minKeepLength) {
-    // Find a character break point after the minimum keep length
-    const breakPoint = Math.min(maxLength, chars.length - 1);
-    const firstPart = chars.slice(0, breakPoint).join('');
-    const secondPart = chars.slice(breakPoint).join('');
-    if (secondPart) {
-      return `${firstPart}\n${secondPart}`;
+  // Strategy 3: Find break point by display width (not character count)
+  // This is the critical fix for the garbled output artifacts
+  let currentWidth = 0;
+  let breakCharIndex = chars.length;
+
+  for (let i = 0; i < chars.length; i++) {
+    const char = chars[i];
+    if (!char) break;
+    const charWidth = getStringDisplayWidth(char);
+    if (currentWidth + charWidth > maxLength) {
+      breakCharIndex = i;
+      break;
     }
-    return firstPart;
+    currentWidth += charWidth;
   }
 
-  // Last resort: simple character-based truncation
-  if (maxLength >= 3) {
-    const firstPart = chars.slice(0, maxLength).join('');
-    const secondPart = chars.slice(maxLength).join('');
+  // If we found a valid break point
+  if (breakCharIndex < chars.length && breakCharIndex > 0) {
+    const firstPart = chars.slice(0, breakCharIndex).join('');
+    const secondPart = chars.slice(breakCharIndex).join('');
     if (secondPart) {
       return `${firstPart}\n${secondPart}`;
     }
