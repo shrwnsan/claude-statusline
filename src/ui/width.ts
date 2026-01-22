@@ -243,6 +243,60 @@ export function smartTruncate(
 }
 
 /**
+ * Get the display width of a string, accounting for wide characters (CJK, emoji, Nerd Font icons)
+ * Uses wcwidth-style logic where wide characters = 2 columns, narrow = 1 column
+ */
+export function getStringDisplayWidth(str: string): number {
+  let width = 0;
+  for (const char of str) {
+    const code = char.codePointAt(0) ?? 0;
+
+    // Wide character ranges (CJK, emoji, Nerd Font icons, etc.)
+    // CJK Unified Ideographs
+    if (code >= 0x1100 && (
+      (code >= 0x1100 && code <= 0x115F) || // Hangul Jamo
+      (code >= 0x2E80 && code <= 0xA4CF) || // CJK和各种符号
+      (code >= 0xAC00 && code <= 0xD7A3) || // Hangul Syllables
+      (code >= 0xF900 && code <= 0xFAFF) || // CJK Compatibility Ideographs
+      (code >= 0xFE10 && code <= 0xFE19) || // Vertical forms
+      (code >= 0xFE30 && code <= 0xFE6F) || // CJK Compatibility Forms
+      (code >= 0xFF00 && code <= 0xFF60) || // Fullwidth Forms
+      (code >= 0xFFE0 && code <= 0xFFE6) ||
+      (code >= 0x20000 && code <= 0x2FFFD) ||
+      (code >= 0x30000 && code <= 0x3FFFD)
+    )) {
+      width += 2;
+    }
+    // Emoji and various symbols (including Nerd Font icons in Private Use Area)
+    else if (
+      (code >= 0x1F300 && code <= 0x1F9FF) || // Emoji
+      (code >= 0x2600 && code <= 0x27BF) ||   // Miscellaneous symbols
+      (code >= 0xFE00 && code <= 0xFE0F) ||   // Variation Selectors
+      (code >= 0x1F000 && code <= 0x1F02F) || // Mahjong tiles
+      (code >= 0xE000 && code <= 0xF8FF) ||   // Private Use Area (Nerd Font icons)
+      (code >= 0xF0000 && code <= 0xFFFFD) || // Supplementary Private Use Area-A
+      (code >= 0x100000 && code <= 0x10FFFD)  // Supplementary Private Use Area-B
+    ) {
+      width += 2;
+    }
+    // Combining characters (zero width)
+    else if (
+      (code >= 0x0300 && code <= 0x036F) ||   // Combining diacritical marks
+      (code >= 0x1DC0 && code <= 0x1DFF) ||   // Combining diacritical marks extended
+      (code >= 0x20D0 && code <= 0x20FF) ||   // Combining marks for symbols
+      (code >= 0xFE20 && code <= 0xFE2F)      // Combining half marks
+    ) {
+      // Zero width, don't increment
+    }
+    // Normal ASCII and narrow characters
+    else {
+      width += 1;
+    }
+  }
+  return width;
+}
+
+/**
  * Soft wrapping function (experimental)
  */
 export function softWrapText(
