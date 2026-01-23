@@ -217,41 +217,54 @@ async function buildStatusline(params: {
 /**
  * Calculate context window usage percentage
  *
- * Prioritizes the pre-calculated used_percentage field (Claude Code v2.1.15+)
- * Falls back to manual calculation from current_usage if not available
+ * WORKAROUND for Claude Code v2.1.8+ bug where current_usage is all zeros
+ * and used_percentage is incorrectly set to 0.
+ *
+ * See: https://github.com/anthropics/claude-code/issues/19724
+ * See: https://github.com/anthropics/claude-code/issues/18944
+ *
+ * Strategy:
+ * 1. Try used_percentage if it's non-zero (for working versions)
+ * 2. Fall back to total_input_tokens (works in v2.1.8+)
+ * 3. Fall back to current_usage (for v2.1.7 and earlier)
  */
 function calculateContextWindowPercentage(contextWindow: NonNullable<ClaudeInput['context_window']>): number | null {
   try {
-    // Try pre-calculated percentage first (Claude Code v2.1.15+)
-    if (contextWindow.used_percentage !== undefined && contextWindow.used_percentage !== null) {
-      // Cap at 100% and ensure non-negative
-      return Math.max(0, Math.min(100, Math.round(contextWindow.used_percentage)));
-    }
+    const { total_input_tokens, context_window_size, used_percentage, current_usage } = contextWindow;
 
-    // Fall back to manual calculation for older Claude Code versions
-    const { current_usage, context_window_size } = contextWindow;
-
+    // Validate context_window_size
     if (!context_window_size || context_window_size === 0) {
       return null;
     }
 
-    // If current_usage is null or undefined, we cannot calculate the percentage
-    if (!current_usage) {
-      return 0;
+    // Strategy 1: Try pre-calculated percentage if it's non-zero
+    // This handles versions where the field is populated correctly
+    if (used_percentage !== undefined && used_percentage !== null && used_percentage > 0) {
+      return Math.max(0, Math.min(100, Math.round(used_percentage)));
     }
 
-    // Calculate total tokens used (input + cache tokens from current_usage)
-    // Note: Output tokens are NOT included in context window calculation
-    // per Claude Code documentation
-    const totalUsed = current_usage.input_tokens +
-                     (current_usage.cache_creation_input_tokens || 0) +
-                     (current_usage.cache_read_input_tokens || 0);
+    // Strategy 2: Calculate from total_input_tokens
+    // This is the workaround for v2.1.8+ where used_percentage is broken
+    // but total_input_tokens contains the actual value
+    if (total_input_tokens && total_input_tokens > 0) {
+      const percentage = Math.round((total_input_tokens / context_window_size) * 100);
+      return Math.max(0, Math.min(100, percentage));
+    }
 
-    // Calculate percentage
-    const percentage = Math.round((totalUsed / context_window_size) * 100);
+    // Strategy 3: Fall back to current_usage for v2.1.7 and earlier
+    if (current_usage) {
+      const totalUsed = current_usage.input_tokens +
+                       (current_usage.cache_creation_input_tokens || 0) +
+                       (current_usage.cache_read_input_tokens || 0);
 
-    // Cap at 100% and ensure non-negative
-    return Math.max(0, Math.min(100, percentage));
+      if (totalUsed > 0) {
+        const percentage = Math.round((totalUsed / context_window_size) * 100);
+        return Math.max(0, Math.min(100, percentage));
+      }
+    }
+
+    // No valid token data found
+    return 0;
   } catch {
     return 0;
   }

@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.1.5] - 2026-01-23
+
+### Fixed
+- Added workaround for Claude Code v2.1.8+ bug where `current_usage` fields are all zeros
+  and `used_percentage` is incorrectly set to 0
+  - Now calculates from `total_input_tokens` as fallback
+  - See: https://github.com/anthropics/claude-code/issues/19724
+  - See: https://github.com/anthropics/claude-code/issues/18944
+- Maintains backward compatibility with v2.1.7 and earlier (uses `current_usage`)
+- Ready for future Claude Code versions where `used_percentage` may be fixed
+
 ## [2.1.4] - 2025-01-22
 
 ### Fixed
@@ -117,6 +128,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Icon reference section
 - Installation and setup instructions
 
+[2.1.5]: https://github.com/shrwnsan/claude-statusline/compare/v2.1.4...v2.1.5
 [2.1.4]: https://github.com/shrwnsan/claude-statusline/compare/v2.1.3...v2.1.4
 [2.1.3]: https://github.com/shrwnsan/claude-statusline/compare/v2.1.2...v2.1.3
 [2.1.2]: https://github.com/shrwnsan/claude-statusline/compare/v2.1.1...v2.1.2
