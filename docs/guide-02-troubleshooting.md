@@ -257,8 +257,49 @@ CLAUDE_CODE_STATUSLINE_TRUNCATE=1 \
    ```
 
 3. **Check Terminal Settings**:
-   - Ensure terminal reports correct dimensions
-   - Check for custom terminal configurations
+    - Ensure terminal reports correct dimensions
+    - Check for custom terminal configurations
+
+### Issue: Garbled Output Artifacts (Claude Code Rendering Bug)
+
+**Symptoms**: Random character fragments appearing at wrong positions in the statusline, such as:
+- `in`, `ct`, or other 2-letter fragments at the end of the line
+- Characters like `g`, `%` appearing on a separate line below
+- Underscores (`__`) or dashes (`──`) on separate lines
+- Large amounts of trailing whitespace before artifacts
+- Status line scrolling rightward with every character typed
+
+**Example**:
+```
+claude-statusline  main [!] 󰚩glm-4.7 ⚡︎0%                    ct
+```
+
+**Cause**: This is a **known Claude Code TUI rendering bug**, not an issue with the statusline script. Investigation confirmed:
+- Direct script execution produces clean output with no artifacts
+- Artifacts are fragments from statusline content rendered at incorrect screen positions
+- Claude Code's statusline renderer has cursor positioning and screen buffer issues
+
+**Related GitHub Issues**:
+
+| Issue | Description | Status | Created |
+|-------|-------------|--------|---------|
+| [#8618](https://github.com/anthropics/claude-code/issues/8618) | CLI Terminal UI Rendering Corrupted + Scrolling Instability | Open | Oct 1, 2025 |
+| [#14011](https://github.com/anthropics/claude-code/issues/14011) | Hint text corrupts statusline output containing links | Open | Dec 15, 2025 |
+| [#14594](https://github.com/anthropics/claude-code/issues/14594) | Text rendering bug - lines dropped and garbled output | Closed | Dec 19, 2025 |
+
+**Diagnostic Steps**:
+```bash
+# Verify script output is clean
+echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | bun ~/.claude/claude-statusline | hexdump -C
+
+# Output should end cleanly at the last character (e.g., "0%") with no trailing bytes
+```
+
+**Workarounds** (limited effectiveness):
+1. **Try disabling custom statusline temporarily** to confirm Claude Code is the cause
+2. **Update Claude Code** to the latest version (some TUI bugs have been fixed in newer releases)
+
+**Status**: Known issue in Claude Code's TUI renderer. The statusline script produces correct, clean output. Track the linked GitHub issues for updates.
 
 ## Debug Mode
 
