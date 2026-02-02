@@ -217,16 +217,20 @@ async function buildStatusline(params: {
 /**
  * Calculate context window usage percentage
  *
- * WORKAROUND for Claude Code v2.1.8+ bug where current_usage is all zeros
- * and used_percentage is incorrectly set to 0.
+ * Matches /context command behavior by prioritizing current API call usage
+ * over cumulative session totals.
  *
+ * See: https://code.claude.com/docs/en/statusline
  * See: https://github.com/anthropics/claude-code/issues/19724
  * See: https://github.com/anthropics/claude-code/issues/18944
  *
  * Strategy:
- * 1. Try used_percentage if it's non-zero (for working versions)
- * 2. Fall back to total_input_tokens (works in v2.1.8+)
- * 3. Fall back to current_usage (for v2.1.7 and earlier)
+ * 1. Try used_percentage if it's non-zero (pre-calculated by API)
+ * 2. Use current_usage (matches /context - current API call only)
+ * 3. Fall back to total_input_tokens (cumulative session total)
+ *
+ * Note: total_input_tokens is cumulative across the entire session and will
+ * differ from /context, which shows only the current API call's usage.
  */
 function calculateContextWindowPercentage(contextWindow: NonNullable<ClaudeInput['context_window']>): number | null {
   try {
@@ -243,15 +247,8 @@ function calculateContextWindowPercentage(contextWindow: NonNullable<ClaudeInput
       return Math.max(0, Math.min(100, Math.round(used_percentage)));
     }
 
-    // Strategy 2: Calculate from total_input_tokens
-    // This is the workaround for v2.1.8+ where used_percentage is broken
-    // but total_input_tokens contains the actual value
-    if (total_input_tokens && total_input_tokens > 0) {
-      const percentage = Math.round((total_input_tokens / context_window_size) * 100);
-      return Math.max(0, Math.min(100, percentage));
-    }
-
-    // Strategy 3: Fall back to current_usage for v2.1.7 and earlier
+    // Strategy 2: Use current_usage (matches /context behavior)
+    // This represents the current API call's usage, not cumulative
     if (current_usage) {
       const totalUsed = current_usage.input_tokens +
                        (current_usage.cache_creation_input_tokens || 0) +
@@ -261,6 +258,13 @@ function calculateContextWindowPercentage(contextWindow: NonNullable<ClaudeInput
         const percentage = Math.round((totalUsed / context_window_size) * 100);
         return Math.max(0, Math.min(100, percentage));
       }
+    }
+
+    // Strategy 3: Fall back to total_input_tokens (cumulative session total)
+    // Note: This differs from /context as it shows cumulative usage across all API calls
+    if (total_input_tokens && total_input_tokens > 0) {
+      const percentage = Math.round((total_input_tokens / context_window_size) * 100);
+      return Math.max(0, Math.min(100, percentage));
     }
 
     // No valid token data found

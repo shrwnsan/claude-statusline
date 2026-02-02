@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.1.6] - 2026-02-02
+
+### Fixed
+- Context window percentage now matches `/context` command output
+  - Prioritizes `current_usage` (current API call) over `total_input_tokens` (cumulative session)
+  - Resolves discrepancy where statusline showed 17% while `/context` showed 0%
+  - See: https://github.com/anthropics/claude-code/issues/19724
+  - See: https://github.com/anthropics/claude-code/issues/18944
+
 ## [2.1.5] - 2026-01-23
 
 ### Fixed
@@ -128,6 +137,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Icon reference section
 - Installation and setup instructions
 
+[2.1.6]: https://github.com/shrwnsan/claude-statusline/compare/v2.1.5...v2.1.6
 [2.1.5]: https://github.com/shrwnsan/claude-statusline/compare/v2.1.4...v2.1.5
 [2.1.4]: https://github.com/shrwnsan/claude-statusline/compare/v2.1.3...v2.1.4
 [2.1.3]: https://github.com/shrwnsan/claude-statusline/compare/v2.1.2...v2.1.3
