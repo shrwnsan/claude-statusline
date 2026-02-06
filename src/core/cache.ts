@@ -24,7 +24,7 @@ export class Cache {
    */
   private async ensureCacheDir(): Promise<void> {
     try {
-      await mkdir(this.config.cacheDir, { recursive: true });
+      await mkdir(this.config.cacheDir, { recursive: true, mode: 0o700 });
     } catch (error) {
       // Directory might already exist or we can't create it
       console.warn('[WARNING] Failed to create cache directory:', this.config.cacheDir);
@@ -240,13 +240,13 @@ export async function cachedCommand(
   }
 
   try {
-    const { exec } = await import('child_process');
+    const { execFile } = await import('child_process');
     const { promisify } = await import('util');
-    const execAsync = promisify(exec);
+    const execFileAsync = promisify(execFile);
 
-    const { stdout } = await execAsync(`${command} ${args.join(' ')}`, {
+    const { stdout } = await execFileAsync(command, args, {
       timeout: 5000, // 5 second timeout
-      encoding: 'utf-8',
+      encoding: 'utf-8' as BufferEncoding,
     });
 
     const result = stdout.trim();

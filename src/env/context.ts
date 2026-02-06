@@ -229,11 +229,11 @@ export class EnvironmentDetector {
    */
   async isToolAvailable(tool: string): Promise<boolean> {
     try {
-      const { exec } = await import('child_process');
+      const { execFile } = await import('child_process');
       const { promisify } = await import('util');
-      const execAsync = promisify(exec);
+      const execFileAsync = promisify(execFile);
 
-      await execAsync(`command -v ${tool}`, { timeout: 2000 });
+      await execFileAsync('which', [tool], { timeout: 2000 });
       return true;
     } catch {
       return false;
