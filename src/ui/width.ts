@@ -80,13 +80,13 @@ export async function getTerminalWidth(config: Config): Promise<number> {
  */
 async function tryCommand(command: string, args: string[]): Promise<number | null> {
   try {
-    const { exec } = await import('child_process');
+    const { execFile } = await import('child_process');
     const { promisify } = await import('util');
-    const execAsync = promisify(exec);
+    const execFileAsync = promisify(execFile);
 
-    const { stdout } = await execAsync(`${command} ${args.join(' ')}`, {
-      timeout: 1000, // 1 second timeout
-      encoding: 'utf-8',
+    const { stdout } = await execFileAsync(command, args, {
+      timeout: 1000,
+      encoding: 'utf-8' as BufferEncoding,
     });
 
     const width = parseInt(stdout.trim(), 10);
@@ -105,13 +105,13 @@ async function tryCommand(command: string, args: string[]): Promise<number | nul
  */
 async function tryStty(): Promise<number | null> {
   try {
-    const { exec } = await import('child_process');
+    const { execFile } = await import('child_process');
     const { promisify } = await import('util');
-    const execAsync = promisify(exec);
+    const execFileAsync = promisify(execFile);
 
-    const { stdout } = await execAsync('stty size', {
+    const { stdout } = await execFileAsync('stty', ['size'], {
       timeout: 1000,
-      encoding: 'utf-8',
+      encoding: 'utf-8' as BufferEncoding,
     });
 
     // stty size returns: "rows cols"
@@ -193,16 +193,28 @@ export async function debugWidthDetection(config: Config): Promise<void> {
  * Simple text truncation with ellipsis
  */
 export function truncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) {
+  if (getStringDisplayWidth(text) <= maxLength) {
     return text;
   }
 
-  // Edge case: if maxLength is too small, return minimal result
   if (maxLength < 4) {
     return '..';
   }
 
-  return `${text.substring(0, maxLength - 2)}..`;
+  const chars = Array.from(text);
+  let width = 0;
+  let endIndex = 0;
+
+  for (let i = 0; i < chars.length; i++) {
+    const charWidth = getStringDisplayWidth(chars[i]!);
+    if (width + charWidth > maxLength - 2) {
+      break;
+    }
+    width += charWidth;
+    endIndex = i + 1;
+  }
+
+  return `${chars.slice(0, endIndex).join('')}..`;
 }
 
 /**
@@ -214,15 +226,27 @@ export function smartTruncate(
   maxLen: number,
   _config: Config
 ): string {
+  const projectWidth = getStringDisplayWidth(project);
+  const gitInfoWidth = getStringDisplayWidth(gitInfo);
+
   // Step 1: Check if everything fits
-  if (project.length + gitInfo.length <= maxLen) {
+  if (projectWidth + gitInfoWidth <= maxLen) {
     return '';
   }
 
   // Step 2: Truncate project only (preserve branch)
-  const projLen = maxLen - gitInfo.length - 2;
+  const projLen = maxLen - gitInfoWidth - 2;
   if (projLen >= 5) {
-    return `${project.substring(0, projLen)}..${gitInfo}`;
+    const projChars = Array.from(project);
+    let width = 0;
+    let endIndex = 0;
+    for (let i = 0; i < projChars.length; i++) {
+      const charWidth = getStringDisplayWidth(projChars[i]!);
+      if (width + charWidth > projLen) break;
+      width += charWidth;
+      endIndex = i + 1;
+    }
+    return `${projChars.slice(0, endIndex).join('')}..${gitInfo}`;
   }
 
   // Step 3: Truncate project + branch (preserve indicators)
@@ -232,14 +256,45 @@ export function smartTruncate(
     indicators = bracketMatch[1] || '';
   }
 
-  const branchLen = maxLen - indicators.length - 8;
+  const indicatorsWidth = getStringDisplayWidth(indicators);
+  const branchLen = maxLen - indicatorsWidth - 8;
   if (branchLen >= 8) {
-    const gitPrefix = gitInfo.substring(0, Math.min(gitInfo.length, branchLen));
-    return `${project.substring(0, 4)}..${gitPrefix}..${indicators ? ` [${indicators}]` : ''}`;
+    const gitChars = Array.from(gitInfo);
+    let gitWidth = 0;
+    let gitEndIndex = 0;
+    for (let i = 0; i < gitChars.length; i++) {
+      const charWidth = getStringDisplayWidth(gitChars[i]!);
+      if (gitWidth + charWidth > branchLen) break;
+      gitWidth += charWidth;
+      gitEndIndex = i + 1;
+    }
+    const gitPrefix = gitChars.slice(0, gitEndIndex).join('');
+
+    const projChars = Array.from(project);
+    let projWidth = 0;
+    let projEndIndex = 0;
+    for (let i = 0; i < projChars.length; i++) {
+      const charWidth = getStringDisplayWidth(projChars[i]!);
+      if (projWidth + charWidth > 4) break;
+      projWidth += charWidth;
+      projEndIndex = i + 1;
+    }
+    const projPrefix = projChars.slice(0, projEndIndex).join('');
+
+    return `${projPrefix}..${gitPrefix}..${indicators ? ` [${indicators}]` : ''}`;
   }
 
   // Step 4: Basic fallback
-  return `${project.substring(0, maxLen)}..`;
+  const fallbackChars = Array.from(project);
+  let fallbackWidth = 0;
+  let fallbackEndIndex = 0;
+  for (let i = 0; i < fallbackChars.length; i++) {
+    const charWidth = getStringDisplayWidth(fallbackChars[i]!);
+    if (fallbackWidth + charWidth > maxLen) break;
+    fallbackWidth += charWidth;
+    fallbackEndIndex = i + 1;
+  }
+  return `${fallbackChars.slice(0, fallbackEndIndex).join('')}..`;
 }
 
 /**
