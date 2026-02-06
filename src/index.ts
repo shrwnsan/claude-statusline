@@ -181,9 +181,9 @@ async function buildStatusline(params: {
     // Build context window usage string
     let contextUsage = '';
     if (contextWindow && !config.noContextWindow) {
-      const percentage = calculateContextWindowPercentage(contextWindow);
-      if (percentage !== null) {
-        contextUsage = ` ${symbols.contextWindow}${percentage}%`;
+      const remaining = contextWindow.remaining_percentage;
+      if (remaining !== undefined && remaining !== null) {
+        contextUsage = ` ${symbols.contextWindow}${Math.round(remaining)}%`;
       }
     }
 
@@ -214,37 +214,6 @@ async function buildStatusline(params: {
   return statusline;
 }
 
-/**
- * Calculate context window remaining percentage
- *
- * Uses pre-calculated percentages from the Claude Code API.
- *
- * See: https://code.claude.com/docs/en/statusline
- *
- * The API provides pre-calculated percentage fields (since Claude Code v2.1.15):
- * - remaining_percentage: Direct percentage of context window remaining
- * - used_percentage: Percentage of context window used
- */
-function calculateContextWindowPercentage(contextWindow: NonNullable<ClaudeInput['context_window']>): number | null {
-  try {
-    const { remaining_percentage, used_percentage } = contextWindow;
-
-    // Prefer remaining_percentage if provided (API does the math)
-    if (remaining_percentage !== undefined && remaining_percentage !== null) {
-      return Math.max(0, Math.min(100, Math.round(remaining_percentage)));
-    }
-
-    // Fall back to calculating from used_percentage
-    if (used_percentage !== undefined && used_percentage !== null) {
-      return Math.max(0, 100 - Math.max(0, Math.min(100, Math.round(used_percentage))));
-    }
-
-    // No percentage data available
-    return null;
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Apply smart truncation with branch prioritization
