@@ -30,7 +30,7 @@ export interface SymbolSet {
 const ASCII_SYMBOLS: SymbolSet = {
   git: '@',
   model: '*',
-  contextWindow: '#',
+  contextWindow: '≈',
   staged: '+',
   conflict: 'C',
   stashed: '$',

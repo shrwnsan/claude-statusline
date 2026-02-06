@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.2.0] - 2026-02-06
+
+### Changed
+- **Context window display now shows remaining percentage instead of used**
+  - Displays `≈76%` (76% remaining) instead of `24%` (24% used)
+  - Simplified implementation using API's `remaining_percentage` field directly
+  - Changed ASCII fallback symbol from `#` to `≈` for better semantic meaning
+  - Aligns with bash statusline script approach
+
+### Removed
+- Legacy context window calculation strategies (manual calculation from token counts)
+- No longer needed as API provides pre-calculated percentages since Claude Code v2.1.15
+
+
 ## [2.1.6] - 2026-02-02
 
 ### Fixed
