@@ -218,6 +218,7 @@ export const CacheKeys = {
   PYTHON_VERSION: 'python_version',
   PYTHON3_VERSION: 'python3_version',
   DOCKER_VERSION: 'docker_version',
+  VPN_STATUS: 'vpn_status',
   GIT_REMOTE_URL: (dir: string) => `git_remote_${Buffer.from(dir).toString('base64')}`,
   GIT_BRANCH: (dir: string) => `git_branch_${Buffer.from(dir).toString('base64')}`,
 } as const;

@@ -40,6 +40,15 @@ echo "Execution time: ${duration}ms"
 bun run build
 # or npm run build
 
+# Build the bundled version (required after code changes)
+# The bin wrapper prefers index.bundle.js over index.js
+bun run build:bundle
+# or npm run build:bundle
+
+# Build both (TypeScript + bundle) - use this after making changes
+bun run build && bun run build:bundle
+# or npm run build && npm run build:bundle
+
 # Run with Bun debugging
 bun --inspect dist/index.bundle.js
 # or node --inspect dist/index.bundle.js

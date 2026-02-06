@@ -22,6 +22,8 @@ export interface SymbolSet {
   diverged: string;
   renamed: string;
   deleted: string;
+  vpnOn: string;
+  vpnOff: string;
 }
 
 /**
@@ -39,6 +41,8 @@ const ASCII_SYMBOLS: SymbolSet = {
   diverged: 'D',
   renamed: '>',
   deleted: 'X',
+  vpnOn: '◉',
+  vpnOff: '○',
 };
 
 /**
@@ -56,6 +60,8 @@ const NERD_FONT_SYMBOLS: SymbolSet = {
   diverged: '⇕',
   renamed: '»',
   deleted: '✘',
+  vpnOn: '◉',
+  vpnOff: '○',
 };
 
 /**
