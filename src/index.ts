@@ -164,6 +164,12 @@ async function buildStatusline(params: {
   // Get project name
   const projectName = fullDir.split('/').pop() || fullDir.split('\\').pop() || 'project';
 
+  // Build VPN indicator (shown before project name when enabled)
+  let vpnIndicator = '';
+  if (config.vpnIndicator && envInfo?.vpn !== undefined) {
+    vpnIndicator = envInfo.vpn ? symbols.vpnOn : symbols.vpnOff;
+  }
+
   // Build git status string
   let gitStatus = '';
   if (gitInfo) {
@@ -191,7 +197,7 @@ async function buildStatusline(params: {
   const modelString = `${symbols.model}${modelName}${envContext}${contextUsage}`;
 
   // Initial statusline
-  let statusline = `${projectName}${gitStatus} ${modelString}`;
+  let statusline = `${vpnIndicator}${projectName}${gitStatus} ${modelString}`;
 
   // Apply smart truncation if enabled
   if (config.truncate) {
