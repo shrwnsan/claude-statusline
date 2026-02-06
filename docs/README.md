@@ -1,70 +1,87 @@
 # Claude Statusline Documentation
 
+**Last Updated:** 2026-02-06
+**Version:** 2.0.0
+
 Comprehensive documentation for the Claude Code statusline tool.
 
 ## Documentation Structure
 
-### Getting Started
-- [**Main README**](../README.md) - Installation, quick start, and overview
-- [**Migration Guide**](MIGRATION.md) - Migrating from bash v1.0 to TypeScript v2.0
-- [**Configuration Guide**](guide-01-configuration.md) - Complete configuration options and examples
+```
+docs/
+├── README.md              # This file - main documentation entry point
+├── guides/                # User-facing guides and how-to documentation
+├── ref/                   # Technical reference and architecture
+└── plans/                 # Research, evaluations, and planning docs
+```
 
-### Reference
-- [**Feature Comparison**](FEATURE_COMPARISON.md) - Detailed comparison between versions
-- [**Architecture**](ARCHITECTURE.md) - Technical architecture and design
-- [**Contributing**](../CONTRIBUTING.md) - How to contribute to the project
+## Quick Navigation
 
-## Quick Links
+| For... | Go To |
+|--------|-------|
+| **New users** | [Main Project README](../README.md) |
+| **Configuration** | [Configuration Guide](guides/guide-01-configuration.md) |
+| **Troubleshooting** | [Troubleshooting Guide](guides/guide-02-troubleshooting.md) |
+| **Migration from v1** | [Migration Guide](guides/MIGRATION.md) |
+| **Performance tuning** | [Performance Guide](guides/guide-03-performance.md) |
+| **Architecture** | [Architecture Doc](ref/ARCHITECTURE.md) |
+| **Feature comparison** | [Feature Comparison](ref/FEATURE_COMPARISON.md) |
 
-### For New Users
-1. [Installation Guide](../README.md#installation)
-2. [Quick Configuration](guide-01-configuration.md#quick-setup)
-3. [Popular Configurations](guide-01-configuration.md#popular-configurations)
+---
 
-### For Existing Users (bash v1.0)
-1. [Migration Guide](MIGRATION.md)
-2. [Feature Comparison](FEATURE_COMPARISON.md)
-3. [Configuration Changes](MIGRATION.md#step-2-convert-environment-variables-to-configuration)
+## Guides (`guides/`)
 
-### For Advanced Users
-1. [Complete Configuration Reference](guide-01-configuration.md#configuration-options)
-2. [Performance Comparison](FEATURE_COMPARISON.md#performance-benchmarks)
-3. [Feature Matrix](FEATURE_COMPARISON.md#feature-matrix)
+User-facing documentation with step-by-step instructions.
 
-## Version-Specific Information
+| Document | Description |
+|----------|-------------|
+| [guide-01-configuration.md](guides/guide-01-configuration.md) | Complete configuration options and examples |
+| [guide-02-troubleshooting.md](guides/guide-02-troubleshooting.md) | Common issues and solutions |
+| [guide-03-performance.md](guides/guide-03-performance.md) | Performance optimization and benchmarks |
+| [MIGRATION.md](guides/MIGRATION.md) | Migrating from bash v1.0 to TypeScript v2.0 |
 
-### TypeScript v2.0 (Stable)
-- **Performance**: ~5ms with Bun runtime, ~28ms with Node.js runtime
-- **Features**: Configuration files, Windows support, npm distribution
-- **Recommended for**: New users, Windows users, performance-critical setups
+---
 
-### Bash v1.0 (Stable)
-- **Performance**: Good performance (~99ms)
-- **Features**: Environment variables, Unix-like systems only
-- **Recommended for**: Maximum stability, minimal dependencies
+## Reference (`ref/`)
 
-## Configuration Formats
+Technical documentation and architecture.
 
-- **JSON** (`claude-statusline.json`) - Editor autocompletion via JSON Schema
-- **YAML** (`claude-statusline.yaml`) - More minimal syntax
-- Both formats support exactly the same options
+| Document | Description |
+|----------|-------------|
+| [ARCHITECTURE.md](ref/ARCHITECTURE.md) | System architecture and design decisions |
+| [FEATURE_COMPARISON.md](ref/FEATURE_COMPARISON.md) | Detailed comparison between versions |
 
-## Quick Reference
+---
 
-### Installation Options
+## Plans (`plans/`)
+
+Research, evaluations, and project planning.
+
+| Document | Type | Description |
+|----------|------|-------------|
+| [eval-001-terminal-widths.md](plans/eval-001-terminal-widths.md) | Evaluation | Terminal width behavior analysis |
+| [eval-002-comprehensive-code-review.md](plans/eval-002-comprehensive-code-review.md) | Evaluation | Comprehensive code review (7.5/10) |
+| [prd-01-typescript-perf-optimization.md](plans/prd-01-typescript-perf-optimization.md) | PRD | TypeScript performance optimization requirements |
+| [research-01-sandbox-detection.md](plans/research-01-sandbox-detection.md) | Research | Sandbox detection mechanisms |
+| [research-02-competitive-analysis.md](plans/research-02-competitive-analysis.md) | Research | Competitive landscape analysis |
+| [research-03-platform-analysis.md](plans/research-03-platform-analysis.md) | Research | Platform compatibility analysis |
+
+---
+
+## Quick Start
+
+### Installation
+
 ```bash
 # Bun install (recommended - 5x faster than Node.js)
 bun install -g claude-statusline
 
-# Or npm install (works well too)
+# Or npm install
 npm install -g claude-statusline
-
-# Or pnpm/yarn
-pnpm add -g claude-statusline
-yarn global add claude-statusline
 ```
 
-### Common Configurations
+### Configuration
+
 ```bash
 # Minimal setup
 cp .claude-statusline.json.example.min ~/.claude/.claude-statusline.json
@@ -74,6 +91,7 @@ cp .claude-statusline.json.example ~/.claude/.claude-statusline.json
 ```
 
 ### Claude Code Integration
+
 ```json
 {
   "statusLine": {
@@ -83,19 +101,42 @@ cp .claude-statusline.json.example ~/.claude/.claude-statusline.json
 }
 ```
 
+---
+
+## Version Information
+
+### TypeScript v2.0 (Current Stable)
+- **Performance**: ~5ms with Bun runtime, ~28ms with Node.js runtime
+- **Features**: Configuration files, Windows support, npm distribution
+- **Recommended for**: New users, Windows users, performance-critical setups
+
+### Bash v1.0 (Legacy)
+- **Performance**: ~99ms
+- **Features**: Environment variables, Unix-like systems only
+- **Recommended for**: Maximum stability, minimal dependencies
+
+---
+
 ## Getting Help
 
-- **Issues**: [GitHub Issues](https://github.com/shrwnsan/claude-statusline/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/shrwnsan/claude-statusline/discussions)
-- **Documentation**: This directory and the main README
+| Resource | Link |
+|----------|------|
+| **Issues** | [GitHub Issues](https://github.com/shrwnsan/claude-statusline/issues) |
+| **Discussions** | [GitHub Discussions](https://github.com/shrwnsan/claude-statusline/discussions) |
+| **Contributing** | [CONTRIBUTING.md](../CONTRIBUTING.md) |
 
-## File Index
+---
 
-- `/` - Project root with main README
-- `/docs/` - This documentation directory
-- `/docs/CONFIGURATION.md` - Complete configuration guide
-- `/docs/MIGRATION.md` - Migration from bash v1.0 to v2.0
-- `/docs/FEATURE_COMPARISON.md` - Version comparison and features
-- `/docs/README.md` - This documentation overview
-- `/.claude-statusline.json.example` - Complete configuration example
-- `/.claude-statusline.json.example.min` - Minimal configuration example
+## Contributing to Documentation
+
+When adding new documentation, follow the naming conventions:
+
+| Prefix | Purpose | Example |
+|--------|---------|---------|
+| `guide-` | How-to guides | `guides/guide-04-advanced-config.md` |
+| `eval-` | Evaluation reports | `plans/eval-003-security-audit.md` |
+| `prd-` | Requirements | `plans/prd-02-windows-support.md` |
+| `research-` | Research findings | `plans/research-04-new-features.md` |
+| `retro-` | Retrospectives | `plans/retro-001-v2-release.md` |
+
+See [guide-006-doc-organization.md](https://github.com/shrwnsan/shrwnsan/blob/main/.dotfiles/docs/guides/guide-006-doc-organization.md) for full documentation patterns.

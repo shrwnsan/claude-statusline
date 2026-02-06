@@ -180,4 +180,4 @@ We started with a fast bash script (~60ms), accidentally made it slower with Typ
 
 ### Interested in the Technical Details?
 
-For the complete optimization strategy, implementation decisions, and why we chose not to pursue certain optimizations, see the [TypeScript Performance Optimization Plan](./prd-01-typescript-perf-optimization.md).
+For the complete optimization strategy, implementation decisions, and why we chose not to pursue certain optimizations, see the [TypeScript Performance Optimization Plan](../plans/prd-01-typescript-perf-optimization.md).

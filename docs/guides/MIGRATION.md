@@ -2,7 +2,7 @@
 
 Complete guide for migrating from bash v1.0 to TypeScript v2.0 (Released).
 
-**Not sure if you should upgrade?** See the [Feature Comparison](./FEATURE_COMPARISON.md) to compare versions.
+**Not sure if you should upgrade?** See the [Feature Comparison](../ref/FEATURE_COMPARISON.md) to compare versions.
 
 ## Quick Migration Checklist
 

@@ -2,7 +2,7 @@
 
 Comprehensive comparison between Bash v1.0 and TypeScript v2.0 implementations.
 
-**Ready to upgrade?** See the [Migration Guide](./MIGRATION.md) for step-by-step instructions.
+**Ready to upgrade?** See the [Migration Guide](../guides/MIGRATION.md) for step-by-step instructions.
 
 ## Performance Overview
 
