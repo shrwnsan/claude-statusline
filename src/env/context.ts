@@ -38,23 +38,25 @@ export class EnvironmentDetector {
 
     const envInfo: EnvironmentInfo = {};
 
-    // Get version information in parallel for better performance
-    const [nodeVersion, pythonVersion, dockerVersion] = await Promise.allSettled([
-      this.getNodeVersion(),
-      this.getPythonVersion(),
-      this.getDockerVersion(),
-    ]);
+    // Only fetch environment versions if envContext is enabled
+    if (this.config.envContext) {
+      const [nodeVersion, pythonVersion, dockerVersion] = await Promise.allSettled([
+        this.getNodeVersion(),
+        this.getPythonVersion(),
+        this.getDockerVersion(),
+      ]);
 
-    if (nodeVersion.status === 'fulfilled' && nodeVersion.value) {
-      envInfo.node = nodeVersion.value;
-    }
+      if (nodeVersion.status === 'fulfilled' && nodeVersion.value) {
+        envInfo.node = nodeVersion.value;
+      }
 
-    if (pythonVersion.status === 'fulfilled' && pythonVersion.value) {
-      envInfo.python = pythonVersion.value;
-    }
+      if (pythonVersion.status === 'fulfilled' && pythonVersion.value) {
+        envInfo.python = pythonVersion.value;
+      }
 
-    if (dockerVersion.status === 'fulfilled' && dockerVersion.value) {
-      envInfo.docker = dockerVersion.value;
+      if (dockerVersion.status === 'fulfilled' && dockerVersion.value) {
+        envInfo.docker = dockerVersion.value;
+      }
     }
 
     // Get VPN status if needed
