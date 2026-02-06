@@ -3,7 +3,7 @@
 Simple statusline for Claude Code with project-branch, git indicators, and context usage. Optimized for speed with bun. Just the essentials, none of the bloat.
 
 ![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
-![Version](https://img.shields.io/badge/version-2.1.4-green.svg)
+![Version](https://img.shields.io/badge/version-2.2.0-green.svg)
 ![TypeScript](https://img.shields.io/badge/language-TypeScript-3178C6.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D22.6.0-brightgreen.svg)
 ![Bun](https://img.shields.io/badge/runtime-Bun-black.svg)
