@@ -136,26 +136,20 @@ bun install -g claude-statusline  # Downloads 19KB in <1 second
 
 ### Context Window Usage (Beta Feature)
 
-**⚠️ Beta Feature:** Context window usage display is currently in beta. The calculation follows the official Claude Code documentation but may show different values compared to Claude Code's built-in `/context` command.
-
-Automatically displays context window usage percentage when available (requires Claude Code to send context window data):
+Automatically displays context window remaining percentage when available (requires Claude Code to send context window data):
 
 ```
-claude-statusline @ main [$!] *Opus #27% (ASCII version)
+claude-statusline @ main [$!] *Opus ≈76% (ASCII version)
 ```
 
-Shows percentage of context window consumed in the current conversation. The symbol varies by mode:
+Shows percentage of context window remaining in the current conversation. The symbol varies by mode:
 - **Nerd Font**: ⚡︎ (lightning bolt)
-- **ASCII**: # (hash symbol)
+- **ASCII**: ≈ (approximately equals)
 
 **Important Notes:**
-- Calculation follows [official Claude Code documentation](https://code.claude.com/docs/en/statusline#context-window-usage)
-- May differ from `/context` command due to different data sources or calculation methods
+- Uses the `remaining_percentage` field provided by Claude Code API (since v2.1.15)
 - Only shows when Claude Code provides context window data
 - Can be disabled with `"noContextWindow": true` or `CLAUDE_CODE_STATUSLINE_NO_CONTEXT_WINDOW=1`
-
-**Known Discrepancy:**
-Some users have noted differences between the statusline percentage and `/context` command output. This appears to be a difference in how Claude Code internally calculates context usage versus what's provided through the statusline API.
 
 ### Environment Context
 
