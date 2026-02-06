@@ -215,62 +215,34 @@ async function buildStatusline(params: {
 }
 
 /**
- * Calculate context window usage percentage
+ * Calculate context window remaining percentage
  *
- * Matches /context command behavior by prioritizing current API call usage
- * over cumulative session totals.
+ * Uses pre-calculated percentages from the Claude Code API.
  *
  * See: https://code.claude.com/docs/en/statusline
- * See: https://github.com/anthropics/claude-code/issues/19724
- * See: https://github.com/anthropics/claude-code/issues/18944
  *
- * Strategy:
- * 1. Try used_percentage if it's non-zero (pre-calculated by API)
- * 2. Use current_usage (matches /context - current API call only)
- * 3. Fall back to total_input_tokens (cumulative session total)
- *
- * Note: total_input_tokens is cumulative across the entire session and will
- * differ from /context, which shows only the current API call's usage.
+ * The API provides pre-calculated percentage fields (since Claude Code v2.1.15):
+ * - remaining_percentage: Direct percentage of context window remaining
+ * - used_percentage: Percentage of context window used
  */
 function calculateContextWindowPercentage(contextWindow: NonNullable<ClaudeInput['context_window']>): number | null {
   try {
-    const { total_input_tokens, context_window_size, used_percentage, current_usage } = contextWindow;
+    const { remaining_percentage, used_percentage } = contextWindow;
 
-    // Validate context_window_size
-    if (!context_window_size || context_window_size === 0) {
-      return null;
+    // Prefer remaining_percentage if provided (API does the math)
+    if (remaining_percentage !== undefined && remaining_percentage !== null) {
+      return Math.max(0, Math.min(100, Math.round(remaining_percentage)));
     }
 
-    // Strategy 1: Try pre-calculated percentage if it's non-zero
-    // This handles versions where the field is populated correctly
-    if (used_percentage !== undefined && used_percentage !== null && used_percentage > 0) {
-      return Math.max(0, Math.min(100, Math.round(used_percentage)));
+    // Fall back to calculating from used_percentage
+    if (used_percentage !== undefined && used_percentage !== null) {
+      return Math.max(0, 100 - Math.max(0, Math.min(100, Math.round(used_percentage))));
     }
 
-    // Strategy 2: Use current_usage (matches /context behavior)
-    // This represents the current API call's usage, not cumulative
-    if (current_usage) {
-      const totalUsed = current_usage.input_tokens +
-                       (current_usage.cache_creation_input_tokens || 0) +
-                       (current_usage.cache_read_input_tokens || 0);
-
-      if (totalUsed > 0) {
-        const percentage = Math.round((totalUsed / context_window_size) * 100);
-        return Math.max(0, Math.min(100, percentage));
-      }
-    }
-
-    // Strategy 3: Fall back to total_input_tokens (cumulative session total)
-    // Note: This differs from /context as it shows cumulative usage across all API calls
-    if (total_input_tokens && total_input_tokens > 0) {
-      const percentage = Math.round((total_input_tokens / context_window_size) * 100);
-      return Math.max(0, Math.min(100, percentage));
-    }
-
-    // No valid token data found
-    return 0;
+    // No percentage data available
+    return null;
   } catch {
-    return 0;
+    return null;
   }
 }
 
