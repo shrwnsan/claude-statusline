@@ -181,7 +181,10 @@ async function buildStatusline(params: {
   if (envInfo) {
     const envSymbols = getEnvironmentSymbols(symbols);
     const envFormatter = new EnvironmentFormatter(envSymbols);
-    envContext = ` ${envFormatter.formatWithIcons(envInfo)}`;
+    const formattedEnv = envFormatter.formatWithIcons(envInfo);
+    if (formattedEnv) {
+      envContext = ` ${formattedEnv}`;
+    }
   }
 
     // Build context window usage string
