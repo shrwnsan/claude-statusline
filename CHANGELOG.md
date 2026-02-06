@@ -137,6 +137,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Icon reference section
 - Installation and setup instructions
 
+[2.1.7]: https://github.com/shrwnsan/claude-statusline/compare/v2.1.6...v2.1.7
 [2.1.6]: https://github.com/shrwnsan/claude-statusline/compare/v2.1.5...v2.1.6
 [2.1.5]: https://github.com/shrwnsan/claude-statusline/compare/v2.1.4...v2.1.5
 [2.1.4]: https://github.com/shrwnsan/claude-statusline/compare/v2.1.3...v2.1.4
