@@ -7,26 +7,10 @@
 
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { readlinkSync } from 'fs';
+import { realpathSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
-let __dirname = dirname(__filename);
-
-// Resolve symlinks to get the real project root directory
-try {
-  // If this file is a symlink, resolve it to get the real path
-  const realPath = readlinkSync(__filename);
-  if (realPath) {
-    // The symlink points to the actual file, so we need to go up one level from the bin directory
-    __dirname = join(dirname(realPath), '..');
-  }
-} catch (err) {
-  // Not a symlink or readlink failed, use relative path from bin/
-  // Check if we're in bin/ directory
-  if (__dirname.endsWith('/bin') || __dirname.endsWith('\\bin')) {
-    __dirname = join(__dirname, '..');
-  }
-}
+const __dirname = join(dirname(realpathSync(__filename)), '..');
 
 // Import the main module (prefer bundled version if it exists)
 try {

@@ -41,8 +41,8 @@ const ASCII_SYMBOLS: SymbolSet = {
   diverged: 'D',
   renamed: '>',
   deleted: 'X',
-  vpnOn: '◉',
-  vpnOff: '○',
+  vpnOn: '✓·vpn ·',
+  vpnOff: '✗·vpn ·',
 };
 
 /**

@@ -58,8 +58,8 @@ export const ConfigSchema = z.object({
     diverged: z.string().default('D'),
     renamed: z.string().default('>'),
     deleted: z.string().default('X'),
-    vpnOn: z.string().default('◉'),
-    vpnOff: z.string().default('○'),
+    vpnOn: z.string().default('✓·vpn ·'),
+    vpnOff: z.string().default('✗·vpn ·'),
   }).default({}),
 });
 

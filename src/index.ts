@@ -167,7 +167,10 @@ async function buildStatusline(params: {
   // Build VPN indicator (shown before project name when enabled)
   let vpnIndicator = '';
   if (config.vpnIndicator && envInfo?.vpn !== undefined) {
-    vpnIndicator = (envInfo.vpn ? symbols.vpnOn : symbols.vpnOff) + ' ';
+    const vpnSymbol = envInfo.vpn ? symbols.vpnOn : symbols.vpnOff;
+    if (vpnSymbol) {
+      vpnIndicator = vpnSymbol + ' ';
+    }
   }
 
   // Build git status string

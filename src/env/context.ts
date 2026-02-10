@@ -30,7 +30,7 @@ export class EnvironmentDetector {
    */
   async getEnvironmentInfo(): Promise<EnvironmentInfo | null> {
     // Always get VPN status if vpnIndicator is enabled, regardless of envContext
-    const shouldGetVPN = this.config.vpnIndicator || this.config.envContext;
+    const shouldGetVPN = this.config.vpnIndicator;
 
     if (!this.config.envContext && !this.config.vpnIndicator) {
       return null;
@@ -230,7 +230,7 @@ export class EnvironmentDetector {
 
     } catch (error) {
       console.debug('[DEBUG] Failed to get VPN status:', error instanceof Error ? error.message : String(error));
-      return false;
+      return null;
     }
   }
 
