@@ -9,6 +9,7 @@ export interface EnvironmentInfo {
   node?: string;
   python?: string;
   docker?: string;
+  vpn?: boolean;
 }
 
 /**
@@ -28,32 +29,46 @@ export class EnvironmentDetector {
    * Get environment information if context is enabled
    */
   async getEnvironmentInfo(): Promise<EnvironmentInfo | null> {
-    if (!this.config.envContext) {
+    // Always get VPN status if vpnIndicator is enabled, regardless of envContext
+    const shouldGetVPN = this.config.vpnIndicator;
+
+    if (!this.config.envContext && !this.config.vpnIndicator) {
       return null;
     }
 
     const envInfo: EnvironmentInfo = {};
 
-    // Get version information in parallel for better performance
-    const [nodeVersion, pythonVersion, dockerVersion] = await Promise.allSettled([
-      this.getNodeVersion(),
-      this.getPythonVersion(),
-      this.getDockerVersion(),
-    ]);
+    // Only fetch environment versions if envContext is enabled
+    if (this.config.envContext) {
+      const [nodeVersion, pythonVersion, dockerVersion] = await Promise.allSettled([
+        this.getNodeVersion(),
+        this.getPythonVersion(),
+        this.getDockerVersion(),
+      ]);
 
-    if (nodeVersion.status === 'fulfilled' && nodeVersion.value) {
-      envInfo.node = nodeVersion.value;
+      if (nodeVersion.status === 'fulfilled' && nodeVersion.value) {
+        envInfo.node = nodeVersion.value;
+      }
+
+      if (pythonVersion.status === 'fulfilled' && pythonVersion.value) {
+        envInfo.python = pythonVersion.value;
+      }
+
+      if (dockerVersion.status === 'fulfilled' && dockerVersion.value) {
+        envInfo.docker = dockerVersion.value;
+      }
     }
 
-    if (pythonVersion.status === 'fulfilled' && pythonVersion.value) {
-      envInfo.python = pythonVersion.value;
-    }
-
-    if (dockerVersion.status === 'fulfilled' && dockerVersion.value) {
-      envInfo.docker = dockerVersion.value;
+    // Get VPN status if needed
+    if (shouldGetVPN) {
+      const vpnStatus = await this.getVPNStatus();
+      if (vpnStatus !== null) {
+        envInfo.vpn = vpnStatus;
+      }
     }
 
     // Return null if no environment versions were found
+    // But still return envInfo if only VPN status is present and vpnIndicator is enabled
     if (Object.keys(envInfo).length === 0) {
       return null;
     }
@@ -181,6 +196,40 @@ export class EnvironmentDetector {
 
     } catch (error) {
       console.debug('[DEBUG] Failed to get Docker version:', error instanceof Error ? error.message : String(error));
+      return null;
+    }
+  }
+
+  /**
+   * Get VPN status with caching (macOS only)
+   * Detects VPN by checking for UTun (User Tunnel) interfaces
+   */
+  private async getVPNStatus(): Promise<boolean | null> {
+    // Only support macOS for now
+    if (process.platform !== 'darwin') {
+      return null;
+    }
+
+    const cacheKey = CacheKeys.VPN_STATUS;
+
+    try {
+      // Use a shorter TTL for VPN status (30 seconds) since it can change frequently
+      const vpnTTL = this.config.cacheTTL / 10;
+
+      // Execute scutil --nwi and grep for utun interfaces (case-insensitive)
+      const result = await cachedCommand(
+        this.cache,
+        cacheKey,
+        'sh',
+        ['-c', 'scutil --nwi 2>/dev/null | grep -qi utun && echo "detected" || echo "not detected"'],
+        vpnTTL
+      );
+
+      // If grep finds utun, the command outputs "detected", otherwise "not detected"
+      return result?.trim() === 'detected';
+
+    } catch (error) {
+      console.debug('[DEBUG] Failed to get VPN status:', error instanceof Error ? error.message : String(error));
       return null;
     }
   }

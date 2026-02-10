@@ -164,6 +164,15 @@ async function buildStatusline(params: {
   // Get project name
   const projectName = fullDir.split('/').pop() || fullDir.split('\\').pop() || 'project';
 
+  // Build VPN indicator (shown before project name when enabled)
+  let vpnIndicator = '';
+  if (config.vpnIndicator && envInfo?.vpn !== undefined) {
+    const vpnSymbol = envInfo.vpn ? symbols.vpnOn : symbols.vpnOff;
+    if (vpnSymbol) {
+      vpnIndicator = vpnSymbol + ' ';
+    }
+  }
+
   // Build git status string
   let gitStatus = '';
   if (gitInfo) {
@@ -175,7 +184,10 @@ async function buildStatusline(params: {
   if (envInfo) {
     const envSymbols = getEnvironmentSymbols(symbols);
     const envFormatter = new EnvironmentFormatter(envSymbols);
-    envContext = ` ${envFormatter.formatWithIcons(envInfo)}`;
+    const formattedEnv = envFormatter.formatWithIcons(envInfo);
+    if (formattedEnv) {
+      envContext = ` ${formattedEnv}`;
+    }
   }
 
     // Build context window usage string
@@ -191,7 +203,7 @@ async function buildStatusline(params: {
   const modelString = `${symbols.model}${modelName}${envContext}${contextUsage}`;
 
   // Initial statusline
-  let statusline = `${projectName}${gitStatus} ${modelString}`;
+  let statusline = `${vpnIndicator}${projectName}${gitStatus} ${modelString}`;
 
   // Apply smart truncation if enabled
   if (config.truncate) {

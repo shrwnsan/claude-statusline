@@ -18,6 +18,7 @@ export const ConfigSchema = z.object({
   noGitStatus: z.boolean().default(false), // Disable git indicators
   noContextWindow: z.boolean().default(false), // Disable context window usage
   envContext: z.boolean().default(false), // Show environment versions
+  vpnIndicator: z.boolean().default(false), // Show VPN status indicator (macOS only)
   truncate: z.boolean().default(false), // Smart truncation
   softWrap: z.boolean().default(false), // Soft wrapping (legacy)
   noSoftWrap: z.boolean().default(false), // Disable soft-wrapping
@@ -40,6 +41,8 @@ export const ConfigSchema = z.object({
     diverged: z.string().default('⇕'),
     renamed: z.string().default('»'),
     deleted: z.string().default('✘'),
+    vpnOn: z.string().default('◉'),
+    vpnOff: z.string().default('○'),
   }).default({}),
 
   // ASCII fallback symbols
@@ -55,6 +58,8 @@ export const ConfigSchema = z.object({
     diverged: z.string().default('D'),
     renamed: z.string().default('>'),
     deleted: z.string().default('X'),
+    vpnOn: z.string().default('✓·vpn ·'),
+    vpnOff: z.string().default('✗·vpn ·'),
   }).default({}),
 });
 
@@ -143,6 +148,10 @@ function loadEnvConfig(): Partial<Config> {
     env.envContext = true;
   }
 
+  if (process.env.CLAUDE_CODE_STATUSLINE_VPN_INDICATOR === '1') {
+    env.vpnIndicator = true;
+  }
+
   if (process.env.CLAUDE_CODE_STATUSLINE_TRUNCATE === '1') {
     env.truncate = true;
   }
@@ -199,6 +208,7 @@ export function generateSampleConfig(): string {
     noGitStatus: false, // Set to true to disable git indicators
     noContextWindow: false, // Set to true to disable context window usage
     envContext: true, // Set to true to show Node.js, Python versions
+    vpnIndicator: true, // Set to true to show VPN status indicator (macOS only)
     truncate: true, // Set to true to enable smart truncation
     softWrap: false, // Set to true to enable soft wrapping
 
@@ -219,6 +229,8 @@ export function generateSampleConfig(): string {
       diverged: '⇕',
       renamed: '»',
       deleted: '✘',
+      vpnOn: '◉',
+      vpnOff: '○',
     },
   }, null, 2);
 }
