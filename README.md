@@ -3,7 +3,7 @@
 Simple statusline for Claude Code with project-branch, git indicators, and context usage. Optimized for speed with bun. Just the essentials, none of the bloat.
 
 ![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
-![Version](https://img.shields.io/badge/version-2.2.0-green.svg)
+![Version](https://img.shields.io/badge/version-2.3.0-green.svg)
 ![TypeScript](https://img.shields.io/badge/language-TypeScript-3178C6.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D22.6.0-brightgreen.svg)
 ![Bun](https://img.shields.io/badge/runtime-Bun-black.svg)
@@ -68,6 +68,7 @@ claude-statusline works out-of-the-box with these defaults:
 - `noEmoji`: false (Nerd Font symbols preferred, ASCII fallback)
 - `noGitStatus`: false (git status shown)
 - `noContextWindow`: false (context window usage shown)
+- `vpnIndicator`: true (VPN status indicator shown on macOS)
 - `noSoftWrap`: false (soft wrapping enabled when truncate=true, set to true to disable)
 - `rightMargin`: 15 (prevents bleeding into Claude Code telemetry)
 - `cacheTTL`: 300 (5-minute cache for environment info)
@@ -120,6 +121,23 @@ bun install -g claude-statusline  # Downloads 19KB in <1 second
 *See [Performance Guide](docs/guide-03-performance.md) for the full optimization story*
 
 ## Features
+
+### VPN Status Indicator
+
+Shows VPN connection status on macOS (automatically detects utun interfaces):
+
+```
+◉ VPN on (connected)
+○ VPN off (disconnected)
+```
+
+**Configuration:**
+- Enabled by default on macOS
+- Can be disabled with `"vpnIndicator": false` in config or `CLAUDE_CODE_STATUSLINE_VPN_INDICATOR=0`
+- Cached with 30-second TTL for performance
+- ASCII fallback: `✓·vpn ·` / `✗·vpn ·` (when using ASCII symbols)
+
+**Note:** macOS only feature. Uses `scutil` to detect VPN interfaces. Linux/Windows support not available.
 
 ### Git Status Indicators
 
@@ -254,17 +272,20 @@ nano ~/.claude/claude-statusline.json
 ### Default Behavior
 ```bash
 # Basic truncation (default) - truncated at terminal width minus 10 chars
-claude-statusline @ main [$!A] *Claude Sonnet 4.5 #27%
+◉ claude-statusline @ main [$!A] *Claude Sonnet 4.5 #27%
+
+# With VPN off indicator
+○ claude-statusline @ main [$!A] *Claude Sonnet 4.5 #27%
 
 # With environment context enabled
 # Set "envContext": true in config file
-claude-statusline @ main [$!A] *Claude Sonnet 4.5 Node22.17.1 Py3.13.5 Docker28.3.3 #27%
+◉ claude-statusline @ main [$!A] *Claude Sonnet 4.5 Node22.17.1 Py3.13.5 Docker28.3.3 #27%
 ```
 
 ### ASCII Mode (Fallback)
 ```bash
 # With "noEmoji": true in config file
-claude-statusline @ main [$!A] *Claude Sonnet 4.5
+✓·vpn · claude-statusline @ main [$!A] *Claude Sonnet 4.5
 ```
 
 ## Documentation
