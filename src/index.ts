@@ -59,6 +59,10 @@ export async function main(): Promise<void> {
 
     // Read and validate input from stdin
     const input = await readInput();
+    if (!input) {
+      // No input provided - exit silently (graceful degradation)
+      process.exit(0);
+    }
     if (!validateInput(JSON.stringify(input), config)) {
       console.error('[ERROR] Invalid input received');
       process.exit(1);
@@ -123,11 +127,16 @@ export async function main(): Promise<void> {
 
 /**
  * Read JSON input from stdin
+ * Returns null if no input is provided (handles graceful degradation)
  */
-async function readInput(): Promise<ClaudeInput> {
+async function readInput(): Promise<ClaudeInput | null> {
   try {
     const input = readFileSync(0, 'utf-8'); // Read from stdin (fd 0)
-    const parsed = JSON.parse(input.trim());
+    const trimmed = input.trim();
+    if (!trimmed) {
+      return null; // No input provided
+    }
+    const parsed = JSON.parse(trimmed);
     return parsed as ClaudeInput;
   } catch (error) {
     throw new Error(`Failed to read or parse input: ${error instanceof Error ? error.message : String(error)}`);
