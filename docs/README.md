@@ -1,6 +1,6 @@
 # Claude Statusline Documentation
 
-**Last Updated:** 2026-02-06
+**Last Updated:** 2026-02-11
 **Version:** 2.0.0
 
 Comprehensive documentation for the Claude Code statusline tool.
@@ -62,9 +62,11 @@ Research, evaluations, and project planning.
 | [eval-001-terminal-widths.md](plans/eval-001-terminal-widths.md) | Evaluation | Terminal width behavior analysis |
 | [eval-002-comprehensive-code-review.md](plans/eval-002-comprehensive-code-review.md) | Evaluation | Comprehensive code review (7.5/10) |
 | [prd-01-typescript-perf-optimization.md](plans/prd-01-typescript-perf-optimization.md) | PRD | TypeScript performance optimization requirements |
+| [prd-02-vpn-cross-platform-support.md](plans/prd-02-vpn-cross-platform-support.md) | PRD | VPN indicator Linux/WSL support |
 | [research-01-sandbox-detection.md](plans/research-01-sandbox-detection.md) | Research | Sandbox detection mechanisms |
 | [research-02-competitive-analysis.md](plans/research-02-competitive-analysis.md) | Research | Competitive landscape analysis |
 | [research-03-platform-analysis.md](plans/research-03-platform-analysis.md) | Research | Platform compatibility analysis |
+| [tasks-02-vpn-cross-platform-support.md](plans/tasks-02-vpn-cross-platform-support.md) | Tasks | Implementation tasks for PRD-02 |
 
 ---
 
@@ -131,12 +133,15 @@ cp .claude-statusline.json.example ~/.claude/.claude-statusline.json
 
 When adding new documentation, follow the naming conventions:
 
+**Pattern**: `prefix-{nnn}-{title}.md` (3-digit incrementing integer, e.g., `prd-002-vpn-support.md`)
+
 | Prefix | Purpose | Example |
 |--------|---------|---------|
-| `guide-` | How-to guides | `guides/guide-04-advanced-config.md` |
+| `guide-` | How-to guides | `guides/guide-004-advanced-config.md` |
 | `eval-` | Evaluation reports | `plans/eval-003-security-audit.md` |
-| `prd-` | Requirements | `plans/prd-02-windows-support.md` |
-| `research-` | Research findings | `plans/research-04-new-features.md` |
+| `prd-` | Requirements | `plans/prd-002-windows-support.md` |
+| `research-` | Research findings | `plans/research-004-new-features.md` |
 | `retro-` | Retrospectives | `plans/retro-001-v2-release.md` |
+| `tasks-` | Implementation tasks | `plans/tasks-002-feature-implementation.md` |
 
 See [guide-006-doc-organization.md](https://github.com/shrwnsan/shrwnsan/blob/main/.dotfiles/docs/guides/guide-006-doc-organization.md) for full documentation patterns.
