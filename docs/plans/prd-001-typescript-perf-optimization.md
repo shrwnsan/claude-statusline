@@ -147,7 +147,7 @@
 
 1.3.2 ✅ Update documentation (1 hour)
 - Updated README.md to mention Bun in dependencies
-- Added performance benchmarks to docs/guide-03-performance.md
+- Added performance benchmarks to docs/guide-003-performance.md
 - Documented 82% improvement vs Node.js
 
 1.3.3 ✅ Create runtime detection (1 hour)

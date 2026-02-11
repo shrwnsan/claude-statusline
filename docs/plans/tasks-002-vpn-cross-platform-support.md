@@ -1,6 +1,6 @@
 # Tasks: VPN Indicator Cross-Platform Support
 
-> Derived from [PRD-02](plans/prd-02-vpn-cross-platform-support.md)
+> Derived from [PRD-002](plans/prd-002-vpn-cross-platform-support.md)
 
 ---
 

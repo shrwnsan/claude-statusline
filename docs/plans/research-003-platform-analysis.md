@@ -132,7 +132,7 @@ This decision aligns with the broader trend in the developer ecosystem where pro
 
 ## Next Steps for simple-git Replacement
 
-Based on this analysis and the performance optimization plan in `docs/prd-01-typescript-perf-optimization.md`:
+Based on this analysis and the performance optimization plan in `docs/prd-001-typescript-perf-optimization.md`:
 
 1. **Replace simple-git** with native `child_process.spawn` commands (5ms improvement)
 2. **Remove Windows-specific code** and path handling complexity

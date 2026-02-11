@@ -164,8 +164,8 @@ claude-statusline/
 ├── bin/                    # Executable wrappers
 │   └── claude-statusline # npm package entry point
 ├── docs/                  # Detailed documentation
-│   ├── guide-01-configuration.md   # Configuration options
-│   ├── guide-03-performance.md     # Performance analysis
+│   ├── guide-001-configuration.md  # Configuration options
+│   ├── guide-003-performance.md    # Performance analysis
 │   ├── MIGRATION.md               # v1.0 to v2.0 migration guide
 │   └── CHANGELOG.md               # Version history
 ├── tests/                 # Test files
@@ -201,7 +201,7 @@ Before committing changes, ensure:
 ### Adding New Features
 1. Implement feature in `claude-statusline.sh`
 2. Add environment variable control if needed
-3. Update `docs/guide-01-configuration.md` with new options
+3. Update `docs/guide-001-configuration.md` with new options
 4. Add tests to this AGENTS.md file
 5. Update README.md if feature affects user experience
 6. Test performance impact
@@ -211,9 +211,9 @@ Before committing changes, ensure:
 1. Benchmark current performance
 2. Implement optimization
 3. Measure improvement
-4. Update `docs/guide-03-performance.md` with new benchmarks
+4. Update `docs/guide-003-performance.md` with new benchmarks
 5. Test edge cases and compatibility
-6. Document optimization technique in guide-03-performance.md
+6. Document optimization technique in guide-003-performance.md
 
 ### Bug Fixes
 1. Identify root cause

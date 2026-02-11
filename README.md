@@ -118,7 +118,7 @@ bun install -g claude-statusline  # Downloads 19KB in <1 second
 
 **Fun fact**: We started with a fast bash script (~60ms), accidentally made it slower with TypeScript (~327ms), then optimized it to be 12x faster than the original (~5ms with Bun)!
 
-*See [Performance Guide](docs/guide-03-performance.md) for the full optimization story*
+*See [Performance Guide](docs/guide-003-performance.md) for the full optimization story*
 
 ## Features
 
@@ -244,7 +244,7 @@ For enhanced visual icons, install Nerd Fonts:
 
 ### 🎛️ Configuration
 
-**📖 [Complete Configuration Guide](./docs/guide-01-configuration.md)**
+**📖 [Complete Configuration Guide](./docs/guide-001-configuration.md)**
 
 Configure with JSON/YAML files:
 
@@ -292,7 +292,7 @@ nano ~/.claude/claude-statusline.json
 
 📚 **Complete documentation available in the [`docs/`](./docs) directory:**
 
-- **[Configuration Guide](./docs/guide-01-configuration.md)** - Complete configuration options and examples
+- **[Configuration Guide](./docs/guide-001-configuration.md)** - Complete configuration options and examples
 - **[Migration Guide](./docs/MIGRATION.md)** - Migrating from bash v1.0 to TypeScript v2.0
 - **[Feature Comparison](./docs/FEATURE_COMPARISON.md)** - Detailed comparison between versions
 - **[Documentation Index](./docs/README.md)** - Overview of all documentation

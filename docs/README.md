@@ -20,10 +20,10 @@ docs/
 | For... | Go To |
 |--------|-------|
 | **New users** | [Main Project README](../README.md) |
-| **Configuration** | [Configuration Guide](guides/guide-01-configuration.md) |
-| **Troubleshooting** | [Troubleshooting Guide](guides/guide-02-troubleshooting.md) |
+| **Configuration** | [Configuration Guide](guides/guide-001-configuration.md) |
+| **Troubleshooting** | [Troubleshooting Guide](guides/guide-002-troubleshooting.md) |
 | **Migration from v1** | [Migration Guide](guides/MIGRATION.md) |
-| **Performance tuning** | [Performance Guide](guides/guide-03-performance.md) |
+| **Performance tuning** | [Performance Guide](guides/guide-003-performance.md) |
 | **Architecture** | [Architecture Doc](ref/ARCHITECTURE.md) |
 | **Feature comparison** | [Feature Comparison](ref/FEATURE_COMPARISON.md) |
 
@@ -35,9 +35,9 @@ User-facing documentation with step-by-step instructions.
 
 | Document | Description |
 |----------|-------------|
-| [guide-01-configuration.md](guides/guide-01-configuration.md) | Complete configuration options and examples |
-| [guide-02-troubleshooting.md](guides/guide-02-troubleshooting.md) | Common issues and solutions |
-| [guide-03-performance.md](guides/guide-03-performance.md) | Performance optimization and benchmarks |
+| [guide-001-configuration.md](guides/guide-001-configuration.md) | Complete configuration options and examples |
+| [guide-002-troubleshooting.md](guides/guide-002-troubleshooting.md) | Common issues and solutions |
+| [guide-003-performance.md](guides/guide-003-performance.md) | Performance optimization and benchmarks |
 | [MIGRATION.md](guides/MIGRATION.md) | Migrating from bash v1.0 to TypeScript v2.0 |
 
 ---
@@ -61,12 +61,12 @@ Research, evaluations, and project planning.
 |----------|------|-------------|
 | [eval-001-terminal-widths.md](plans/eval-001-terminal-widths.md) | Evaluation | Terminal width behavior analysis |
 | [eval-002-comprehensive-code-review.md](plans/eval-002-comprehensive-code-review.md) | Evaluation | Comprehensive code review (7.5/10) |
-| [prd-01-typescript-perf-optimization.md](plans/prd-01-typescript-perf-optimization.md) | PRD | TypeScript performance optimization requirements |
-| [prd-02-vpn-cross-platform-support.md](plans/prd-02-vpn-cross-platform-support.md) | PRD | VPN indicator Linux/WSL support |
-| [research-01-sandbox-detection.md](plans/research-01-sandbox-detection.md) | Research | Sandbox detection mechanisms |
-| [research-02-competitive-analysis.md](plans/research-02-competitive-analysis.md) | Research | Competitive landscape analysis |
-| [research-03-platform-analysis.md](plans/research-03-platform-analysis.md) | Research | Platform compatibility analysis |
-| [tasks-02-vpn-cross-platform-support.md](plans/tasks-02-vpn-cross-platform-support.md) | Tasks | Implementation tasks for PRD-02 |
+| [prd-001-typescript-perf-optimization.md](plans/prd-001-typescript-perf-optimization.md) | PRD | TypeScript performance optimization requirements |
+| [prd-002-vpn-cross-platform-support.md](plans/prd-002-vpn-cross-platform-support.md) | PRD | VPN indicator Linux/WSL support |
+| [research-001-sandbox-detection.md](plans/research-001-sandbox-detection.md) | Research | Sandbox detection mechanisms |
+| [research-002-competitive-analysis.md](plans/research-002-competitive-analysis.md) | Research | Competitive landscape analysis |
+| [research-003-platform-analysis.md](plans/research-003-platform-analysis.md) | Research | Platform compatibility analysis |
+| [tasks-002-vpn-cross-platform-support.md](plans/tasks-002-vpn-cross-platform-support.md) | Tasks | Implementation tasks for PRD-002 |
 
 ---
 
