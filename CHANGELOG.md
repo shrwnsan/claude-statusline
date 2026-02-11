@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.3.1] - 2026-02-11
+
+### Fixed
+- Handle empty stdin gracefully - exit silently with code 0 instead of throwing error
+- Updated `readInput()` to return `null` when stdin is empty/whitespace only
+
 ## [2.3.0] - 2026-02-10
 
 ### Added
