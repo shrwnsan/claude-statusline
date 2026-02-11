@@ -12,7 +12,7 @@ Extend the VPN indicator feature (currently macOS-only) to support Linux (includ
 - **File**: `src/env/context.ts:207-235`
 - **Method**: `getVPNStatus()`
 - **Detection Strategy**: Uses `scutil --nwi` to detect `utun` (User Tunnel) network interfaces
-- **Config**: `vpnIndicator` option in `src/core/config.ts`
+- **Config**: `vpnIndicator` option in `src/core/config.ts` (default: `false` — opt-in)
 - **Symbols**: `vpnOn` (◉) and `vpnOff` (○) in `src/ui/symbols.ts`
 - **Cache TTL**: 30 seconds (`cacheTTL / 10`)
 
@@ -23,9 +23,27 @@ private async getVPNStatus(): Promise<boolean | null> {
   if (process.platform !== 'darwin') {
     return null;
   }
-  // ... macOS detection logic
+
+  const cacheKey = CacheKeys.VPN_STATUS;
+
+  try {
+    const vpnTTL = this.config.cacheTTL / 10;
+    const result = await cachedCommand(
+      this.cache,
+      cacheKey,
+      'sh',
+      ['-c', 'scutil --nwi 2>/dev/null | grep -qi utun && echo "detected" || echo "not detected"'],
+      vpnTTL
+    );
+    return result?.trim() === 'detected';
+  } catch (error) {
+    console.debug('[DEBUG] Failed to get VPN status:', error instanceof Error ? error.message : String(error));
+    return null;
+  }
 }
 ```
+
+**Note**: In the current code, `cacheKey` and `vpnTTL` are declared *inside* the platform guard. The refactor moves them to the dispatcher method — a minor structural change.
 
 ## Requirements
 
@@ -34,10 +52,11 @@ private async getVPNStatus(): Promise<boolean | null> {
 #### Linux Support (includes WSL)
 1. Detect VPN connections on Linux distributions
 2. Support common VPN interface types:
-   - `tun*` (OpenVPN, Tailscale)
+   - `tun*` (OpenVPN)
    - `tap*` (Layer 2 VPNs)
    - `wg*` (WireGuard)
    - `ppp*` (PPP-based VPNs)
+   - `tailscale*` (Tailscale — uses `tailscale0` on Linux, not `utun`)
 3. Use standard Linux tools available on most distributions
 4. Gracefully handle missing tools
 5. Work on WSL1 and WSL2 (same implementation, since WSL is Linux)
@@ -89,12 +108,12 @@ private async getVPNStatus(): Promise<boolean | null> {
 #### Linux (includes WSL)
 **Method**: Network Interface Check
 ```bash
-ls /sys/class/net 2>/dev/null | grep -E "^(tun|tap|wg|ppp)[0-9]"
+ls /sys/class/net 2>/dev/null | grep -E "^(tun|tap|wg|ppp|tailscale)[0-9]"
 ```
 
 **Rationale**:
 - `/sys/class/net` is a standard Linux sysfs interface
-- Interface name pattern matching covers 99% of VPN software
+- Interface name pattern matching covers common VPN software (including Tailscale, which uses `tailscale0` on Linux rather than `tun*`)
 - Fast, requires no additional dependencies
 - Works on both native Linux and WSL (WSL1/WSL2)
 - No special permissions required
@@ -111,6 +130,7 @@ ls /sys/class/net 2>/dev/null | grep -E "^(tun|tap|wg|ppp)[0-9]"
 |------|---------|
 | `src/env/context.ts` | Add `getLinuxVPNStatus()`, refactor `getVPNStatus()` |
 | `src/core/config.ts` | Update docstring for `vpnIndicator` (remove "macOS only") |
+| `src/core/cache.ts` | No changes (defines `CacheKeys.VPN_STATUS` used by both platforms) |
 | `src/ui/symbols.ts` | No changes (existing symbols work for all platforms) |
 | `README.md` | Update VPN indicator section |
 | `CHANGELOG.md` | Add new feature entry |
@@ -120,7 +140,7 @@ ls /sys/class/net 2>/dev/null | grep -E "^(tun|tap|wg|ppp)[0-9]"
 ```typescript
 /**
  * Get VPN status on Linux by checking for VPN network interfaces
- * Detects: tun*, tap*, wg*, ppp* interfaces
+ * Detects: tun*, tap*, wg*, ppp*, tailscale* interfaces
  * Works on both native Linux and WSL
  */
 private async getLinuxVPNStatus(cacheKey: string, vpnTTL: number): Promise<boolean | null> {
@@ -129,12 +149,12 @@ private async getLinuxVPNStatus(cacheKey: string, vpnTTL: number): Promise<boole
       this.cache,
       cacheKey,
       'sh',
-      ['-c', 'ls /sys/class/net 2>/dev/null | grep -E "^(tun|tap|wg|ppp)[0-9]" && echo "detected" || echo "not detected"'],
+      ['-c', 'ls /sys/class/net 2>/dev/null | grep -E "^(tun|tap|wg|ppp|tailscale)[0-9]" && echo "detected" || echo "not detected"'],
       vpnTTL
     );
     return result?.trim() === 'detected';
   } catch (error) {
-    console.debug('[DEBUG] Failed to get Linux VPN status:', error);
+    console.debug('[DEBUG] Failed to get Linux VPN status:', error instanceof Error ? error.message : String(error));
     return null;
   }
 }
@@ -146,7 +166,7 @@ private async getLinuxVPNStatus(cacheKey: string, vpnTTL: number): Promise<boole
 /**
  * Get VPN status with caching
  * - macOS: Detects UTun (User Tunnel) interfaces via scutil
- * - Linux/WSL: Detects VPN network interfaces (tun*, tap*, wg*, ppp*)
+ * - Linux/WSL: Detects VPN network interfaces (tun*, tap*, wg*, ppp*, tailscale*)
  */
 private async getVPNStatus(): Promise<boolean | null> {
   const cacheKey = CacheKeys.VPN_STATUS;
@@ -162,7 +182,7 @@ private async getVPNStatus(): Promise<boolean | null> {
         return null;
     }
   } catch (error) {
-    console.debug('[DEBUG] Failed to get VPN status:', error);
+    console.debug('[DEBUG] Failed to get VPN status:', error instanceof Error ? error.message : String(error));
     return null;
   }
 }
@@ -198,15 +218,15 @@ private async getMacOSVPNStatus(cacheKey: string, vpnTTL: number): Promise<boole
 #### Tasks
 1. Update README.md with platform support matrix
 2. Update CHANGELOG.md
-3. Verify existing tests still pass
-4. Add unit tests for Linux detection
+3. Verify existing test suite still passes (no VPN-specific tests exist yet)
+4. Add unit tests for platform dispatch and Linux detection
 
 ## Success Criteria
 
 - [ ] VPN indicator works on Linux with OpenVPN, WireGuard, and Tailscale
 - [ ] VPN indicator works on WSL1 and WSL2
 - [ ] Graceful fallback when detection fails (no crashes)
-- [ ] All existing tests pass
+- [ ] All existing tests pass (note: no VPN-specific tests exist yet — this refers to the full test suite)
 - [ ] Performance impact <50ms per check
 - [ ] Documentation updated
 
@@ -226,7 +246,7 @@ private async getMacOSVPNStatus(cacheKey: string, vpnTTL: number): Promise<boole
    - Decision: Defer to future enhancement if users request it
 
 2. **Should we add custom VPN interface patterns?**
-   - Current: Supports standard patterns (`tun*`, `tap*`, `wg*`, `ppp*`)
+   - Current: Supports standard patterns (`tun*`, `tap*`, `wg*`, `ppp*`, `tailscale*`)
    - Consider: Allow user-configurable patterns in config
    - Decision: Defer until there's a user need
 
@@ -248,5 +268,6 @@ private async getMacOSVPNStatus(cacheKey: string, vpnTTL: number): Promise<boole
 ## References
 
 - Current implementation: `src/env/context.ts:207-235`
+- Cache key definition: `src/core/cache.ts` (`CacheKeys.VPN_STATUS`)
 - Original PR: #22 (macOS VPN indicator)
 - Linux sysfs documentation: https://www.kernel.org/doc/Documentation/filesystems/sysfs.txt
