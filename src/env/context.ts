@@ -203,6 +203,7 @@ export class EnvironmentDetector {
   /**
    * Get VPN status with caching (macOS only)
    * Detects VPN by checking for UTun (User Tunnel) interfaces
+   * Uses multiple detection methods with fallbacks for reliability
    */
   private async getVPNStatus(): Promise<boolean | null> {
     // Only support macOS for now
@@ -216,17 +217,32 @@ export class EnvironmentDetector {
       // Use a shorter TTL for VPN status (30 seconds) since it can change frequently
       const vpnTTL = this.config.cacheTTL / 10;
 
-      // Execute scutil --nwi and grep for utun interfaces (case-insensitive)
-      const result = await cachedCommand(
+      // Method 1: Check if default route goes through a utun interface (most reliable)
+      // This catches cases where scutil --nwi fails but VPN is active
+      // Matches both direct utun routes and gateway routes ending in utun
+      const routeResult = await cachedCommand(
         this.cache,
-        cacheKey,
+        cacheKey + '_route',
+        'sh',
+        ['-c', 'netstat -rn 2>/dev/null | grep -E "^default.*utun[0-9]" | head -1'],
+        vpnTTL
+      );
+
+      if (routeResult?.trim()) {
+        return true;
+      }
+
+      // Method 2: Fallback to scutil --nwi (original method)
+      const scutilResult = await cachedCommand(
+        this.cache,
+        cacheKey + '_scutil',
         'sh',
         ['-c', 'scutil --nwi 2>/dev/null | grep -qi utun && echo "detected" || echo "not detected"'],
         vpnTTL
       );
 
       // If grep finds utun, the command outputs "detected", otherwise "not detected"
-      return result?.trim() === 'detected';
+      return scutilResult?.trim() === 'detected';
 
     } catch (error) {
       console.debug('[DEBUG] Failed to get VPN status:', error instanceof Error ? error.message : String(error));
