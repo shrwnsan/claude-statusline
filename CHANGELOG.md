@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.4.1] - 2026-05-29
+
+### Fixed
+- Raised `maxLength` default from 1000 to 8192. Claude Code 2026 payloads
+  include new fields (`session_id`, `transcript_path`, `cost`, `effort`,
+  `thinking`, etc.) that push real-world sizes to ~1067 bytes, silently
+  triggering the input length guard and causing a blank/minimal statusline
+  fallback for all users on Claude Code v2.1.145+.
+
+### Changed
+- Nerd Font `contextWindow` symbol changed from `⚡` (U+26A1, colorful Unicode
+  emoji) to `󰔌` (`nf-md-speedometer-medium`, U+F010C — monochrome Nerd Font
+  PUA glyph, consistent with the rest of the icon set). Requires Nerd Fonts
+  v2.1+, which is satisfied by any font installed from the Homebrew `nerd-fonts`
+  cask in the last two years.
+
+
 ## [2.4.0] - 2026-05-29
 
 ### Changed
