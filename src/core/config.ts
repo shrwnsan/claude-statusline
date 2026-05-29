@@ -21,7 +21,6 @@ export const ConfigSchema = z.object({
   envContext: z.boolean().default(false), // Show environment versions
   vpnIndicator: z.boolean().default(false), // Show VPN status indicator (macOS only)
   truncate: z.boolean().default(false), // Smart truncation
-  softWrap: z.boolean().default(false), // Soft wrapping (legacy)
   noSoftWrap: z.boolean().default(false), // Disable soft-wrapping
 
   // Width and display settings
@@ -102,32 +101,42 @@ export function loadConfig(cwd: string = process.cwd()): Config {
 }
 
 /**
- * Load configuration from file in the current directory or home directory
+ * Load configuration from file, walking all parent directories then ~/.claude/
  */
 function loadConfigFile(cwd: string): Partial<Config> {
-  // Search in current directory first, then parent directories, then ~/.claude/
-  const searchPaths = [cwd, dirname(cwd), join(homedir(), '.claude')];
-
-  for (const searchPath of searchPaths) {
+  const visited = new Set<string>();
+  let dir = cwd;
+  while (dir && !visited.has(dir)) {
+    visited.add(dir);
     for (const filename of CONFIG_FILES) {
-      const configPath = join(searchPath, filename);
-
+      const configPath = join(dir, filename);
       if (existsSync(configPath)) {
         try {
           const content = readFileSync(configPath, 'utf-8');
-
-          if (filename.endsWith('.json')) {
-            return JSON.parse(content);
-          } else if (filename.endsWith('.yaml')) {
-            return parseYaml(content);
-          }
-        } catch (error) {
-          console.warn(`[WARNING] Failed to parse config file ${configPath}:`, error instanceof Error ? error.message : String(error));
+          return filename.endsWith('.json') ? JSON.parse(content) : parseYaml(content);
+        } catch (err) {
+          console.warn(`[WARNING] Failed to parse ${configPath}:`,
+            err instanceof Error ? err.message : String(err));
         }
       }
     }
+    const parent = dirname(dir);
+    if (parent === dir) break; // filesystem root
+    dir = parent;
   }
-
+  // Final fallback: ~/.claude/
+  for (const filename of CONFIG_FILES) {
+    const configPath = join(homedir(), '.claude', filename);
+    if (existsSync(configPath)) {
+      try {
+        const content = readFileSync(configPath, 'utf-8');
+        return filename.endsWith('.json') ? JSON.parse(content) : parseYaml(content);
+      } catch (err) {
+        console.warn(`[WARNING] Failed to parse ${configPath}:`,
+          err instanceof Error ? err.message : String(err));
+      }
+    }
+  }
   return {};
 }
 
@@ -165,10 +174,6 @@ function loadEnvConfig(): Partial<Config> {
 
   if (process.env.CLAUDE_CODE_STATUSLINE_TRUNCATE === '1') {
     env.truncate = true;
-  }
-
-  if (process.env.CLAUDE_CODE_STATUSLINE_SOFT_WRAP === '1') {
-    env.softWrap = true;
   }
 
   if (process.env.CLAUDE_CODE_STATUSLINE_NO_SOFT_WRAP === '1') {
@@ -222,7 +227,7 @@ export function generateSampleConfig(): string {
     envContext: true, // Set to true to show Node.js, Python versions
     vpnIndicator: true, // Set to true to show VPN status indicator (macOS only)
     truncate: true, // Set to true to enable smart truncation
-    softWrap: false, // Set to true to enable soft wrapping
+    noSoftWrap: false, // Set to true to force single-line output
 
     // Display settings
     rightMargin: 15, // Right margin for Claude telemetry compatibility

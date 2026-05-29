@@ -203,90 +203,39 @@ export class EnvironmentDetector {
   /**
    * Get VPN status with caching (macOS only)
    * Detects VPN by checking for UTun (User Tunnel) interfaces
-   * Uses multiple detection methods with fallbacks for reliability
+   * Uses execFile (no shell) with in-process filtering
    */
   private async getVPNStatus(): Promise<boolean | null> {
-    // Only support macOS for now
-    if (process.platform !== 'darwin') {
-      return null;
-    }
+    if (process.platform !== 'darwin') return null;
 
     const cacheKey = CacheKeys.VPN_STATUS;
+    const vpnTTL = this.config.cacheTTL / 10;
 
+    // Read-through cache
+    const cached = await this.cache.get<string>(cacheKey, vpnTTL);
+    if (cached !== null && cached !== undefined) return cached === '1';
+
+    const { execFile } = await import('child_process');
+    const { promisify } = await import('util');
+    const exec = promisify(execFile);
+
+    let detected = false;
     try {
-      // Use a shorter TTL for VPN status (30 seconds) since it can change frequently
-      const vpnTTL = this.config.cacheTTL / 10;
-
-      // Method 1: Check if default route goes through a utun interface (most reliable)
-      // This catches cases where scutil --nwi fails but VPN is active
-      // Matches both direct utun routes and gateway routes ending in utun
-      const routeResult = await cachedCommand(
-        this.cache,
-        cacheKey + '_route',
-        'sh',
-        ['-c', 'netstat -rn 2>/dev/null | grep -E "^default.*utun[0-9]" | head -1'],
-        vpnTTL
-      );
-
-      if (routeResult?.trim()) {
-        return true;
+      const { stdout } = await exec('netstat', ['-rn'], { timeout: 1000 });
+      if (/^default.*utun[0-9]/m.test(stdout)) {
+        detected = true;
+      } else {
+        // Fallback: scutil --nwi, grep for utun in JS
+        const { stdout: nwi } = await exec('scutil', ['--nwi'], { timeout: 1000 });
+        detected = /utun/i.test(nwi);
       }
-
-      // Method 2: Fallback to scutil --nwi (original method)
-      const scutilResult = await cachedCommand(
-        this.cache,
-        cacheKey + '_scutil',
-        'sh',
-        ['-c', 'scutil --nwi 2>/dev/null | grep -qi utun && echo "detected" || echo "not detected"'],
-        vpnTTL
-      );
-
-      // If grep finds utun, the command outputs "detected", otherwise "not detected"
-      return scutilResult?.trim() === 'detected';
-
     } catch (error) {
       console.debug('[DEBUG] Failed to get VPN status:', error instanceof Error ? error.message : String(error));
       return null;
     }
-  }
 
-  /**
-   * Format environment information for display
-   */
-  formatEnvironmentInfo(envInfo: EnvironmentInfo, symbols: ReturnType<typeof getEnvironmentSymbols>): string {
-    const parts: string[] = [];
-
-    if (envInfo.node) {
-      parts.push(`${symbols.node}${envInfo.node}`);
-    }
-
-    if (envInfo.python) {
-      parts.push(`${symbols.python}${envInfo.python}`);
-    }
-
-    if (envInfo.docker) {
-      parts.push(`${symbols.docker}${envInfo.docker}`);
-    }
-
-    return parts.join(' ');
-  }
-
-  /**
-   * Get additional tool versions (for future expansion)
-   */
-  async getAdditionalTools(): Promise<{ [key: string]: string }> {
-    const additionalTools: { [key: string]: string } = {};
-
-    // Future tools could include:
-    // - Go version
-    // - Rust version
-    // - Java version
-    // - Ruby version
-    // - Kubernetes version
-    // - Helm version
-    // - etc.
-
-    return additionalTools;
+    await this.cache.set(cacheKey, detected ? '1' : '0');
+    return detected;
   }
 
   /**
@@ -345,88 +294,6 @@ export class EnvironmentFormatter {
 
   constructor(symbols: ReturnType<typeof getEnvironmentSymbols>) {
     this.symbols = symbols;
-  }
-
-  /**
-   * Format environment info in different styles
-   */
-  format(envInfo: EnvironmentInfo, style: 'compact' | 'verbose' | 'minimal' = 'compact'): string {
-    switch (style) {
-      case 'compact':
-        return this.formatCompact(envInfo);
-      case 'verbose':
-        return this.formatVerbose(envInfo);
-      case 'minimal':
-        return this.formatMinimal(envInfo);
-      default:
-        return this.formatCompact(envInfo);
-    }
-  }
-
-  /**
-   * Compact format: Node22.17 Py3.13 Docker28.3
-   */
-  private formatCompact(envInfo: EnvironmentInfo): string {
-    const parts: string[] = [];
-
-    if (envInfo.node) {
-      parts.push(`Node${envInfo.node}`);
-    }
-
-    if (envInfo.python) {
-      parts.push(`Py${envInfo.python}`);
-    }
-
-    if (envInfo.docker) {
-      parts.push(`Docker${envInfo.docker}`);
-    }
-
-    return parts.join(' ');
-  }
-
-  /**
-   * Verbose format: Node.js v22.17.1 • Python 3.13.5 • Docker 28.3.3
-   */
-  private formatVerbose(envInfo: EnvironmentInfo): string {
-    const parts: string[] = [];
-
-    if (envInfo.node) {
-      parts.push(`Node.js v${envInfo.node}`);
-    }
-
-    if (envInfo.python) {
-      parts.push(`Python ${envInfo.python}`);
-    }
-
-    if (envInfo.docker) {
-      parts.push(`Docker ${envInfo.docker}`);
-    }
-
-    return parts.join(' • ');
-  }
-
-  /**
-   * Minimal format: N22 P17 D28 (just major versions)
-   */
-  private formatMinimal(envInfo: EnvironmentInfo): string {
-    const parts: string[] = [];
-
-    if (envInfo.node) {
-      const majorVersion = envInfo.node.split('.')[0];
-      parts.push(`N${majorVersion}`);
-    }
-
-    if (envInfo.python) {
-      const majorVersion = envInfo.python.split('.')[0];
-      parts.push(`P${majorVersion}`);
-    }
-
-    if (envInfo.docker) {
-      const majorVersion = envInfo.docker.split('.')[0];
-      parts.push(`D${majorVersion}`);
-    }
-
-    return parts.join(' ');
   }
 
   /**
