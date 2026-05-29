@@ -24,7 +24,25 @@
 
 ---
 
+## PRD ↔ Task mapping
+
+The PRD scope items use a different numbering than these tasks. Cross-reference:
+
+- PRD **A1** (Nerd Font opt-in) → Tasks **A.1 + A.2**
+- PRD **A2** (drop U+FE0E) → Task **A.3**
+- PRD **A3** (fix env icons) → Task **A.4**
+- PRD **A4** (remove `system_profiler`/`brew` detection) → absorbed into Task **A.2**
+- PRD **B1–B6** → Tasks **B.1–B.6** (1:1)
+- PRD **C1–C3** → Tasks **C.1–C.3** (C.1 self-test, C.2 demo folded into C.1, C.3 docs → C.2)
+
+---
+
 ## Phase A — P0: Rendering fixes (single PR)
+
+> **File-ownership note**: Within Phase A, `symbols.ts` is edited by A.2, A.3,
+> and A.4, and `config.ts` by A.1, A.3, and A.4. These are **not** safely
+> parallelizable across separate branches. Execute them sequentially in one
+> branch in the order **A.1 → A.2 → A.3 → A.4**. The whole phase is one PR.
 
 Goal: stop emitting glyphs that render as tofu / random chars on terminals
 without a Nerd Font.
@@ -48,6 +66,9 @@ without a Nerd Font.
 **Acceptance**:
 - `Config` type has `nerdFont: boolean`.
 - `NERD_FONT=1` or `CLAUDE_CODE_STATUSLINE_NERD_FONT=1` sets `nerdFont = true`.
+- `generateSampleConfig()` output includes `"nerdFont": false`
+  (`generateSampleConfig` uses a hardcoded object literal, not the schema, so
+  this field will **not** appear automatically — add it explicitly).
 - Build passes.
 
 ---
@@ -213,12 +234,18 @@ function loadConfigFile(cwd: string): Partial<Config> {
     if (parent === dir) break; // filesystem root
     dir = parent;
   }
-  // Final fallback: ~/.claude/
+  // Final fallback: ~/.claude/ (same try/catch as the walk loop above, so a
+  // corrupt ~/.claude config does not throw an uncaught error in main())
   for (const filename of CONFIG_FILES) {
     const configPath = join(homedir(), '.claude', filename);
     if (existsSync(configPath)) {
-      const content = readFileSync(configPath, 'utf-8');
-      return filename.endsWith('.json') ? JSON.parse(content) : parseYaml(content);
+      try {
+        const content = readFileSync(configPath, 'utf-8');
+        return filename.endsWith('.json') ? JSON.parse(content) : parseYaml(content);
+      } catch (err) {
+        console.warn(`[WARNING] Failed to parse ${configPath}:`,
+          err instanceof Error ? err.message : String(err));
+      }
     }
   }
   return {};
@@ -240,7 +267,7 @@ function loadConfigFile(cwd: string): Partial<Config> {
 |---|---|
 | [src/env/context.ts](../../src/env/context.ts) | `EnvironmentDetector.formatEnvironmentInfo` (lines 256–272), `getAdditionalTools` (~277–290), `EnvironmentFormatter.format`, `formatCompact`, `formatVerbose`, `formatMinimal` (keep `formatWithIcons` — it is used by index.ts). |
 | [src/ui/width.ts](../../src/ui/width.ts) | `softWrapText` (~357–421). |
-| [src/ui/symbols.ts](../../src/ui/symbols.ts) | `testSymbolDisplay` (already removed if Task A.2 done — otherwise remove here). |
+| [src/ui/symbols.ts](../../src/ui/symbols.ts) | `testSymbolDisplay` — already removed in Task A.2 (Phase A merges first). This row is a verification-only check: confirm zero references with `rg testSymbolDisplay src/ tests/`. |
 
 **Acceptance**:
 - Each deleted symbol has zero references: `rg <symbolName> src/ tests/`.
@@ -256,18 +283,31 @@ function loadConfigFile(cwd: string): Partial<Config> {
    second line** when it does not fit (current model-string behavior). Drop
    the generic `applySoftWrap` fallback.
 2. Delete `applySoftWrap` and `applySoftWrapToModelString`.
-3. Replace their call sites with one new helper:
+3. Replace their call sites with one new helper. It **must** measure with
+   `getStringDisplayWidth` (not `.length`) so multi-byte model icons/CJK names
+   are measured by display columns:
    ```ts
    function wrapModelString(text: string, maxWidth: number): string {
      return getStringDisplayWidth(text) <= maxWidth ? text : `\n${text}`;
    }
    ```
 4. Adjust `applySmartTruncation` to call `wrapModelString` instead.
+5. **Dangling config**: after this change the `softWrap` /
+   `CLAUDE_CODE_STATUSLINE_SOFT_WRAP` and `noSoftWrap` /
+   `CLAUDE_CODE_STATUSLINE_NO_SOFT_WRAP` toggles in `config.ts` no longer
+   gate any branch. Decide explicitly: either (a) keep `noSoftWrap` as the
+   "never wrap" escape hatch and wire it into `wrapModelString`, or (b) remove
+   both fields + env vars and note it in the CHANGELOG (Task C.3). Do not leave
+   them silently dead.
 
 **Acceptance**:
 - Only one wrap helper remains in the file.
 - `tests/test_width.sh` and `tests/test_width_long.sh` still pass.
 - No mid-string breaks of model name on narrow widths.
+- A model string with a multi-byte name (e.g. `󰚩Claude` or a CJK name) wraps
+  by display width, verified by hexdump or a width unit test.
+- `softWrap`/`noSoftWrap` are either wired in or fully removed — `rg`
+  confirms no orphaned references.
 
 ---
 
@@ -275,22 +315,51 @@ function loadConfigFile(cwd: string): Partial<Config> {
 
 **File**: [src/env/context.ts](../../src/env/context.ts)
 
-1. Change `getVPNStatus` (macOS branch) to call `netstat` directly and filter
-   in JS:
-   ```ts
-   const { execFile } = await import('child_process');
-   const { promisify } = await import('util');
-   const exec = promisify(execFile);
-   const { stdout } = await exec('netstat', ['-rn'], { timeout: 1000 });
-   if (/^default.*utun[0-9]/m.test(stdout)) return true;
-   ```
-2. Wrap the result in `cachedCommand`-equivalent caching via the existing
-   `Cache` API (use the same `cacheKey` and `vpnTTL`).
-3. Do the same for the `scutil` fallback: `execFile('scutil', ['--nwi'])`
-   then grep for `utun` in JS.
+**Caching is mandatory** — the current code routes every call through
+`cachedCommand`, so a naive `execFile` rewrite would run `netstat`/`scutil` on
+every render (~60ms penalty). Read-through the existing `Cache` API explicitly:
+
+```ts
+private async getVPNStatus(): Promise<boolean | null> {
+  if (process.platform !== 'darwin') return null;
+  const cacheKey = CacheKeys.VPN_STATUS;
+  const vpnTTL = this.config.cacheTTL / 10;
+
+  // Read-through cache (store '1'/'0' strings; cachedCommand returns strings)
+  const cached = await this.cache.get<string>(cacheKey, vpnTTL);
+  if (cached !== null && cached !== undefined) return cached === '1';
+
+  const { execFile } = await import('child_process');
+  const { promisify } = await import('util');
+  const exec = promisify(execFile);
+
+  let detected = false;
+  try {
+    const { stdout } = await exec('netstat', ['-rn'], { timeout: 1000 });
+    if (/^default.*utun[0-9]/m.test(stdout)) {
+      detected = true;
+    } else {
+      // Fallback: scutil --nwi, grep for utun in JS
+      const { stdout: nwi } = await exec('scutil', ['--nwi'], { timeout: 1000 });
+      detected = /utun/i.test(nwi);
+    }
+  } catch (error) {
+    console.debug('[DEBUG] Failed to get VPN status:', error instanceof Error ? error.message : String(error));
+    return null;
+  }
+
+  await this.cache.set(cacheKey, detected ? '1' : '0');
+  return detected;
+}
+```
+
+Adjust the exact `Cache.get/set` signatures to match the existing API in
+`src/core/cache.ts`.
 
 **Acceptance**:
 - `rg "sh -c" src/env/context.ts` returns no matches.
+- VPN status is cached (not re-shelled on every render) — verify via the
+  `Cache` API usage.
 - VPN-on / VPN-off detection still works (manual test on macOS).
 
 ---
@@ -325,8 +394,21 @@ Goal: let users debug their statusline without launching Claude Code.
      return;
    }
    ```
-2. Add `runSelfTest(demo: boolean)` that:
-   - Builds a canonical mock input matching the official docs example:
+2. Add `runSelfTest(demo: boolean)`. **Implementation note**: `buildStatusline`
+   is not exported and takes 8+ wired components (`gitOps`, `envInfo`,
+   `symbols`, `config`, ...). Do **not** re-implement that pipeline or stub it.
+   Instead, drive the real render path with the mock input. Two acceptable
+   options:
+   - **(Preferred) Refactor `main()`** to accept an optional injected input:
+     `main(injected?: ClaudeInput)`. `runSelfTest` calls `main(mock)` so the
+     full production pipeline (config load, git, env, symbols, truncation)
+     runs exactly as in production. For presets, pass per-preset config
+     overrides through a second optional `configOverride` param.
+   - **(Alternative) Export `buildStatusline`** and have `runSelfTest`
+     construct the same components `main()` does (`loadConfig`, `Cache`,
+     `GitOperations`, `EnvironmentDetector`, `detectSymbols`). More code; only
+     use if refactoring `main()` is undesirable.
+   - Canonical mock input (matches the official docs example):
      ```ts
      const mock = {
        cwd: process.cwd(),
@@ -335,7 +417,7 @@ Goal: let users debug their statusline without launching Claude Code.
        context_window: { remaining_percentage: 75 },
      };
      ```
-   - Pipes it through `buildStatusline(...)` and prints to stdout.
+   - Prints the rendered statusline to stdout.
    - If `demo`, runs the render under 4 presets:
      1. ASCII default
      2. ASCII + git
@@ -375,7 +457,9 @@ Goal: let users debug their statusline without launching Claude Code.
 
 **File**: [CHANGELOG.md](../../CHANGELOG.md)
 
-Add a `## [2.4.0] - YYYY-MM-DD` section covering all three phases:
+Add a `## [2.4.0] - YYYY-MM-DD` section covering all three phases. **Replace
+`YYYY-MM-DD` with the actual release date** (do not commit the literal
+placeholder):
 
 ```markdown
 ### Changed
@@ -430,8 +514,10 @@ bun run benchmark
 
 # Visual sanity checks
 node dist/index.bundle.js --demo
-CLAUDE_CODE_STATUSLINE_NO_EMOJI=1 echo '{"workspace":{"current_dir":"/tmp"},"model":{"display_name":"Test"}}' \
-  | node dist/index.bundle.js | hexdump -C
+# NOTE: the env var must apply to `node`, NOT to `echo`. Placing it before
+# `echo` is a no-op and makes this gate pass vacuously.
+echo '{"workspace":{"current_dir":"/tmp"},"model":{"display_name":"Test"}}' \
+  | CLAUDE_CODE_STATUSLINE_NO_EMOJI=1 node dist/index.bundle.js | hexdump -C
 # Expect: no FE 0E byte sequence, no E0 A0 PUA byte sequence.
 ```
 
@@ -445,32 +531,32 @@ CLAUDE_CODE_STATUSLINE_NO_EMOJI=1 echo '{"workspace":{"current_dir":"/tmp"},"mod
 ## Task Dependency Graph
 
 ```diagram
-Phase A (P0 rendering):
-  A.1 (config field) ──┬── A.2 (replace detection) ──┐
-                       │                              │
-  A.3 (drop VS-16)  ───┘                              ├── A.4 (env icons)
-                                                      │
-Phase B (P2 cleanup) — fully parallel:                │
-  B.1 (no exit 1) ─────────────────────────────────┐  │
-  B.2 (parent walk) ───────────────────────────────┤  │
-  B.3 (dead code) ─────────────────────────────────┤  │
-  B.4 (unify wrap) ────────────────────────────────┤  │
-  B.5 (no sh -c) ──────────────────────────────────┤  │
-  B.6 (no order loop) ─────────────────────────────┤  │
-                                                   │  │
-Phase C (P3 self-test):                            │  │
-  C.1 (--self-test) ── needs A.1, A.2 ─────────────┼──┘
-  C.2 (docs) ──────────────────────────────────────┤
-  C.3 (CHANGELOG) ─────────────────────────────────┤
-                                                   │
-Final gate:                                        │
-  D.1 (verify all) ◀──────────────────────────────┘
+Phase A (P0 rendering) — SEQUENTIAL (shared files), one branch:
+  A.1 (config field) ─→ A.2 (replace detection) ─→ A.3 (drop VS-16) ─→ A.4 (env icons)
+
+Phase B (P2 cleanup) — fully parallel (independent files):
+  B.1 (no exit 1)        [src/index.ts]
+  B.2 (parent walk)      [src/core/config.ts]
+  B.3 (dead code)        [context.ts / width.ts / symbols.ts]
+  B.4 (unify wrap)       [src/index.ts]
+  B.5 (no sh -c)         [src/env/context.ts]
+  B.6 (no order loop)    [src/git/status.ts]
+  NOTE: B.1 and B.4 both touch src/index.ts — if fanned out, give them
+        separate worktrees and merge sequentially, or assign both to one dev.
+
+Phase C (P3 self-test):
+  C.1 (--self-test) ── needs A.1, A.2
+  C.2 (docs)        ── any time
+  C.3 (CHANGELOG)   ── any time
+
+Final gate:
+  D.1 (verify all)  ◀── after A, B, C merge
 ```
 
 **Parallel lanes**:
-- **A.1 and A.3** can run simultaneously (different fields in different
-  sections).
-- **A.2 depends on A.1**; **A.4 depends on A.2**.
+- **Phase A is NOT branch-parallel.** A.2, A.3, and A.4 all edit `symbols.ts`,
+  and A.1, A.3, A.4 all edit `config.ts`. Run them sequentially in one branch:
+  **A.1 → A.2 → A.3 → A.4** (see the file-ownership note under Phase A).
 - **All Phase B tasks** are independent of each other and of Phase A — they
   can be fanned out to six junior devs / subagents in parallel.
 - **Phase C.1** depends on Phase A (uses `config.nerdFont`); **C.2 and C.3**
