@@ -268,9 +268,13 @@ function applySmartTruncation(params: {
   const projectGitDisplayWidth = getStringDisplayWidth(projectGit);
   if (projectGitDisplayWidth + 1 <= maxLen) {
     const modelMaxLen = maxLen - projectGitDisplayWidth - 1;
-    return config.noSoftWrap
-      ? `${projectGit} ${truncateText(modelString, modelMaxLen)}` // single-line
-      : `${projectGit}${wrapModelString(modelString, modelMaxLen)}`; // wrap to next line
+    if (config.noSoftWrap) {
+      return `${projectGit} ${truncateText(modelString, modelMaxLen)}`; // single-line
+    }
+    // wrapModelString returns either the model unchanged (fits) or "\n<model>".
+    // Keep the separator space on the same-line case; the newline case needs none.
+    const wrapped = wrapModelString(modelString, modelMaxLen);
+    return wrapped.startsWith('\n') ? `${projectGit}${wrapped}` : `${projectGit} ${wrapped}`;
   }
 
   // Smart truncation of project+git part

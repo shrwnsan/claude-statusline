@@ -85,24 +85,22 @@ describe('Test Runner and Main Functionality', () => {
       }
     });
 
-    it('should reject invalid JSON input', () => {
-      try {
-        const result = execSync('node dist/index.js', {
-          input: 'invalid json',
-          encoding: 'utf-8',
-          timeout: 3000
-        });
-        assert.fail('Should have failed with invalid input');
-      } catch (error) {
-        assert.ok(error instanceof Error);
-        const errorMessage = error.message;
-        assert.ok(
-          errorMessage.includes('Failed to read or parse input') ||
-          errorMessage.includes('ERROR') ||
-          errorMessage.includes('Invalid input'),
-          'Should show appropriate error message'
-        );
-      }
+    it('should degrade gracefully on invalid JSON input (non-blank, exit 0)', () => {
+      // Per PRD-003 D3: the render path never exits non-zero. Invalid input
+      // produces a minimal fallback statusline on stdout and exit code 0,
+      // with diagnostics on stderr. A blank statusline or non-zero exit would
+      // be a regression.
+      const result = execSync('node dist/index.js', {
+        input: 'invalid json',
+        encoding: 'utf-8',
+        timeout: 3000,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+
+      assert.ok(
+        result.trim().length > 0,
+        'Should produce a non-blank fallback statusline instead of exiting non-zero'
+      );
     });
 
     it('should handle missing workspace directory gracefully', () => {
