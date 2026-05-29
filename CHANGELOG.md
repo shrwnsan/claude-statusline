@@ -6,6 +6,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.4.0] - 2026-05-29
+
+### Changed
+- Nerd Font support is now opt-in via `nerdFont: true` config or `NERD_FONT=1`
+  (default: ASCII). Eliminates tofu / random-char rendering on terminals
+  without a Nerd Font installed.
+- Default `contextWindow` symbol no longer includes the U+FE0E text variation
+  selector, fixing visible artifacts on Terminal.app and tmux.
+- Config discovery now walks all parent directories (stops at filesystem root).
+
+### Added
+- `--self-test` and `--demo` CLI flags for verifying rendering without
+  launching Claude Code.
+- `nerdFont` config field and `NERD_FONT` / `CLAUDE_CODE_STATUSLINE_NERD_FONT`
+  environment variables for explicit Nerd Font opt-in.
+
+### Fixed
+- Environment icons (node/python/docker) now respect ASCII mode instead of
+  leaking Nerd Font PUA characters.
+- Non-zero exits replaced with a minimal-mode render to prevent blank
+  statusline (per Claude Code statusline contract).
+
+### Removed
+- Unreliable Nerd Font auto-detection (`system_profiler`, `brew list`,
+  terminal-program heuristics).
+- Vestigial `softWrap` config field and `CLAUDE_CODE_STATUSLINE_SOFT_WRAP`
+  env var (never read). `noSoftWrap` is unaffected and still supported.
+- Dead code: `EnvironmentDetector.formatEnvironmentInfo`,
+  `EnvironmentFormatter.format/Verbose/Minimal`, `softWrapText`,
+  `testSymbolDisplay`, `getAdditionalTools`, indicator-order validation loop.
+
+
 ## [2.3.1] - 2026-02-11
 
 ### Fixed

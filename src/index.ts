@@ -44,24 +44,23 @@ interface ClaudeInput {
 /**
  * Main execution function
  */
-export async function main(): Promise<void> {
+export async function main(injected?: ClaudeInput): Promise<void> {
+  // Hoist so catch can still emit a useful minimal fallback if render() throws.
   let input: ClaudeInput | null = null;
   try {
+    // Self-test / demo mode: inject mock input, skip stdin
+    const args = process.argv.slice(2);
+    if (args.includes('--self-test') || args.includes('--demo')) {
+      await runSelfTest(args.includes('--demo'));
+      return;
+    }
+
     // Load configuration
     const config = loadConfig();
 
-    // Initialize components
-    const cache = new Cache(config);
-    const gitOps = new GitOperations(config, cache);
-    const envDetector = new EnvironmentDetector(config, cache);
-
-    // Debug width detection if enabled
-    await debugWidthDetection(config);
-
-    // Read and validate input from stdin
-    input = await readInput();
+    // Read input from stdin (or use injected input for testing)
+    input = injected ?? await readInput();
     if (!input) {
-      // No input provided - exit silently (graceful degradation)
       process.exit(0);
     }
     if (!validateInput(JSON.stringify(input), config)) {
@@ -70,7 +69,6 @@ export async function main(): Promise<void> {
       return;
     }
 
-    // Extract information from input
     const { fullDir, modelName, contextWindow } = extractInputInfo(input);
     if (!fullDir || !modelName) {
       console.error('[ERROR] Failed to extract required information from input');
@@ -78,7 +76,6 @@ export async function main(): Promise<void> {
       return;
     }
 
-    // Validate directory
     const isValidDir = await validateDirectory(fullDir);
     if (!isValidDir) {
       console.error('[ERROR] Invalid or inaccessible directory:', fullDir);
@@ -86,42 +83,7 @@ export async function main(): Promise<void> {
       return;
     }
 
-    // Get components (run in parallel for better performance)
-    const operations: Promise<any>[] = [
-      gitOps.getGitInfo(fullDir),
-      envDetector.getEnvironmentInfo(),
-      detectSymbols(config),
-    ];
-
-    // Only get terminal width if smart truncation is enabled
-    let terminalWidth: number | undefined;
-    if (config.truncate) {
-      operations.push(getTerminalWidth(config));
-    }
-
-    const results = await Promise.all(operations);
-    const [gitInfo, envInfo, symbols] = results;
-
-    // Extract terminal width from results if it was requested
-    if (config.truncate && results.length > 3) {
-      terminalWidth = results[3];
-    }
-
-    // Build statusline
-    const statusline = await buildStatusline({
-      fullDir,
-      modelName,
-      contextWindow,
-      gitInfo,
-      envInfo,
-      symbols,
-      ...(terminalWidth && { terminalWidth }), // Only include if defined
-      config,
-      gitOps,
-    });
-
-    // Output result
-    process.stdout.write(statusline);
+    process.stdout.write(await render(fullDir, modelName, contextWindow, config));
 
   } catch (error) {
     console.error('[ERROR]', error instanceof Error ? error.message : String(error));
@@ -294,6 +256,87 @@ function applySmartTruncation(params: {
  */
 function wrapModelString(text: string, maxWidth: number): string {
   return getStringDisplayWidth(text) <= maxWidth ? text : `\n${text}`;
+}
+
+/**
+ * Shared render core — no stdout, no process.exit.
+ * Orchestrates git, env, symbol detection and builds the statusline.
+ */
+async function render(
+  fullDir: string,
+  modelName: string,
+  contextWindow?: ClaudeInput['context_window'],
+  config?: Config,
+): Promise<string> {
+  config = config ?? loadConfig();
+  const cache = new Cache(config);
+  const gitOps = new GitOperations(config, cache);
+  const envDetector = new EnvironmentDetector(config, cache);
+
+  await debugWidthDetection(config);
+
+  const operations: Promise<any>[] = [
+    gitOps.getGitInfo(fullDir),
+    envDetector.getEnvironmentInfo(),
+    detectSymbols(config),
+  ];
+
+  let terminalWidth: number | undefined;
+  if (config.truncate) {
+    operations.push(getTerminalWidth(config));
+  }
+
+  const results = await Promise.all(operations);
+  const [gitInfo, envInfo, symbols] = results;
+
+  if (config.truncate && results.length > 3) {
+    terminalWidth = results[3];
+  }
+
+  return buildStatusline({
+    fullDir,
+    modelName,
+    contextWindow,
+    gitInfo,
+    envInfo,
+    symbols,
+    ...(terminalWidth && { terminalWidth }),
+    config,
+    gitOps,
+  });
+}
+
+/**
+ * Self-test: render with a canonical mock payload (matching official docs example).
+ * Useful for users debugging their config without launching Claude Code.
+ */
+async function runSelfTest(demo: boolean): Promise<void> {
+  const mockInput = {
+    cwd: process.cwd(),
+    workspace: { current_dir: process.cwd() },
+    model: { display_name: 'Opus' },
+    context_window: { remaining_percentage: 75 },
+  } as unknown as ClaudeInput;
+
+  const presets: { label: string; configOverrides: Partial<Config> }[] = [
+    { label: 'ASCII (default)', configOverrides: { nerdFont: false, noEmoji: false } },
+    { label: 'ASCII + git + env', configOverrides: { nerdFont: false, noEmoji: false, envContext: true } },
+    { label: 'Nerd Font', configOverrides: { nerdFont: true } },
+    { label: 'Narrow terminal (40 cols)', configOverrides: { truncate: true, forceWidth: 40 } },
+  ];
+
+  if (demo) {
+    for (const preset of presets) {
+      const config = { ...loadConfig(), ...preset.configOverrides };
+      const output = await render(mockInput.workspace.current_dir, mockInput.model.display_name, mockInput.context_window, config);
+      console.log(`\n── ${preset.label} ──`);
+      console.log(output);
+    }
+  } else {
+    const config = loadConfig();
+    const output = await render(mockInput.workspace.current_dir, mockInput.model.display_name, mockInput.context_window, config);
+    process.stdout.write(output + '\n');
+  }
 }
 
 /**

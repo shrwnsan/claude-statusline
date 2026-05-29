@@ -54,7 +54,6 @@
   "_forceWidth_note": "Override terminal width detection (for testing/debug only)",
   "forceWidth": null,
 
-  "_softWrap_note": "Legacy soft-wrapping (not needed with truncate: true)",
   "noSoftWrap": false,
   "_noSoftWrap_note": "Disable soft-wrapping completely. Default: false"
 }

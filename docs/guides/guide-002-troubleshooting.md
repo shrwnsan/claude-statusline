@@ -271,7 +271,7 @@ CLAUDE_CODE_STATUSLINE_TRUNCATE=1 \
 
 **Example**:
 ```
-claude-statusline  main [!] 󰚩glm-4.7 ⚡︎0%                    ct
+claude-statusline  main [!] 󰚩glm-4.7 ⚡0%                    ct
 ```
 
 **Cause**: This is a **known Claude Code TUI rendering bug**, not an issue with the statusline script. Investigation confirmed:
@@ -300,6 +300,27 @@ echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' 
 2. **Update Claude Code** to the latest version (some TUI bugs have been fixed in newer releases)
 
 **Status**: Known issue in Claude Code's TUI renderer. The statusline script produces correct, clean output. Track the linked GitHub issues for updates.
+
+### Issue: Glyphs Render as Tofu / Random Characters
+
+**Symptoms**: Square boxes (tofu), question marks, or random character fragments instead of icons
+
+**Diagnostic Steps**:
+```bash
+# Run demo mode to compare ASCII vs Nerd Font rendering side-by-side
+claude-statusline --demo
+
+# Test with explicit Nerd Font opt-in
+NERD_FONT=1 claude-statusline --self-test
+
+# Verify no variation selectors in output
+claude-statusline --self-test | hexdump -C | grep 'fe 0e'
+```
+
+**Solutions**:
+1. **Install a Nerd Font**: Download from [nerdfonts.com](https://nerdfonts.com/) and configure your terminal to use it
+2. **Use ASCII mode**: The default is ASCII — if you see tofu, you likely have `NERD_FONT=1` set. Unset it or set `"noEmoji": true` in config
+3. **Check terminal font**: Ensure your terminal emulator is actually using the Nerd Font you installed
 
 ## Debug Mode
 
