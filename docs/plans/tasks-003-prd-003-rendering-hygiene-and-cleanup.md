@@ -190,19 +190,34 @@ failure modes.
      return `${dir} *${model}`;
    }
    ```
-2. Replace each `process.exit(1)` site in `main()` and
-   `applySmartTruncation()` with:
+2. Replace the **three `process.exit(1)` sites inside `main()`** (invalid
+   input ~L68, failed extraction ~L75, invalid directory ~L82). `input` IS in
+   scope there, so use:
    ```ts
    process.stdout.write(renderMinimal(input));
    process.exit(0);
    ```
-3. Keep `console.error(...)` for diagnostics — stderr is fine.
-4. Keep the top-level `try/catch` but in its `catch` print
-   `renderMinimal()` (no args) before exiting 0.
+3. The fourth `process.exit(1)` is **not** in `main()` — it is the
+   truncation-guard inside `buildStatusline` (~L219-222), where `input` is
+   **not** in scope (the function receives `fullDir`/`modelName`, not the raw
+   input). Do not call `renderMinimal(input)` there — it won't compile.
+   Instead, fall back to the already-built `statusline` (skip truncation):
+   ```ts
+   if (!terminalWidth) {
+     console.error('[ERROR] Smart truncation enabled but terminal width not available');
+     return statusline; // graceful: return untruncated rather than exit
+   }
+   ```
+4. Keep `console.error(...)` for diagnostics — stderr is fine.
+5. Keep the top-level `try/catch` (~L122-125) but in its `catch` print
+   `renderMinimal()` (no args — `input` may be undefined if the throw happened
+   before/within `readInput`) before exiting 0.
 
 **Acceptance**:
 - `rg "process.exit\(1\)" src/index.ts` returns no matches.
+- `bun run build` compiles (no "cannot find name 'input'" error).
 - Injecting `{}` (no workspace/model) produces non-empty stdout, exit code 0.
+- `truncate=1` with width unavailable returns the untruncated line, not blank.
 
 ---
 
