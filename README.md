@@ -161,7 +161,7 @@ claude-statusline @ main [$!] *Opus ≈76% (ASCII version)
 ```
 
 Shows percentage of context window remaining in the current conversation. The symbol varies by mode:
-- **Nerd Font**: ⚡ (lightning bolt)
+- **Nerd Font**: 󱐌 (`nf-md-lightning_bolt_circle`, U+F140C)
 - **ASCII**: ≈ (approximately equals)
 
 **Important Notes:**
@@ -238,7 +238,7 @@ For enhanced visual icons, install Nerd Fonts:
 | **Ahead/Behind** | `⇡⇣` | `A/B` | ASCII when `"noEmoji": true` |
 | **Diverged** | `⇕` | `D` | ASCII when `"noEmoji": true` |
 | **Claude Model** | `🤖` | `*` | ASCII when `"noEmoji": true` |
-| **Context Window** | `⚡` | `#` | ASCII when `"noEmoji": true` |
+| **Context Window** | `󱐌` | `#` | ASCII when `"noEmoji": true` |
 
 *Note: Examples show ASCII-compatible symbols. Full statusline with Nerd Fonts shows additional symbols: $X!+?>CADAB*
 

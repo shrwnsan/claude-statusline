@@ -17,9 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Nerd Font `contextWindow` symbol changed from `⚡` (U+26A1, colorful Unicode
-  emoji) to `󰔌` (`nf-md-speedometer-medium`, U+F010C — monochrome Nerd Font
+  emoji) to `󱐌` (`nf-md-lightning_bolt_circle`, U+F140C — monochrome Nerd Font
   PUA glyph, consistent with the rest of the icon set). Requires Nerd Fonts
-  v2.1+, which is satisfied by any font installed from the Homebrew `nerd-fonts`
+  v2.3+, which is satisfied by any font installed from the Homebrew `nerd-fonts`
   cask in the last two years.
 
 

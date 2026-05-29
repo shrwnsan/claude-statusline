@@ -32,7 +32,7 @@ export const ConfigSchema = z.object({
   symbols: z.object({
     git: z.string().default(''),
     model: z.string().default('󰚩'),
-    contextWindow: z.string().default('󰔌'),
+    contextWindow: z.string().default('󱐌'),
     staged: z.string().default('+'),
     conflict: z.string().default('×'),
     stashed: z.string().default('⚑'),
@@ -237,7 +237,7 @@ export function generateSampleConfig(): string {
     symbols: {
       git: '',
       model: '󰚩',
-      contextWindow: '󰔌',
+      contextWindow: '󱐌',
       staged: '+',
       conflict: '×',
       stashed: '⚑',

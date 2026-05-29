@@ -114,7 +114,7 @@ Both configurations work perfectly. The Bun runtime is 5x faster but requires Bu
 "symbols": {
   "git": "ï˜",        // Git icon
   "model": "ó°š©",     // AI model icon
-  "contextWindow": "í®í´Œ", // Context window usage (nf-md-speedometer-medium, Nerd Fonts v2.1+)
+  "contextWindow": "ó±Œ", // Context window usage (nf-md-lightning_bolt_circle, Nerd Fonts v2.3+)
   "staged": "+",       // Staged changes
   "conflict": "Ã—",     // Merge conflicts
   "stashed": "âš‘",     // Stashed changes
