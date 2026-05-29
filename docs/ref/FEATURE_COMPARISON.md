@@ -20,7 +20,7 @@ Comprehensive comparison between Bash v1.0 and TypeScript v2.0 implementations.
 | Git status indicators | ✅ | ✅ | Branch, staged, modified, untracked, etc. |
 | Environment context | ✅ | ✅ | Node.js, Python, Docker versions |
 | Smart truncation | ✅ | ✅ | Prevents statusline overflow |
-| ASCII/Nerd Font detection | ✅ | ✅ | Auto-detects terminal capabilities |
+| ASCII/Nerd Font support | ✅ | ✅ | Opt-in via `nerdFont: true` config |
 | Security validation | ✅ | ✅ | Input validation, path sanitization |
 | Soft-wrapping | ✅ | ✅ | Advanced text wrapping options |
 | **Configuration** |

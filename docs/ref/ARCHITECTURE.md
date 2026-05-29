@@ -96,7 +96,7 @@ const ConfigSchema = z.object({
 
 **Purpose**: Git repository status parsing and indicator generation
 
-**Dependencies**: `simple-git` library for cross-platform git operations
+**Dependencies**: Native `git` CLI via `child_process`
 
 **Features**:
 - **Comprehensive status parsing**: staged, unstaged, untracked, conflicts
@@ -115,19 +115,14 @@ if (unstagedChar === 'M') indicators.modified++;
 
 ### Symbol Management (`ui/symbols.ts`)
 
-**Purpose**: Terminal font detection and symbol selection
+**Purpose**: Symbol selection for Nerd Font and ASCII modes
 
 **Features**:
-- **Nerd Font auto-detection** with multiple methods
-- **ASCII fallback** symbol sets
-- **Terminal-specific detection** (VSCode, iTerm, etc.)
-- **Platform-specific font detection**
+- **Explicit opt-in** for Nerd Font via `nerdFont: true` config or `NERD_FONT=1`
+- **ASCII fallback** symbol sets (default when `nerdFont` is unset/false)
+- **Per-symbol overrides** via config file
 
-**Detection Methods**:
-1. **Environment variables**: `NERD_FONT=1`, `TERM_PROGRAM`
-2. **Font list analysis**: `fc-list`, `system_profiler`
-3. **Installation patterns**: Common Nerd Font locations
-4. **Terminal heuristics**: Known Nerd Font-capable terminals
+**Design Decision** (v2.4.0): Auto-detection was removed to prevent tofu/garbled output on terminals without Nerd Fonts. Users opt in explicitly.
 
 ### Width Management (`ui/width.ts`)
 
@@ -136,7 +131,7 @@ if (unstagedChar === 'M') indicators.modified++;
 **Features**:
 - **Multiple width detection methods** with fallbacks
 - **Smart truncation** with branch prioritization
-- **Soft wrapping** support for long content
+- **Model string wrapping** via `noSoftWrap` toggle
 - **Responsive design** for different terminal sizes
 
 **Width Detection Priority**:
@@ -314,7 +309,6 @@ interface StatuslinePlugin {
 
 ### Runtime Dependencies
 
-- **simple-git**: Git operations with cross-platform support
 - **zod**: Runtime type validation and schema definition
 - **yaml**: YAML configuration file support
 
