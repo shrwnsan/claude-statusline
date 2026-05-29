@@ -86,7 +86,7 @@ Both configurations work perfectly. The Bun runtime is 5x faster but requires Bu
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `cacheTTL` | number | `300` | Cache duration in seconds for git operations |
-| `maxLength` | number | `1000` | Maximum input length (security) |
+| `maxLength` | number | `8192` | Maximum input length (security) |
 | `rightMargin` | number | `15` | Right margin for Claude telemetry compatibility |
 
 ### Feature Toggles
@@ -114,7 +114,7 @@ Both configurations work perfectly. The Bun runtime is 5x faster but requires Bu
 "symbols": {
   "git": "",        // Git icon
   "model": "󰚩",     // AI model icon
-  "contextWindow": "⚡", // Context window usage
+  "contextWindow": "󱐌", // Context window usage (nf-md-lightning_bolt_circle, Nerd Fonts v2.3+)
   "staged": "+",       // Staged changes
   "conflict": "×",     // Merge conflicts
   "stashed": "⚑",     // Stashed changes
@@ -150,7 +150,7 @@ Both configurations work perfectly. The Bun runtime is 5x faster but requires Bu
 {
   "$schema": "https://raw.githubusercontent.com/shrwnsan/claude-statusline/main/config-schema.json",
   "cacheTTL": 300,
-  "maxLength": 1000,
+  "maxLength": 8192,
   "noEmoji": false,
   "noGitStatus": false,
   "envContext": true,
@@ -175,7 +175,7 @@ Both configurations work perfectly. The Bun runtime is 5x faster but requires Bu
 ### YAML Format (more minimal syntax)
 ```yaml
 cacheTTL: 300
-maxLength: 1000
+maxLength: 8192
 noEmoji: false
 noGitStatus: false
 envContext: true
