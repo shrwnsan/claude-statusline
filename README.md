@@ -3,7 +3,7 @@
 Simple statusline for Claude Code with project-branch, git indicators, and context usage. Optimized for speed with bun. Just the essentials, none of the bloat.
 
 ![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
-![Version](https://img.shields.io/badge/version-2.4.0-green.svg)
+![Version](https://img.shields.io/badge/version-2.4.1-green.svg)
 ![TypeScript](https://img.shields.io/badge/language-TypeScript-3178C6.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D22.6.0-brightgreen.svg)
 ![Bun](https://img.shields.io/badge/runtime-Bun-black.svg)
@@ -72,7 +72,7 @@ claude-statusline works out-of-the-box with these defaults:
 - `noSoftWrap`: false (soft wrapping enabled when truncate=true, set to true to disable)
 - `rightMargin`: 15 (prevents bleeding into Claude Code telemetry)
 - `cacheTTL`: 300 (5-minute cache for environment info)
-- `maxLength`: 1000 (maximum input length for security)
+- `maxLength`: 8192 (maximum input length for security)
 
 To see environment versions in your statusline, create a configuration file with:
 ```json
@@ -215,8 +215,14 @@ Two modes available:
 
 **Nerd Font Support (Optional):** Set `"nerdFont": true` in your config or `NERD_FONT=1` to enable Nerd Font icons. Default is ASCII.
 
-For enhanced visual icons, install Nerd Fonts:
-- **macOS:** `font-jetbrains-mono-nerd-font` via Homebrew
+All icons use PUA glyphs from the standard Nerd Fonts glyph set. **Nerd Fonts v2.3+** is required — any font installed from Homebrew's `nerd-fonts` cask in the last two years satisfies this.
+
+For enhanced visual icons, install a Nerd Font:
+- **macOS (Homebrew):**
+  ```bash
+  brew install --cask font-fira-code-nerd-font
+  # or font-jetbrains-mono-nerd-font, font-hack-nerd-font, etc.
+  ```
 - **Cross-platform:** Download from [nerdfonts.com](https://nerdfonts.com/)
 
 ### Icon Comparison
