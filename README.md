@@ -72,7 +72,7 @@ claude-statusline works out-of-the-box with these defaults:
 - `noSoftWrap`: false (soft wrapping enabled when truncate=true, set to true to disable)
 - `rightMargin`: 15 (prevents bleeding into Claude Code telemetry)
 - `cacheTTL`: 300 (5-minute cache for environment info)
-- `maxLength`: 8192 (maximum input length for security)
+- `maxLength`: 4096 (maximum input length for security)
 
 To see environment versions in your statusline, create a configuration file with:
 ```json

@@ -11,7 +11,7 @@ export const ConfigSchema = z.object({
   // Core settings
   cacheTTL: z.number().default(300), // 5 minutes
   cacheDir: z.string().default('/tmp/.claude-statusline-cache'),
-  maxLength: z.number().default(8192), // Maximum input length (raised: CC 2026 payloads exceed 1000)
+  maxLength: z.number().default(4096), // Maximum input length (CC 2026 payloads ~1067 bytes; 4096 gives ~2× headroom above projected max)
 
   // Feature toggles
   nerdFont: z.boolean().default(false), // Opt-in Nerd Font glyphs (default: false / ASCII)
@@ -217,7 +217,7 @@ export function generateSampleConfig(): string {
     $schema: 'https://raw.githubusercontent.com/shrwnsan/claude-statusline/main/config-schema.json',
     // Core settings
     cacheTTL: 300, // 5 minutes
-    maxLength: 8192,
+    maxLength: 4096,
 
     // Feature toggles
     nerdFont: false, // Set to true to opt-in Nerd Font glyphs

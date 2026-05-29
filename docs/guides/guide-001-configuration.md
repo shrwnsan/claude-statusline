@@ -86,7 +86,7 @@ Both configurations work perfectly. The Bun runtime is 5x faster but requires Bu
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `cacheTTL` | number | `300` | Cache duration in seconds for git operations |
-| `maxLength` | number | `8192` | Maximum input length (security) |
+| `maxLength` | number | `4096` | Maximum input length (security) |
 | `rightMargin` | number | `15` | Right margin for Claude telemetry compatibility |
 
 ### Feature Toggles
@@ -150,7 +150,7 @@ Both configurations work perfectly. The Bun runtime is 5x faster but requires Bu
 {
   "$schema": "https://raw.githubusercontent.com/shrwnsan/claude-statusline/main/config-schema.json",
   "cacheTTL": 300,
-  "maxLength": 8192,
+  "maxLength": 4096,
   "noEmoji": false,
   "noGitStatus": false,
   "envContext": true,
@@ -175,7 +175,7 @@ Both configurations work perfectly. The Bun runtime is 5x faster but requires Bu
 ### YAML Format (more minimal syntax)
 ```yaml
 cacheTTL: 300
-maxLength: 8192
+maxLength: 4096
 noEmoji: false
 noGitStatus: false
 envContext: true
