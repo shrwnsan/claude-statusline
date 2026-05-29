@@ -45,6 +45,8 @@ interface ClaudeInput {
  * Main execution function
  */
 export async function main(injected?: ClaudeInput): Promise<void> {
+  // Hoist so catch can still emit a useful minimal fallback if render() throws.
+  let input: ClaudeInput | null = null;
   try {
     // Self-test / demo mode: inject mock input, skip stdin
     const args = process.argv.slice(2);
@@ -57,7 +59,7 @@ export async function main(injected?: ClaudeInput): Promise<void> {
     const config = loadConfig();
 
     // Read input from stdin (or use injected input for testing)
-    const input = injected ?? await readInput();
+    input = injected ?? await readInput();
     if (!input) {
       process.exit(0);
     }
@@ -81,11 +83,11 @@ export async function main(injected?: ClaudeInput): Promise<void> {
       return;
     }
 
-    process.stdout.write(await render(input, fullDir, modelName, contextWindow, config));
+    process.stdout.write(await render(fullDir, modelName, contextWindow, config));
 
   } catch (error) {
     console.error('[ERROR]', error instanceof Error ? error.message : String(error));
-    process.stdout.write(renderMinimal());
+    process.stdout.write(renderMinimal(input));
   }
 }
 
@@ -261,7 +263,6 @@ function wrapModelString(text: string, maxWidth: number): string {
  * Orchestrates git, env, symbol detection and builds the statusline.
  */
 async function render(
-  _input: ClaudeInput,
   fullDir: string,
   modelName: string,
   contextWindow?: ClaudeInput['context_window'],
@@ -327,13 +328,13 @@ async function runSelfTest(demo: boolean): Promise<void> {
   if (demo) {
     for (const preset of presets) {
       const config = { ...loadConfig(), ...preset.configOverrides };
-      const output = await render(mockInput, mockInput.workspace.current_dir, mockInput.model.display_name, mockInput.context_window, config);
+      const output = await render(mockInput.workspace.current_dir, mockInput.model.display_name, mockInput.context_window, config);
       console.log(`\n── ${preset.label} ──`);
       console.log(output);
     }
   } else {
     const config = loadConfig();
-    const output = await render(mockInput, mockInput.workspace.current_dir, mockInput.model.display_name, mockInput.context_window, config);
+    const output = await render(mockInput.workspace.current_dir, mockInput.model.display_name, mockInput.context_window, config);
     process.stdout.write(output + '\n');
   }
 }
