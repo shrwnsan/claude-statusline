@@ -106,7 +106,6 @@ Both configurations work perfectly. The Bun runtime is 5x faster but requires Bu
 |--------|------|---------|-------------|
 | `forceWidth` | number | `null` | Override terminal width detection (testing only) |
 | `noSoftWrap` | boolean | `false` | Disable soft-wrapping completely |
-| `softWrap` | boolean | `false` | Legacy soft-wrapping (not needed with `truncate: true`) |
 
 ### Symbol Customization
 
@@ -115,7 +114,7 @@ Both configurations work perfectly. The Bun runtime is 5x faster but requires Bu
 "symbols": {
   "git": "",        // Git icon
   "model": "󰚩",     // AI model icon
-  "contextWindow": "⚡︎", // Context window usage
+  "contextWindow": "⚡", // Context window usage
   "staged": "+",       // Staged changes
   "conflict": "×",     // Merge conflicts
   "stashed": "⚑",     // Stashed changes
@@ -156,7 +155,6 @@ Both configurations work perfectly. The Bun runtime is 5x faster but requires Bu
   "noGitStatus": false,
   "envContext": true,
   "truncate": true,
-  "softWrap": false,
   "rightMargin": 15,
   "debugWidth": false,
   "symbols": {
@@ -182,7 +180,6 @@ noEmoji: false
 noGitStatus: false
 envContext: true
 truncate: true
-softWrap: false
 rightMargin: 15
 debugWidth: false
 symbols:

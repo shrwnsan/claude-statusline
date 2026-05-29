@@ -161,7 +161,7 @@ claude-statusline @ main [$!] *Opus ≈76% (ASCII version)
 ```
 
 Shows percentage of context window remaining in the current conversation. The symbol varies by mode:
-- **Nerd Font**: ⚡︎ (lightning bolt)
+- **Nerd Font**: ⚡ (lightning bolt)
 - **ASCII**: ≈ (approximately equals)
 
 **Important Notes:**
@@ -238,7 +238,7 @@ For enhanced visual icons, install Nerd Fonts:
 | **Ahead/Behind** | `⇡⇣` | `A/B` | ASCII when `"noEmoji": true` |
 | **Diverged** | `⇕` | `D` | ASCII when `"noEmoji": true` |
 | **Claude Model** | `🤖` | `*` | ASCII when `"noEmoji": true` |
-| **Context Window** | `⚡︎` | `#` | ASCII when `"noEmoji": true` |
+| **Context Window** | `⚡` | `#` | ASCII when `"noEmoji": true` |
 
 *Note: Examples show ASCII-compatible symbols. Full statusline with Nerd Fonts shows additional symbols: $X!+?>CADAB*
 
@@ -311,9 +311,22 @@ Enhanced security with input validation and type safety:
 - **Runtime**: yaml, zod
 - **Development**: TypeScript, ESLint, Prettier
 
+## Verify Installation
+
+Test your statusline without launching Claude Code:
+
+```bash
+# Quick self-test with default config
+claude-statusline --self-test
+
+# Demo mode: shows 4 rendering variants (ASCII, Nerd Font, narrow, env)
+claude-statusline --demo
+```
+
 ## Troubleshooting
 
 **Common Issues:**
+- **Glyphs render as tofu / random chars**: Run `claude-statusline --demo` to compare variants. If ASCII looks correct but Nerd Font shows boxes, either install a [Nerd Font](https://nerdfonts.com/) or set `NERD_FONT=1` only when using one.
 - **Build failures**: `npm install && npm run build`
 - **Performance issues**: Clear cache `rm -rf /tmp/.claude-statusline-cache/`
 - **Symbol display**: Force ASCII mode with `"noEmoji": true` in config

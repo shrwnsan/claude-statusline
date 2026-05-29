@@ -232,9 +232,9 @@ For each phase, before merging:
 
 | Phase | Status | PR | Notes |
 |---|---|---|---|
-| A — P0 rendering fixes | ⬜ Not started | — | — |
-| B — P2 cleanup | ⬜ Not started | — | — |
-| C — P3 self-test | ⬜ Not started | — | — |
+| A — P0 rendering fixes | ✅ Complete | #23 | Merged |
+| B — P2 cleanup | ✅ Complete | #24 | Merged |
+| C — P3 self-test | ✅ Complete | — | This PR |
 
 Update this table as each phase progresses (⬜ → 🔄 → ✅).
 
