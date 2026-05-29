@@ -165,6 +165,22 @@ Blank is worse than degraded.
 shell-outs.
 **Rationale**: Keep the diff reviewable. Modernization deserves its own design
 exercise (especially cost/rate-limit display formatting and worktree UX).
+### D5 — Remove dead `softWrap`, keep functional `noSoftWrap`
+**Decision**: Delete the `softWrap` config field + `CLAUDE_CODE_STATUSLINE_SOFT_WRAP`
+env var (nothing reads `config.softWrap`). Keep `noSoftWrap` and wire it into
+the unified wrap helper as the single-line escape hatch.
+**Rationale**: `softWrap` is vestigial; removing it is pure cleanup (Zod strips
+unknown keys, so existing configs won't break). `noSoftWrap` is live and
+documented — removing it would be a breaking change for opted-in users.
+### D6 — Self-test reuses a shared `render()` core, not a duplicated pipeline
+**Decision**: Extract the orchestration in `main()` into an internal
+`render(input, config): Promise<string>` (no stdout / `process.exit`). Both
+`main()` and `runSelfTest()` call it; `main()` gains an optional injected-input
+param.
+**Rationale**: `buildStatusline` only takes pre-computed components, so
+exporting it alone would force `runSelfTest` to duplicate ~30 lines of
+orchestration and risk drift from the real render path. Tests invoke the binary
+as a subprocess, so changing `main()`'s signature is safe.
 
 ---
 

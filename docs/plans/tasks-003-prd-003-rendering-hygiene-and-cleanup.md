@@ -307,22 +307,33 @@ function loadConfigFile(cwd: string): Partial<Config> {
    }
    ```
 4. Adjust `applySmartTruncation` to call `wrapModelString` instead.
-5. **Dangling config**: after this change the `softWrap` /
-   `CLAUDE_CODE_STATUSLINE_SOFT_WRAP` and `noSoftWrap` /
-   `CLAUDE_CODE_STATUSLINE_NO_SOFT_WRAP` toggles in `config.ts` no longer
-   gate any branch. Decide explicitly: either (a) keep `noSoftWrap` as the
-   "never wrap" escape hatch and wire it into `wrapModelString`, or (b) remove
-   both fields + env vars and note it in the CHANGELOG (Task C.3). Do not leave
-   them silently dead.
+5. **Config-flag cleanup (DECIDED)**. The two flags are NOT equivalent:
+   - **`softWrap`** (`config.ts:23` + `CLAUDE_CODE_STATUSLINE_SOFT_WRAP` at
+     `config.ts:159-160`) is **already dead** — nothing reads `config.softWrap`
+     anywhere. **Remove it**: delete the schema field, the env-var mapping,
+     and the `generateSampleConfig` mention. Zod strips unknown keys by
+     default, so existing user configs that still contain `softWrap` will not
+     break. Note the removal in the CHANGELOG (Task C.3) and sweep docs (Task
+     C.2).
+   - **`noSoftWrap`** (`config.ts:24` + `CLAUDE_CODE_STATUSLINE_NO_SOFT_WRAP`
+     at `config.ts:163-164`) is **live** (gates `index.ts:268`) and documented
+     (`README:72,202`, `guide-001:108`). **Keep it and wire it in**:
+     ```ts
+     // in applySmartTruncation, model-fits-on-its-own-line branch:
+     return config.noSoftWrap
+       ? `${projectGit} ${truncateText(modelString, modelMaxLen)}` // single-line
+       : `${projectGit}${wrapModelString(modelString, modelMaxLen)}`; // wrap to next line
+     ```
 
 **Acceptance**:
-- Only one wrap helper remains in the file.
+- Only one wrap helper (`wrapModelString`) remains in the file.
 - `tests/test_width.sh` and `tests/test_width_long.sh` still pass.
 - No mid-string breaks of model name on narrow widths.
 - A model string with a multi-byte name (e.g. `󰚩Claude` or a CJK name) wraps
   by display width, verified by hexdump or a width unit test.
-- `softWrap`/`noSoftWrap` are either wired in or fully removed — `rg`
-  confirms no orphaned references.
+- `noSoftWrap=true` still forces a single (truncated) line.
+- `softWrap` is fully removed — `rg softWrap src/` returns only `noSoftWrap`
+  matches; no orphaned `config.softWrap` or `SOFT_WRAP` (non-`NO_`) refs.
 
 ---
 
@@ -409,20 +420,33 @@ Goal: let users debug their statusline without launching Claude Code.
      return;
    }
    ```
-2. Add `runSelfTest(demo: boolean)`. **Implementation note**: `buildStatusline`
-   is not exported and takes 8+ wired components (`gitOps`, `envInfo`,
-   `symbols`, `config`, ...). Do **not** re-implement that pipeline or stub it.
-   Instead, drive the real render path with the mock input. Two acceptable
-   options:
-   - **(Preferred) Refactor `main()`** to accept an optional injected input:
-     `main(injected?: ClaudeInput)`. `runSelfTest` calls `main(mock)` so the
-     full production pipeline (config load, git, env, symbols, truncation)
-     runs exactly as in production. For presets, pass per-preset config
-     overrides through a second optional `configOverride` param.
-   - **(Alternative) Export `buildStatusline`** and have `runSelfTest`
-     construct the same components `main()` does (`loadConfig`, `Cache`,
-     `GitOperations`, `EnvironmentDetector`, `detectSymbols`). More code; only
-     use if refactoring `main()` is undesirable.
+2. Add `runSelfTest(demo: boolean)`. **Approach (DECIDED): extract a shared
+   `render()` core.** `buildStatusline` only accepts already-computed
+   components, so exporting it alone forces `runSelfTest` to duplicate the
+   orchestration block from `main()` (`index.ts:85-117`) — a real drift risk.
+   Instead, extract the orchestration into one internal function that has no
+   stdout/`process.exit` coupling, and have both paths call it:
+   ```ts
+   // single source of truth — no stdout, no process.exit
+   async function render(input: ClaudeInput, config: Config): Promise<string> {
+     // current main() body ~L71-117: extractInputInfo, validateDirectory,
+     // Promise.all([git, env, symbols, (width)]), buildStatusline(...)
+   }
+
+   export async function main(injected?: ClaudeInput): Promise<void> {
+     // ...self-test check, loadConfig, readInput (or use `injected`)...
+     process.stdout.write(await render(input, config));
+   }
+
+   async function runSelfTest(demo: boolean): Promise<void> {
+     const base = loadConfig();
+     // demo: 4 presets via per-preset config overrides (see below)
+     // non-demo: just `base`
+     // print `await render(mock, cfg)` for each, separated by `---`
+   }
+   ```
+   Tests invoke the binary as a subprocess (`runner.test.ts:68`) and do not
+   import `main`/`buildStatusline`, so changing `main()`'s signature is safe.
    - Canonical mock input (matches the official docs example):
      ```ts
      const mock = {
@@ -462,9 +486,16 @@ Goal: let users debug their statusline without launching Claude Code.
    ```
 2. Troubleshooting guide: add an entry "Glyphs render as tofu / random chars"
    that recommends running `--demo` and toggling `NERD_FONT=1`.
+3. **Doc sweep for removed `softWrap`** (per Task B.4 decision): remove
+   `softWrap` mentions from `README.md`, `docs/guides/guide-001-configuration.md`
+   (the Advanced Settings row + the JSON/YAML example configs at ~L159/L185),
+   and `.claude-statusline.json.example` (the `_softWrap_note`). Leave
+   `noSoftWrap` docs intact — it is still supported.
 
 **Acceptance**:
 - Both files reference `--self-test` and `--demo`.
+- `rg softWrap README.md docs/ .claude-statusline.json.example` returns only
+  `noSoftWrap` matches.
 
 ---
 
@@ -498,6 +529,8 @@ placeholder):
 ### Removed
 - Unreliable Nerd Font auto-detection (`system_profiler`, `brew list`,
   terminal-program heuristics).
+- Vestigial `softWrap` config field and `CLAUDE_CODE_STATUSLINE_SOFT_WRAP`
+  env var (never read). `noSoftWrap` is unaffected and still supported.
 - Dead code: `EnvironmentDetector.formatEnvironmentInfo`,
   `EnvironmentFormatter.format/Verbose/Minimal`, `softWrapText`,
   `testSymbolDisplay`, `getAdditionalTools`, indicator-order validation loop.
