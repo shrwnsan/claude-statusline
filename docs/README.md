@@ -1,7 +1,7 @@
 # Claude Statusline Documentation
 
-**Last Updated:** 2026-02-11
-**Version:** 2.0.0
+**Last Updated:** 2026-05-29
+**Version:** 2.4.0
 
 Comprehensive documentation for the Claude Code statusline tool.
 
@@ -67,6 +67,8 @@ Research, evaluations, and project planning.
 | [research-002-competitive-analysis.md](plans/research-002-competitive-analysis.md) | Research | Competitive landscape analysis |
 | [research-003-platform-analysis.md](plans/research-003-platform-analysis.md) | Research | Platform compatibility analysis |
 | [tasks-002-vpn-cross-platform-support.md](plans/tasks-002-vpn-cross-platform-support.md) | Tasks | Implementation tasks for PRD-002 |
+| [prd-003-rendering-hygiene-and-cleanup.md](plans/prd-003-rendering-hygiene-and-cleanup.md) | PRD | Rendering hygiene and codebase cleanup |
+| [tasks-003-prd-003-rendering-hygiene-and-cleanup.md](plans/tasks-003-prd-003-rendering-hygiene-and-cleanup.md) | Tasks | Implementation tasks for PRD-003 |
 
 ---
 
