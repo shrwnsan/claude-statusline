@@ -8,7 +8,7 @@ import { Config } from './config.js';
 /**
  * Maximum allowed input length (matches bash CONFIG_MAX_LENGTH)
  */
-const MAX_INPUT_LENGTH = 1000;
+const MAX_INPUT_LENGTH = 8192;
 
 /**
  * Maximum allowed path length (prevents buffer overflow attacks)
