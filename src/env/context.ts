@@ -430,21 +430,28 @@ export class EnvironmentFormatter {
   }
 
   /**
-   * Format with icons: 22.17 3.13 28.3
+   * Format with icons (Nerd Font): 22.17 3.13 28.3
+   * Format with icons (ASCII): node 22.17 py 3.13 dkr 28.3
    */
   formatWithIcons(envInfo: EnvironmentInfo): string {
     const parts: string[] = [];
 
     if (envInfo.node) {
-      parts.push(`${this.symbols.node}${envInfo.node}`);
+      const icon = this.symbols.node;
+      const sep = /[a-z]/i.test(icon) ? ' ' : '';
+      parts.push(`${icon}${sep}${envInfo.node}`);
     }
 
     if (envInfo.python) {
-      parts.push(`${this.symbols.python}${envInfo.python}`);
+      const icon = this.symbols.python;
+      const sep = /[a-z]/i.test(icon) ? ' ' : '';
+      parts.push(`${icon}${sep}${envInfo.python}`);
     }
 
     if (envInfo.docker) {
-      parts.push(`${this.symbols.docker}${envInfo.docker}`);
+      const icon = this.symbols.docker;
+      const sep = /[a-z]/i.test(icon) ? ' ' : '';
+      parts.push(`${icon}${sep}${envInfo.docker}`);
     }
 
     return parts.join(' ');

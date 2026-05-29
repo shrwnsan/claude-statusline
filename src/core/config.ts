@@ -14,6 +14,7 @@ export const ConfigSchema = z.object({
   maxLength: z.number().default(1000), // Maximum input length
 
   // Feature toggles
+  nerdFont: z.boolean().default(false), // Opt-in Nerd Font glyphs (default: false / ASCII)
   noEmoji: z.boolean().default(false), // Force ASCII mode
   noGitStatus: z.boolean().default(false), // Disable git indicators
   noContextWindow: z.boolean().default(false), // Disable context window usage
@@ -32,7 +33,7 @@ export const ConfigSchema = z.object({
   symbols: z.object({
     git: z.string().default(''),
     model: z.string().default('󰚩'),
-    contextWindow: z.string().default('⚡︎'),
+    contextWindow: z.string().default('⚡'),
     staged: z.string().default('+'),
     conflict: z.string().default('×'),
     stashed: z.string().default('⚑'),
@@ -43,6 +44,9 @@ export const ConfigSchema = z.object({
     deleted: z.string().default('✘'),
     vpnOn: z.string().default('◉'),
     vpnOff: z.string().default('○'),
+    node: z.string().default(''),
+    python: z.string().default(''),
+    docker: z.string().default(''),
   }).default({}),
 
   // ASCII fallback symbols
@@ -60,6 +64,9 @@ export const ConfigSchema = z.object({
     deleted: z.string().default('X'),
     vpnOn: z.string().default('✓·vpn ·'),
     vpnOff: z.string().default('✗·vpn ·'),
+    node: z.string().default('node'),
+    python: z.string().default('py'),
+    docker: z.string().default('dkr'),
   }).default({}),
 });
 
@@ -132,6 +139,10 @@ function loadEnvConfig(): Partial<Config> {
   const env: Partial<Config> = {};
 
   // Feature toggles
+  if (process.env.NERD_FONT === '1' || process.env.CLAUDE_CODE_STATUSLINE_NERD_FONT === '1') {
+    env.nerdFont = true;
+  }
+
   if (process.env.CLAUDE_CODE_STATUSLINE_NO_EMOJI === '1') {
     env.noEmoji = true;
   }
@@ -204,6 +215,7 @@ export function generateSampleConfig(): string {
     maxLength: 1000,
 
     // Feature toggles
+    nerdFont: false, // Set to true to opt-in Nerd Font glyphs
     noEmoji: false, // Set to true to force ASCII mode
     noGitStatus: false, // Set to true to disable git indicators
     noContextWindow: false, // Set to true to disable context window usage
@@ -220,7 +232,7 @@ export function generateSampleConfig(): string {
     symbols: {
       git: '',
       model: '󰚩',
-      contextWindow: '⚡︎',
+      contextWindow: '⚡',
       staged: '+',
       conflict: '×',
       stashed: '⚑',

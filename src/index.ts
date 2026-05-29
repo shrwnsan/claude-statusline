@@ -423,7 +423,7 @@ function applySoftWrapToModelString(text: string, maxLength: number): string {
     }
   }
 
-  // If we have context usage (marked by context window icon like ⚡︎ or #)
+  // If we have context usage (marked by context window icon like ⚡ or #)
   // The structure is: [icon][model] [env] [context icon][percentage]
   // We want to prefer keeping: [icon][model] [context icon][percentage] together if possible
 
