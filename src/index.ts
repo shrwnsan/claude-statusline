@@ -554,17 +554,67 @@ async function runSelfTest(demo: boolean): Promise<void> {
     context_window: { remaining_percentage: 75 },
   } as unknown as ClaudeInput;
 
-  const presets: { label: string; configOverrides: Partial<Config> }[] = [
+  const worktreeInput = {
+    ...mockInput,
+    session_id: 'demo-session',
+    workspace: {
+      current_dir: '/tmp/cs-wt-demo',
+      repo: { host: 'github.com', owner: 'shrwnsan', name: 'claude-statusline' },
+      git_worktree: 'cs-wt-demo',
+    },
+    worktree: {
+      name: 'cs-wt-demo', path: '/tmp/cs-wt-demo', branch: 'demo/wt-feature',
+      original_cwd: '/tmp/claude-statusline', original_branch: 'main',
+    },
+  } as unknown as ClaudeInput;
+
+  const fullPayloadInput = {
+    ...mockInput,
+    pr: { number: 27, url: 'https://github.com/shrwnsan/claude-statusline/pull/27', review_state: 'approved' },
+    cost: { total_cost_usd: 1.2344, total_duration_ms: 0, total_api_duration_ms: 0, total_lines_added: 0, total_lines_removed: 0 },
+    rate_limits: { five_hour: { used_percentage: 42 }, seven_day: { used_percentage: 12 } },
+    effort: { level: 'high' },
+    thinking: { enabled: true },
+    exceeds_200k_tokens: false,
+    output_style: { name: 'default' },
+  } as unknown as ClaudeInput;
+
+  const presets: { label: string; configOverrides: Partial<Config>; input?: ClaudeInput }[] = [
     { label: 'ASCII (default)', configOverrides: { nerdFont: false, noEmoji: false } },
     { label: 'ASCII + git + env', configOverrides: { nerdFont: false, noEmoji: false, envContext: true } },
     { label: 'Nerd Font', configOverrides: { nerdFont: true } },
     { label: 'Narrow terminal (40 cols)', configOverrides: { truncate: true, forceWidth: 40 } },
+    { label: 'Worktree session', configOverrides: {}, input: worktreeInput },
+    { label: 'All segments on', configOverrides: { prBadge: true, costUsage: true, rateLimit: true, modeIndicators: true }, input: fullPayloadInput },
   ];
 
   if (demo) {
     for (const preset of presets) {
       const config = { ...loadConfig(), ...preset.configOverrides };
-      const output = await render(mockInput.workspace.current_dir, mockInput.model.display_name, mockInput.context_window, config);
+      const input = preset.input ?? mockInput;
+      const output = await render(
+        input.workspace.current_dir,
+        input.model.display_name,
+        input.context_window,
+        config,
+        input.session_id,
+        {
+          worktree: input.worktree,
+          repoName: input.workspace.repo?.name,
+          worktreeName: input.worktree?.name ?? input.workspace.git_worktree,
+          pr: input.pr,
+          cost: input.cost,
+          rateLimits: input.rate_limits,
+          modes: {
+            effort: input.effort,
+            thinking: input.thinking,
+            vim: input.vim,
+            fast_mode: input.fast_mode,
+            agent: input.agent,
+            output_style: input.output_style,
+          },
+          exceeds200k: input.exceeds_200k_tokens,
+        });
       console.log(`\n── ${preset.label} ──`);
       console.log(output);
     }

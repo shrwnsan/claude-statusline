@@ -6,6 +6,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.5.0] - 2026-09-23
+
+### Changed
+- **BREAKING**: Smart truncation is now on by default (`"truncate": true`).
+  Claude Code clips or wraps overly long statuslines anyway; ours now
+  degrades gracefully instead. Restore the old always-full-line behavior
+  with `"truncate": false`.
+- Context window segment now follows the docs semantics: `used_percentage`
+  preferred (input-only), `100 - remaining_percentage` fallback, then a
+  `current_usage` computation that excludes output tokens. Absent or null
+  percentages render nothing instead of a stale guess.
+- Git state is now collected with a single `git` spawn per render
+  (porcelain v2), replacing the old multi-call chain.
+
+### Added
+- Worktree-aware display: inside linked git worktrees the project slot shows
+  the repository name from the payload's `workspace.repo.name` plus a
+  `·wt:<name>` tag (dedicated Nerd Font glyph), and the branch comes from
+  `worktree.branch` instead of the main checkout's.
+- Session-scoped git cache (5 s TTL, composite session_id + directory key)
+  so repeated renders while the session idles stay instant.
+- Opt-in segments, all off by default and fed from the stdin payload:
+  `prBadge` (` #27[A]`), `costUsage` (` ~$1.23`), `rateLimit`
+  (` 5h:42% 7d:12%`), and `modeIndicators` (` [hgh·thk]`).
+- Optional absolute context tokens via `"contextTokens": true`
+  (` ≈25% ~50k/200k`), also `CLAUDE_CODE_STATUSLINE_CONTEXT_TOKENS=1`.
+- Warning marker when the session exceeds 200k context tokens
+  (`exceeds_200k_tokens`): `!!` (ASCII) / `⚠` (Nerd Font).
+- `--demo` gains "Worktree session" and "All segments on" presets.
+
+
 ## [2.4.1] - 2026-05-29
 
 ### Fixed
