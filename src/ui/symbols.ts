@@ -5,6 +5,7 @@ import { Config } from '../core/config.js';
  */
 export interface SymbolSet {
   git: string;
+  worktree: string;
   model: string;
   contextWindow: string;
   staged: string;
@@ -27,6 +28,7 @@ export interface SymbolSet {
  */
 const ASCII_SYMBOLS: SymbolSet = {
   git: '@',
+  worktree: '·wt:',
   model: '*',
   contextWindow: '≈',
   staged: '+',
@@ -49,6 +51,7 @@ const ASCII_SYMBOLS: SymbolSet = {
  */
 const NERD_FONT_SYMBOLS: SymbolSet = {
   git: '',
+  worktree: '',
   model: '󰚩',
   contextWindow: '󱐌',
   staged: '+',
