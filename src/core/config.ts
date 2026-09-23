@@ -27,6 +27,7 @@ export const ConfigSchema = z.object({
   rateLimit: z.boolean().default(false), // Show rate-limit windows from stdin rate_limits.*
   modeIndicators: z.boolean().default(false), // Show mode indicators (effort/thinking/vim/fast/agent/style)
   contextTokens: z.boolean().default(false), // Append ~used/total absolute context tokens
+  overLimitWarning: z.enum(['auto', 'always', 'never']).default('auto'), // Exceeds-200k marker: 'auto' renders only on windows <= 200k where the fixed 200k flag means nearly full; 'always'/'never' force the raw flag
 
   // Width and display settings
   forceWidth: z.number().optional(), // Manual width override
@@ -205,6 +206,11 @@ function loadEnvConfig(): Partial<Config> {
     env.contextTokens = true;
   }
 
+  const overLimitEnv = process.env.CLAUDE_CODE_STATUSLINE_OVER_LIMIT_WARNING;
+  if (overLimitEnv === 'auto' || overLimitEnv === 'always' || overLimitEnv === 'never') {
+    env.overLimitWarning = overLimitEnv;
+  }
+
   // Width settings
   if (process.env.CLAUDE_CODE_STATUSLINE_FORCE_WIDTH) {
     const width = parseInt(process.env.CLAUDE_CODE_STATUSLINE_FORCE_WIDTH, 10);
@@ -258,6 +264,7 @@ export function generateSampleConfig(): string {
     rateLimit: false, // Set to true to show rate-limit windows
     modeIndicators: false, // Set to true to show mode indicators
     contextTokens: false, // Set to true to append ~used/total absolute context
+    overLimitWarning: 'auto', // Exceeds-200k marker: 'auto' (only on windows <= 200k) | 'always' | 'never'
 
     // Display settings
     rightMargin: 15, // Right margin for Claude telemetry compatibility

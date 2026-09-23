@@ -163,6 +163,27 @@ describe('Test Runner and Main Functionality', () => {
         }
       }
     });
+
+    it('should default overLimitWarning to auto (window-aware)', async () => {
+      const { loadConfig } = await import('../dist/core/config.js');
+      assert.strictEqual(loadConfig().overLimitWarning, 'auto');
+    });
+
+    it('should respect CLAUDE_CODE_STATUSLINE_OVER_LIMIT_WARNING override', async () => {
+      const originalValue = process.env.CLAUDE_CODE_STATUSLINE_OVER_LIMIT_WARNING;
+      process.env.CLAUDE_CODE_STATUSLINE_OVER_LIMIT_WARNING = 'always';
+
+      try {
+        const { loadConfig } = await import('../dist/core/config.js');
+        assert.strictEqual(loadConfig().overLimitWarning, 'always');
+      } finally {
+        if (originalValue !== undefined) {
+          process.env.CLAUDE_CODE_STATUSLINE_OVER_LIMIT_WARNING = originalValue;
+        } else {
+          delete process.env.CLAUDE_CODE_STATUSLINE_OVER_LIMIT_WARNING;
+        }
+      }
+    });
   });
 
   describe('Security Module', () => {

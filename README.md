@@ -89,6 +89,7 @@ claude-statusline works out-of-the-box with these defaults:
 - `noEmoji`: false (Nerd Font symbols preferred, ASCII fallback)
 - `noGitStatus`: false (git status shown)
 - `noContextWindow`: false (context window usage shown)
+- `overLimitWarning`: auto (exceeds-200k warning marker; rendered only where the fixed 200k threshold means nearly full — windows ≤ 200k)
 - `vpnIndicator`: true (VPN status indicator shown on macOS)
 - `noSoftWrap`: false (soft wrapping enabled when truncate=true, set to true to disable)
 - `rightMargin`: 15 (prevents bleeding into Claude Code telemetry)
@@ -190,6 +191,8 @@ Shows percentage of the context window used in the current conversation. The sym
 - Falls back to computing usage from `current_usage` (input + cache creation + cache read, relative to the window size); output tokens are excluded — `used_percentage` is input-only
 - Only shows when Claude Code provides context window data
 - Can be disabled with `"noContextWindow": true` or `CLAUDE_CODE_STATUSLINE_NO_CONTEXT_WINDOW=1`
+
+**Exceeds-200k warning marker:** Claude Code also sends an `exceeds_200k_tokens` flag — a *fixed* 200k threshold over the last API response's total tokens, independent of the model's window size. When set, a warning marker is appended to the usage (` ≈24%⚠`, Nerd Font; `!!` in ASCII). Since 200k is fixed, it only means "nearly full" on windows ≤ 200k — on extended windows (e.g. 1M) the flag fires from ~20% up. The default `"overLimitWarning": "auto"` renders the marker only on windows ≤ 200k; set `"always"` for the raw flag on any window or `"never"` to disable (env: `CLAUDE_CODE_STATUSLINE_OVER_LIMIT_WARNING=auto|always|never`).
 
 ### Environment Context
 

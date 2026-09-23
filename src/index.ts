@@ -48,7 +48,9 @@ interface ClaudeInput {
       cache_read_input_tokens: number;
     } | null;
   };
-  // New in Claude Code v2.1.15: true when the session crossed the 200k context mark
+  // Claude Code v1.0.88: true when the most recent API response's total tokens
+  // (input + cache + output) exceed a fixed 200k, regardless of window size.
+  // Per-response, not latched — clears again once context drops below 200k.
   exceeds_200k_tokens?: boolean;
   worktree?: {
     name: string;
@@ -296,7 +298,27 @@ export function formatContextUsage(cw: ContextWindowInput | undefined, symbol: s
   return out;
 }
 
-/** PRD-004 D2: warning glyph appended when the session exceeds 200k context tokens. */
+/** Claude Code's fixed threshold behind exceeds_200k_tokens (window-size independent). */
+const OVER_LIMIT_THRESHOLD = 200_000;
+
+/**
+ * PRD-004 D2: gate for the over-limit warning glyph. The payload flag is a fixed
+ * 200k threshold regardless of window size, so 'auto' renders it only where
+ * crossing 200k means nearly full (window <= 200k) — on extended windows such as
+ * 1M it would otherwise fire from ~20% up. Unknown window size keeps the raw flag
+ * behavior (the flag predates context_window_size).
+ */
+export function shouldShowOverLimit(
+  exceeds: boolean | undefined,
+  windowSize: number | undefined,
+  mode: 'auto' | 'always' | 'never',
+): boolean {
+  if (!exceeds || mode === 'never') return false;
+  if (mode === 'always') return true;
+  return windowSize === undefined || windowSize <= OVER_LIMIT_THRESHOLD;
+}
+
+/** Warning glyph for the gated exceeds-200k flag. */
 export function formatOverLimit(exceeds: boolean | undefined, symbol: string): string {
   return exceeds ? symbol : '';
 }
@@ -384,7 +406,10 @@ async function buildStatusline(params: {
   }
 
   // PRD-004 D2: over-limit warning right after the context segment
-  const overLimit = formatOverLimit(exceeds200k, symbols.overLimit);
+  const overLimit = formatOverLimit(
+    shouldShowOverLimit(exceeds200k, contextWindow?.context_window_size, config.overLimitWarning),
+    symbols.overLimit,
+  );
 
   // PRD-004 C1: opt-in PR badge from stdin pr.* fields
   const prSegment = config.prBadge ? formatPrBadge(pr) : '';

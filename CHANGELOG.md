@@ -39,8 +39,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (` 5h:42% 7d:12%`), and `modeIndicators` (` [hgh·thk]`).
 - Optional absolute context tokens via `"contextTokens": true`
   (` ≈25% ~50k/200k`), also `CLAUDE_CODE_STATUSLINE_CONTEXT_TOKENS=1`.
-- Warning marker when the session exceeds 200k context tokens
-  (`exceeds_200k_tokens`): `!!` (ASCII) / `⚠` (Nerd Font).
+- Warning marker when the last API response exceeds 200k total tokens
+  (`exceeds_200k_tokens`): `!!` (ASCII) / `⚠` (Nerd Font). The flag is a
+  fixed 200k threshold regardless of window size, so the default
+  `"overLimitWarning": "auto"` renders it only on windows ≤ 200k where
+  that means nearly full; `"always"`/`"never"` force or suppress it on
+  any window.
 - `--demo` gains "Worktree session" and "All segments on" presets.
 
 

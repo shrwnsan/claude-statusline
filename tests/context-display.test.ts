@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { formatContextUsage, formatOverLimit, formatTokenCount } from '../dist/index.js';
+import { formatContextUsage, formatOverLimit, formatTokenCount, shouldShowOverLimit } from '../dist/index.js';
 
 const SYM = '≈';
 
@@ -29,6 +29,31 @@ describe('formatOverLimit', () => {
     assert.strictEqual(formatOverLimit(true, '!!'), '!!');
     assert.strictEqual(formatOverLimit(false, '!!'), '');
     assert.strictEqual(formatOverLimit(undefined, '!!'), '');
+  });
+});
+
+describe('shouldShowOverLimit', () => {
+  // Docs: exceeds_200k_tokens is a fixed 200k threshold regardless of window size,
+  // so in 'auto' mode it is only meaningful where crossing 200k means nearly full.
+  it('auto: renders on a standard 200k window', () => {
+    assert.strictEqual(shouldShowOverLimit(true, 200000, 'auto'), true);
+  });
+  it('auto: suppresses on an extended 1M window (flag fires at ~20% there)', () => {
+    assert.strictEqual(shouldShowOverLimit(true, 1000000, 'auto'), false);
+  });
+  it('auto: renders when window size is unknown (flag predates context_window_size)', () => {
+    assert.strictEqual(shouldShowOverLimit(true, undefined, 'auto'), true);
+  });
+  it('any mode: never renders when the flag is not set', () => {
+    assert.strictEqual(shouldShowOverLimit(false, 200000, 'auto'), false);
+    assert.strictEqual(shouldShowOverLimit(undefined, 200000, 'auto'), false);
+    assert.strictEqual(shouldShowOverLimit(undefined, 1000000, 'always'), false);
+  });
+  it('always: renders the raw flag even on extended windows', () => {
+    assert.strictEqual(shouldShowOverLimit(true, 1000000, 'always'), true);
+  });
+  it('never: suppresses even on standard windows', () => {
+    assert.strictEqual(shouldShowOverLimit(true, 200000, 'never'), false);
   });
 });
 
