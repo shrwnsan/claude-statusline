@@ -77,7 +77,7 @@ export async function main(injected?: ClaudeInput): Promise<void> {
       return;
     }
 
-    const { fullDir, modelName, contextWindow } = extractInputInfo(input);
+    const { fullDir, modelName, contextWindow, repoName, worktreeName } = extractInputInfo(input);
     if (!fullDir || !modelName) {
       console.error('[ERROR] Failed to extract required information from input');
       process.stdout.write(renderMinimal(input));
@@ -91,7 +91,7 @@ export async function main(injected?: ClaudeInput): Promise<void> {
       return;
     }
 
-    process.stdout.write(await render(fullDir, modelName, contextWindow, config, input.session_id));
+    process.stdout.write(await render(fullDir, modelName, contextWindow, config, input.session_id, { worktree: input.worktree, repoName, worktreeName }));
 
   } catch (error) {
     console.error('[ERROR]', error instanceof Error ? error.message : String(error));
@@ -120,12 +120,32 @@ async function readInput(): Promise<ClaudeInput | null> {
 /**
  * Extract directory and model name from Claude input
  */
-function extractInputInfo(input: ClaudeInput): { fullDir: string; modelName: string; contextWindow?: ClaudeInput['context_window'] } {
+function extractInputInfo(input: ClaudeInput): { fullDir: string; modelName: string; contextWindow?: ClaudeInput['context_window']; repoName?: string | undefined; worktreeName?: string | undefined } {
   const fullDir = input.workspace?.current_dir || '';
   const modelName = input.model?.display_name || 'Unknown';
   const contextWindow = input.context_window;
+  const repoName = input.workspace?.repo?.name;
+  const worktreeName = input.worktree?.name ?? input.workspace?.git_worktree;
 
-  return { fullDir, modelName, contextWindow };
+  return { fullDir, modelName, contextWindow, repoName, worktreeName };
+}
+
+export interface ProjectSlotParams {
+  repoName?: string | undefined;
+  currentDir: string;
+  worktreeName?: string | undefined;
+  wtSymbol: string;
+}
+
+/** PRD-004 B2: repo identity wins over dirname; worktree tag appended. */
+export function formatProjectSlot(p: ProjectSlotParams): string {
+  const dirname = p.currentDir.split('/').pop() || p.currentDir.split('\\').pop() || 'project';
+  const name = p.repoName ?? dirname;
+  return p.worktreeName ? `${name} ${p.wtSymbol}${p.worktreeName}` : name;
+}
+
+export function resolveBranch(p: { gitBranch: string; worktreeBranch?: string | undefined }): string {
+  return p.worktreeBranch ?? p.gitBranch; // PRD-004 B1
 }
 
 /**
@@ -141,11 +161,19 @@ async function buildStatusline(params: {
   terminalWidth?: number; // Optional - only needed for smart truncation
   config: Config;
   gitOps: GitOperations;
+  worktree?: ClaudeInput['worktree'];
+  repoName?: string | undefined;
+  worktreeName?: string | undefined;
 }): Promise<string> {
-  const { fullDir, modelName, contextWindow, gitInfo, envInfo, symbols, terminalWidth, config, gitOps } = params;
+  const { fullDir, modelName, contextWindow, gitInfo, envInfo, symbols, terminalWidth, config, gitOps, worktree, repoName, worktreeName } = params;
 
-  // Get project name
-  const projectName = fullDir.split('/').pop() || fullDir.split('\\').pop() || 'project';
+  // PRD-004 B3: repo identity wins over dirname; worktree tag appended
+  const projectName = formatProjectSlot({ repoName, currentDir: fullDir, worktreeName, wtSymbol: symbols.worktree });
+
+  // Managed worktree sessions report their own branch; override display only
+  const displayGitInfo = gitInfo
+    ? { ...gitInfo, branch: resolveBranch({ gitBranch: gitInfo.branch, worktreeBranch: worktree?.branch }) }
+    : gitInfo;
 
   // Build VPN indicator (shown before project name when enabled)
   let vpnIndicator = '';
@@ -158,8 +186,8 @@ async function buildStatusline(params: {
 
   // Build git status string
   let gitStatus = '';
-  if (gitInfo) {
-    gitStatus = gitOps.formatGitStatus(gitInfo, symbols);
+  if (displayGitInfo) {
+    gitStatus = gitOps.formatGitStatus(displayGitInfo, symbols);
   }
 
   // Build environment context string
@@ -276,6 +304,7 @@ async function render(
   contextWindow?: ClaudeInput['context_window'],
   config?: Config,
   sessionId?: string,
+  payload?: { worktree?: ClaudeInput['worktree']; repoName?: string | undefined; worktreeName?: string | undefined },
 ): Promise<string> {
   config = config ?? loadConfig();
   const cache = new Cache(config);
@@ -312,6 +341,7 @@ async function render(
     ...(terminalWidth && { terminalWidth }),
     config,
     gitOps,
+    ...payload,
   });
 }
 
