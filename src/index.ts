@@ -14,6 +14,14 @@ import { detectSymbols, getEnvironmentSymbols, SymbolSet } from './ui/symbols.js
 import { getTerminalWidth, truncateText, smartTruncate, debugWidthDetection, getStringDisplayWidth } from './ui/width.js';
 import { EnvironmentDetector, EnvironmentFormatter } from './env/context.js';
 
+/** PRD-004 C1: PR metadata from stdin. */
+export interface PrInfo {
+  number: number;
+  url: string;
+  review_state?: string;
+  kind?: string;
+}
+
 /**
  * Claude Code input interface
  */
@@ -47,6 +55,7 @@ interface ClaudeInput {
     original_cwd: string;
     original_branch?: string;
   };
+  pr?: PrInfo;
 }
 
 /**
@@ -91,8 +100,13 @@ export async function main(injected?: ClaudeInput): Promise<void> {
       return;
     }
 
-    process.stdout.write(await render(fullDir, modelName, contextWindow, config, input.session_id, { worktree: input.worktree, repoName, worktreeName }));
-
+    process.stdout.write(
+      await render(fullDir, modelName, contextWindow, config, input.session_id, {
+        worktree: input.worktree,
+        repoName,
+        worktreeName,
+        pr: input.pr,
+      }));
   } catch (error) {
     console.error('[ERROR]', error instanceof Error ? error.message : String(error));
     process.stdout.write(renderMinimal(input));
@@ -148,6 +162,15 @@ export function resolveBranch(p: { gitBranch: string; worktreeBranch?: string | 
   return p.worktreeBranch ?? p.gitBranch; // PRD-004 B1
 }
 
+/** PRD-004 C1: ` #27[A]` style PR badge; ASCII review-state token. */
+export function formatPrBadge(pr?: PrInfo): string {
+  if (!pr) return '';
+  const token =
+    { approved: '[A]', pending: '*', changes_requested: 'x', draft: '-' }[pr.review_state ?? ''] ??
+    '';
+  return ` #${pr.number}${token}`;
+}
+
 /**
  * Build the complete statusline string
  */
@@ -164,8 +187,23 @@ async function buildStatusline(params: {
   worktree?: ClaudeInput['worktree'];
   repoName?: string | undefined;
   worktreeName?: string | undefined;
+  pr?: ClaudeInput['pr'];
 }): Promise<string> {
-  const { fullDir, modelName, contextWindow, gitInfo, envInfo, symbols, terminalWidth, config, gitOps, worktree, repoName, worktreeName } = params;
+  const {
+    fullDir,
+    modelName,
+    contextWindow,
+    gitInfo,
+    envInfo,
+    symbols,
+    terminalWidth,
+    config,
+    gitOps,
+    worktree,
+    repoName,
+    worktreeName,
+    pr,
+  } = params;
 
   // PRD-004 B3: repo identity wins over dirname; worktree tag appended
   const projectName = formatProjectSlot({ repoName, currentDir: fullDir, worktreeName, wtSymbol: symbols.worktree });
@@ -210,8 +248,11 @@ async function buildStatusline(params: {
       }
     }
 
+  // PRD-004 C1: opt-in PR badge from stdin pr.* fields
+  const prSegment = config.prBadge ? formatPrBadge(pr) : '';
+
   // Build model string
-  const modelString = `${symbols.model}${modelName}${envContext}${contextUsage}`;
+  const modelString = `${symbols.model}${modelName}${envContext}${contextUsage}${prSegment}`;
 
   // Initial statusline
   let statusline = `${vpnIndicator}${projectName}${gitStatus} ${modelString}`;
@@ -304,7 +345,12 @@ async function render(
   contextWindow?: ClaudeInput['context_window'],
   config?: Config,
   sessionId?: string,
-  payload?: { worktree?: ClaudeInput['worktree']; repoName?: string | undefined; worktreeName?: string | undefined },
+  payload?: {
+    worktree?: ClaudeInput['worktree'];
+    repoName?: string | undefined;
+    worktreeName?: string | undefined;
+    pr?: ClaudeInput['pr'];
+  },
 ): Promise<string> {
   config = config ?? loadConfig();
   const cache = new Cache(config);

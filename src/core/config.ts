@@ -22,6 +22,7 @@ export const ConfigSchema = z.object({
   vpnIndicator: z.boolean().default(false), // Show VPN status indicator (macOS only)
   truncate: z.boolean().default(false), // Smart truncation
   noSoftWrap: z.boolean().default(false), // Disable soft-wrapping
+  prBadge: z.boolean().default(false), // Show PR badge from stdin pr.* fields
 
   // Width and display settings
   forceWidth: z.number().optional(), // Manual width override
@@ -180,6 +181,10 @@ function loadEnvConfig(): Partial<Config> {
     env.noSoftWrap = true;
   }
 
+  if (process.env.CLAUDE_CODE_STATUSLINE_PR_BADGE === '1') {
+    env.prBadge = true;
+  }
+
   // Width settings
   if (process.env.CLAUDE_CODE_STATUSLINE_FORCE_WIDTH) {
     const width = parseInt(process.env.CLAUDE_CODE_STATUSLINE_FORCE_WIDTH, 10);
@@ -228,6 +233,7 @@ export function generateSampleConfig(): string {
     vpnIndicator: true, // Set to true to show VPN status indicator (macOS only)
     truncate: true, // Set to true to enable smart truncation
     noSoftWrap: false, // Set to true to force single-line output
+    prBadge: false, // Set to true to show PR badge
 
     // Display settings
     rightMargin: 15, // Right margin for Claude telemetry compatibility
