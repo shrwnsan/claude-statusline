@@ -90,28 +90,35 @@ const ConfigSchema = z.object({
 **Cache Strategy**:
 - **Tool versions**: 5-minute TTL (Node.js, Python)
 - **Docker version**: 30-minute TTL (less frequent changes)
-- **Git information**: 1-minute TTL (branch can change frequently)
+- **Git status**: 5-second TTL (session-scoped key; repeated renders while a session idles skip the spawn)
 
-### Git Operations (`git/status.ts`)
+### Git Operations (`git/status.ts`, `git/porcelain.ts`)
 
 **Purpose**: Git repository status parsing and indicator generation
 
-**Dependencies**: Native `git` CLI via `child_process`
+**Dependencies**: Native `git` CLI via `child_process` (`git/native.ts`)
 
-**Features**:
-- **Comprehensive status parsing**: staged, unstaged, untracked, conflicts
-- **Remote tracking**: ahead/behind status detection
-- **Multiple git methods**: fallbacks for different git versions
-- **Cross-platform compatibility**: Windows, macOS, Linux
+**Single-Spawn Design** (PRD-004 A3): one `git` invocation per render —
+`git/status.ts` orchestrates, `git/porcelain.ts` spawns and parses:
 
-**Status Parsing Logic**:
-```typescript
-// Parse git --porcelain format
-// XY PATH where X=staged, Y=unstaged
-if (stagedChar === 'M') indicators.staged++;
-if (unstagedChar === 'M') indicators.modified++;
-// ... handle all cases
 ```
+git --no-optional-locks status --porcelain=v2 --branch --show-stash
+```
+
+Exit code 128 means "not a repository": `getGitInfo` returns `null` and the
+git segment is skipped. `--no-optional-locks` keeps the probe from contending
+with the user's own git processes for the index lock.
+
+**Porcelain v2 Record Parsing**:
+- Header lines feed the display fields: `# branch.head` (branch name; `(detached)` renders the short oid instead), `# branch.oid`, `# branch.upstream`, `# branch.ab +N -N` (ahead/behind, `diverged` when both > 0), `# stash N` (omitted by git when zero)
+- `1` / `2` records: XY status codes (chars 2-3) map to staged / modified / renamed / deleted counters; `2` records are renames carrying an origPath
+- `u` records: unmerged paths → conflicts
+- `?` records: untracked files
+- `!` records (ignored files) are intentionally not displayed
+
+**Session-Scoped Caching**: results are cached under a composite key
+`<session_id>:<current_dir>` (base64-encoded) with a 5 s TTL, so repeated
+renders while a session idles skip the spawn entirely.
 
 ### Symbol Management (`ui/symbols.ts`)
 
@@ -202,7 +209,7 @@ Claude Code Input
 
 **Cache Keys**:
 - Environment versions: `node_version`, `python3_version`
-- Git information: `git_branch_<base64_dir>`, `git_remote_<base64_dir>`
+- Git status: `git_status_<base64(<session_id>:<dir>)>` (5 s TTL)
 
 ### Memory Management
 

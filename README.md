@@ -233,6 +233,26 @@ Two modes available:
 | **100-119** | Excellent | Usually no truncation needed |
 | **120+** | Perfect | No constraints, optimal UX |
 
+### Opt-in Segments (2.5.0)
+
+Five segments are off by default and read from the stdin payload Claude Code sends. Enable each in the config file, or via environment variable (`=1` to enable):
+
+| Config Key | Environment Variable | Displays |
+|------------|---------------------|----------|
+| **`"prBadge"`** | `CLAUDE_CODE_STATUSLINE_PR_BADGE=1` | ` #27[A]` — PR number plus review state (`[A]`pproved, `*` pending, `x` changes requested, `-` draft); only while a PR or MR is open |
+| **`"costUsage"`** | `CLAUDE_CODE_STATUSLINE_COST_USAGE=1` | ` ~$1.23` — client-side estimate from `cost.total_cost_usd`, not a billing figure |
+| **`"rateLimit"`** | `CLAUDE_CODE_STATUSLINE_RATE_LIMIT=1` | ` 5h:42% 7d:12%` — usage windows; requires claude.ai Pro/Max limits or a gateway spend limit in the payload |
+| **`"modeIndicators"`** | `CLAUDE_CODE_STATUSLINE_MODE_INDICATORS=1` | ` [hgh·thk]` — effort level, thinking, vim mode, fast mode, agent, output style |
+| **`"contextTokens"`** | `CLAUDE_CODE_STATUSLINE_CONTEXT_TOKENS=1` | ` ≈25% ~50k/200k` — absolute context tokens appended to the used percentage |
+
+With all segments on (see `claude-statusline --demo`, "All segments on" preset):
+
+```
+◉ claude-statusline ·wt:wt-demo demo/wt-feature *Opus ≈24% #27[A] ~$1.23 5h:42% 7d:12% [hgh·thk]
+```
+
+*ASCII variant shown; with `"nerdFont": true` the ASCII symbols are replaced with Nerd Font icons.*
+
 ## Icon Reference & Nerd Font Support
 
 **Nerd Font Support (Optional):** Set `"nerdFont": true` in your config or `NERD_FONT=1` to enable Nerd Font icons. Default is ASCII.
@@ -266,7 +286,7 @@ For enhanced visual icons, install a Nerd Font:
 | **Ahead/Behind** | `⇡⇣` | `A/B` | ASCII when `"noEmoji": true` |
 | **Diverged** | `⇕` | `D` | ASCII when `"noEmoji": true` |
 | **Claude Model** | `🤖` | `*` | ASCII when `"noEmoji": true` |
-| **Context Window** | `󱐌` | `#` | ASCII when `"noEmoji": true` |
+| **Context Window** | `󱐌` | `≈` | ASCII when `"noEmoji": true` |
 
 *Note: Examples show ASCII-compatible symbols. Full statusline with Nerd Fonts shows additional symbols: $X!+?>CADAB*
 
@@ -348,7 +368,7 @@ Test your statusline without launching Claude Code:
 # Quick self-test with default config
 claude-statusline --self-test
 
-# Demo mode: shows 4 rendering variants (ASCII, Nerd Font, narrow, env)
+# Demo mode: shows 6 rendering presets (ASCII, env, Nerd Font, narrow, worktree, all segments)
 claude-statusline --demo
 ```
 

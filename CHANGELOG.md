@@ -21,12 +21,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (remaining) — reversing the 2.2.0 flip to remaining.
 - Git state is now collected with a single `git` spawn per render
   (porcelain v2), replacing the old multi-call chain.
+- The ASCII preset's `contextWindow` symbol `≈` is now effective: the zod
+  schema's `#` default had been silently clobbering it since the v2
+  migration, so ASCII renders `≈25%` where 2.4.1 rendered `#25%`.
 
 ### Added
 - Worktree-aware display: inside linked git worktrees the project slot shows
   the repository name from the payload's `workspace.repo.name` plus a
-  `·wt:<name>` tag (dedicated Nerd Font glyph), and the branch comes from
-  `worktree.branch` instead of the main checkout's.
+  `·wt:<name>` tag (dedicated Nerd Font glyph). In managed worktree sessions
+  the displayed branch comes from `worktree.branch` — a display-level
+  substitution, since plain linked worktrees always resolved their own branch
+  correctly.
 - Session-scoped git cache (5 s TTL, composite session_id + directory key)
   so repeated renders while the session idles stay instant.
 - Opt-in segments, all off by default and fed from the stdin payload:
