@@ -253,6 +253,34 @@ export function formatModes(m?: ModesInput): string {
   return t.length ? ` [${t.join('·')}]` : '';
 }
 
+export interface ContextWindowInput {
+  used_percentage?: number | null;
+  remaining_percentage?: number | null;
+  context_window_size?: number;
+  current_usage?: {
+    input_tokens: number;
+    output_tokens?: number;
+    cache_creation_input_tokens: number;
+    cache_read_input_tokens: number;
+  } | null;
+}
+
+/** PRD-004 D1: docs semantics — used_percentage preferred (input-only),
+ *  remaining_percentage fallback, current_usage fallback, null = no render. */
+export function formatContextUsage(cw: ContextWindowInput | undefined, symbol: string): string {
+  if (!cw) return '';
+  let used: number | undefined = cw.used_percentage ?? undefined;
+  if (used === undefined && cw.remaining_percentage !== undefined && cw.remaining_percentage !== null) {
+    used = 100 - cw.remaining_percentage;
+  }
+  if (used === undefined && cw.current_usage && cw.context_window_size) {
+    const { input_tokens, cache_creation_input_tokens, cache_read_input_tokens } = cw.current_usage;
+    used = ((input_tokens + cache_creation_input_tokens + cache_read_input_tokens) / cw.context_window_size) * 100;
+  }
+  if (used === undefined || used === null || isNaN(used)) return '';
+  return ` ${symbol}${Math.round(used)}%`;
+}
+
 /**
  * Build the complete statusline string
  */
@@ -327,14 +355,11 @@ async function buildStatusline(params: {
     }
   }
 
-    // Build context window usage string
-    let contextUsage = '';
-    if (contextWindow && !config.noContextWindow) {
-      const remaining = contextWindow.remaining_percentage;
-      if (remaining !== undefined && remaining !== null) {
-        contextUsage = ` ${symbols.contextWindow}${Math.round(remaining)}%`;
-      }
-    }
+  // Build context window usage string
+  let contextUsage = '';
+  if (contextWindow && !config.noContextWindow) {
+    contextUsage = formatContextUsage(contextWindow, symbols.contextWindow);
+  }
 
   // PRD-004 C1: opt-in PR badge from stdin pr.* fields
   const prSegment = config.prBadge ? formatPrBadge(pr) : '';
