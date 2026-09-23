@@ -175,18 +175,19 @@ Shows VPN connection status on macOS (automatically detects utun interfaces):
 
 ### Context Window Usage (Beta Feature)
 
-Automatically displays context window remaining percentage when available (requires Claude Code to send context window data):
+Automatically displays context window used percentage when available (requires Claude Code to send context window data):
 
 ```
-claude-statusline @ main [$!] *Opus ≈76% (ASCII version)
+claude-statusline @ main [$!] *Opus ≈24% (ASCII version)
 ```
 
-Shows percentage of context window remaining in the current conversation. The symbol varies by mode:
+Shows percentage of the context window used in the current conversation. The symbol varies by mode:
 - **Nerd Font**: 󱐌 (`nf-md-lightning_bolt_circle`, U+F140C)
 - **ASCII**: ≈ (approximately equals)
 
 **Important Notes:**
-- Uses the `remaining_percentage` field provided by Claude Code API (since v2.1.15)
+- Prefers the `used_percentage` field from the Claude Code API (since v2.1.15); when only `remaining_percentage` is present, shows `100 − remaining`
+- Falls back to computing usage from `current_usage` (input + cache creation + cache read, relative to the window size); output tokens are excluded — `used_percentage` is input-only
 - Only shows when Claude Code provides context window data
 - Can be disabled with `"noContextWindow": true` or `CLAUDE_CODE_STATUSLINE_NO_CONTEXT_WINDOW=1`
 
@@ -298,15 +299,16 @@ nano ~/.claude/claude-statusline.json
 
 ### Default Behavior
 ```bash
-# Basic truncation (default) - truncated at terminal width minus 10 chars
-◉ claude-statusline @ main [$!A] *Claude Sonnet 4.5 #27%
+# Smart truncation (default) - degrades gracefully at narrow widths;
+# restore full-line output with "truncate": false
+◉ claude-statusline @ main [$!A] *Claude Sonnet 4.5 ≈24%
 
 # With VPN off indicator
-○ claude-statusline @ main [$!A] *Claude Sonnet 4.5 #27%
+○ claude-statusline @ main [$!A] *Claude Sonnet 4.5 ≈24%
 
 # With environment context enabled
 # Set "envContext": true in config file
-◉ claude-statusline @ main [$!A] *Claude Sonnet 4.5 Node22.17.1 Py3.13.5 Docker28.3.3 #27%
+◉ claude-statusline @ main [$!A] *Claude Sonnet 4.5 Node22.17.1 Py3.13.5 Docker28.3.3 ≈24%
 ```
 
 ### ASCII Mode (Fallback)

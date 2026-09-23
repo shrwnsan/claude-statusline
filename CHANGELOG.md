@@ -16,7 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Context window segment now follows the docs semantics: `used_percentage`
   preferred (input-only), `100 - remaining_percentage` fallback, then a
   `current_usage` computation that excludes output tokens. Absent or null
-  percentages render nothing instead of a stale guess.
+  percentages render nothing instead of a stale guess. For the same session
+  state the segment now reads `≈24%` (used) where 2.4.1 read `≈76%`
+  (remaining) — reversing the 2.2.0 flip to remaining.
 - Git state is now collected with a single `git` spawn per render
   (porcelain v2), replacing the old multi-call chain.
 
