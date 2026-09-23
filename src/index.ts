@@ -558,7 +558,7 @@ async function runSelfTest(demo: boolean): Promise<void> {
     ...mockInput,
     session_id: 'demo-session',
     workspace: {
-      current_dir: '/tmp/cs-wt-demo',
+      current_dir: process.cwd(),
       repo: { host: 'github.com', owner: 'shrwnsan', name: 'claude-statusline' },
       git_worktree: 'cs-wt-demo',
     },
@@ -584,8 +584,8 @@ async function runSelfTest(demo: boolean): Promise<void> {
     { label: 'ASCII + git + env', configOverrides: { nerdFont: false, noEmoji: false, envContext: true } },
     { label: 'Nerd Font', configOverrides: { nerdFont: true } },
     { label: 'Narrow terminal (40 cols)', configOverrides: { truncate: true, forceWidth: 40 } },
-    { label: 'Worktree session', configOverrides: {}, input: worktreeInput },
-    { label: 'All segments on', configOverrides: { prBadge: true, costUsage: true, rateLimit: true, modeIndicators: true }, input: fullPayloadInput },
+    { label: 'Worktree session', configOverrides: { nerdFont: false }, input: worktreeInput },
+    { label: 'All segments on', configOverrides: { nerdFont: false, prBadge: true, costUsage: true, rateLimit: true, modeIndicators: true }, input: fullPayloadInput },
   ];
 
   if (demo) {
