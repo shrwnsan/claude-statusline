@@ -88,6 +88,12 @@ export function parseStatusV2(output: string): StatusV2 {
     }
     // '!' (ignored) records: intentionally not displayed
   }
+  // Mirror top-level fields into indicators: the A.3 cutover consumes
+  // v2.indicators directly, so ahead/behind/stashed/diverged must be populated.
+  r.indicators.ahead = r.ahead;
+  r.indicators.behind = r.behind;
+  r.indicators.stashed = r.stash;
+  r.indicators.diverged = r.ahead > 0 && r.behind > 0;
   return r;
 }
 
