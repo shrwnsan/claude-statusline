@@ -5,7 +5,7 @@ import { Cache } from '../dist/core/cache.js';
 import { loadConfig } from '../dist/core/config.js';
 import { mkdtempSync } from 'fs';
 import { tmpdir } from 'os';
-import { makeSandbox } from './porcelain-parity-helpers.js';
+import { makeSandbox } from './porcelain-parity-helpers.ts';
 
 describe('getGitInfo (consolidated single-spawn)', () => {
   it('reports branch and indicators from one porcelain v2 call', async () => {
