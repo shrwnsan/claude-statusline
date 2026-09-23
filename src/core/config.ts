@@ -57,7 +57,7 @@ export const ConfigSchema = z.object({
   asciiSymbols: z.object({
     git: z.string().default('@'),
     model: z.string().default('*'),
-    contextWindow: z.string().default('#'),
+    contextWindow: z.string().default('≈'),
     staged: z.string().default('+'),
     conflict: z.string().default('C'),
     stashed: z.string().default('$'),
