@@ -4,8 +4,12 @@ import { getTerminalWidth } from '../dist/ui/width.js';
 import { loadConfig } from '../dist/core/config.js';
 
 const origCols = process.env.COLUMNS;
+const origTermProgram = process.env.TERM_PROGRAM;
+const origTerm = process.env.TERM;
 afterEach(() => {
   if (origCols === undefined) delete process.env.COLUMNS; else process.env.COLUMNS = origCols;
+  if (origTermProgram === undefined) delete process.env.TERM_PROGRAM; else process.env.TERM_PROGRAM = origTermProgram;
+  if (origTerm === undefined) delete process.env.TERM; else process.env.TERM = origTerm;
 });
 
 describe('getTerminalWidth chain', () => {
@@ -23,6 +27,12 @@ describe('getTerminalWidth chain', () => {
 
   it('falls back to fixed 80 when nothing is available — never shells out', async () => {
     delete process.env.COLUMNS;
+    // Discriminator against the deleted sniffing chain: with TERM unset,
+    // tput/stty cannot answer (and the old chain ran them before the TERM
+    // table), so the old table returned 120 for TERM_PROGRAM=ghostty here.
+    // The honest chain must still return 80.
+    delete process.env.TERM;
+    process.env.TERM_PROGRAM = 'ghostty';
     const w = await getTerminalWidth({ ...loadConfig() });
     assert.strictEqual(w, 80);
   });

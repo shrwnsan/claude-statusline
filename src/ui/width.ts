@@ -47,15 +47,8 @@ export async function debugWidthDetection(config: Config): Promise<void> {
     console.error('[WIDTH DEBUG] process.stdout.columns: not available');
   }
 
-  // Test COLUMNS variable
-  const columnsEnv = process.env.COLUMNS;
-  if (columnsEnv) {
-    console.error(`[WIDTH DEBUG] COLUMNS variable: ${columnsEnv}`);
-  } else {
-    console.error('[WIDTH DEBUG] COLUMNS variable: not set');
-  }
-
   // Test environment variables
+  const columnsEnv = process.env.COLUMNS;
   console.error(`[WIDTH DEBUG] CLAUDE_CODE_STATUSLINE_FORCE_WIDTH: ${config.forceWidth || 'not set'}`);
   console.error(`[WIDTH DEBUG] COLUMNS variable: ${columnsEnv || 'not set'}`);
 
