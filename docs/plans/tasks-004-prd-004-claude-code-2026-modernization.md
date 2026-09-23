@@ -1522,14 +1522,14 @@ Co-Authored-By: GLM <zai-org@users.noreply.github.com>"
 | A.4 composite cache key | ✅ | — | `97043ed`; approved; cold-1/warm-0 proven |
 | A.5 width chain | ✅ | — | `82e08e5` + `68b93b0`; approved ×2 |
 | B.1 payload types | ✅ | — | `d8aa193`; approved |
-| B.2 worktree symbol | ✅ | — | `7f09915` + `aaf10bd`; approved |
+| B.2 worktree symbol | ✅ | — | `7f09915` + `aaf10bd`; approved; glyph corrected to U+F504 post-release (`78004f6`) |
 | B.3 worktree display | ✅ | — | `3a41e62`; approved; override proven live |
 | C.1 PR badge | ✅ | — | `fce50f4`; review approved |
 | C.2 cost | ✅ | — | `505c60a`; review approved |
 | C.3 rate limits | ✅ | — | `0b0dad7`; review approved |
 | C.4 mode indicators | ✅ | — | `41b5a99`; review approved |
 | D.1 context semantics | ✅ | — | `6f7e568`; review approved after docs-parity fix `cfa4b5e` |
-| D.2 over-limit marker | ✅ | — | `e1bb87a`; review approved |
+| D.2 over-limit marker | ✅ | — | `e1bb87a`; review approved; gated by window size post-release (`e577c3a` — flag is a fixed 200k threshold, `overLimitWarning: auto/always/never`) |
 | D.3 absolute tokens | ✅ | — | `1437df0`; review approved |
 | D.4 truncate default + docs | ✅ | — | `9e5d153` (BREAKING); review approved |
 | D.5 demo + changelog | ✅ | — | `9bab040`; verification checklist executed |
@@ -1564,3 +1564,10 @@ Co-Authored-By: GLM <zai-org@users.noreply.github.com>"
 - **Guard empty `worktree.branch`** (W6): an empty string would render an
   empty branch slot — same family/unreachability as the empty repo.name and
   vim.mode guards above.
+- **Fix the `vpnIndicator` default in README's "Default Configuration"**
+  (spotted 2026-09-24): README claims `true` (shown by default) but the zod
+  schema defaults it to `false`. Docs-only; align on the schema truth.
+- **Add a `worktree` key to the `symbols`/`asciiSymbols` config schemas**
+  (spotted 2026-09-24): `detectSymbols` merges user overrides generically, but
+  the schema has no `worktree` key, so the tag glyph is not user-overridable
+  despite the config docs implying per-symbol overrides.
