@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { formatContextUsage } from '../dist/index.js';
+import { formatContextUsage, formatOverLimit } from '../dist/index.js';
 
 const SYM = '≈';
 
@@ -21,5 +21,13 @@ describe('formatContextUsage', () => {
   });
   it('falls back to remaining_percentage only when used_percentage absent', () => {
     assert.strictEqual(formatContextUsage({ remaining_percentage: 75 }, SYM), ' ≈25%');
+  });
+});
+
+describe('formatOverLimit', () => {
+  it('renders the symbol only when exceeded', () => {
+    assert.strictEqual(formatOverLimit(true, '!!'), '!!');
+    assert.strictEqual(formatOverLimit(false, '!!'), '');
+    assert.strictEqual(formatOverLimit(undefined, '!!'), '');
   });
 });

@@ -8,6 +8,7 @@ export interface SymbolSet {
   worktree: string;
   model: string;
   contextWindow: string;
+  overLimit: string;
   staged: string;
   conflict: string;
   stashed: string;
@@ -31,6 +32,7 @@ const ASCII_SYMBOLS: SymbolSet = {
   worktree: '·wt:',
   model: '*',
   contextWindow: '≈',
+  overLimit: '!!',
   staged: '+',
   conflict: 'C',
   stashed: '$',
@@ -54,6 +56,7 @@ const NERD_FONT_SYMBOLS: SymbolSet = {
   worktree: '',
   model: '󰚩',
   contextWindow: '󱐌',
+  overLimit: '⚠',
   staged: '+',
   conflict: '×',
   stashed: '⚑',

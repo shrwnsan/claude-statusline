@@ -48,6 +48,8 @@ interface ClaudeInput {
       cache_read_input_tokens: number;
     } | null;
   };
+  // New in Claude Code v2.1.15: true when the session crossed the 200k context mark
+  exceeds_200k_tokens?: boolean;
   worktree?: {
     name: string;
     path: string;
@@ -130,6 +132,7 @@ export async function main(injected?: ClaudeInput): Promise<void> {
           agent: input.agent,
           output_style: input.output_style,
         },
+        exceeds200k: input.exceeds_200k_tokens,
       }));
   } catch (error) {
     console.error('[ERROR]', error instanceof Error ? error.message : String(error));
@@ -281,6 +284,11 @@ export function formatContextUsage(cw: ContextWindowInput | undefined, symbol: s
   return ` ${symbol}${Math.round(used)}%`;
 }
 
+/** PRD-004 D2: warning glyph appended when the session exceeds 200k context tokens. */
+export function formatOverLimit(exceeds: boolean | undefined, symbol: string): string {
+  return exceeds ? symbol : '';
+}
+
 /**
  * Build the complete statusline string
  */
@@ -301,6 +309,7 @@ async function buildStatusline(params: {
   cost?: ClaudeInput['cost'];
   rateLimits?: ClaudeInput['rate_limits'];
   modes?: ModesInput;
+  exceeds200k?: boolean | undefined;
 }): Promise<string> {
   const {
     fullDir,
@@ -319,6 +328,7 @@ async function buildStatusline(params: {
     cost,
     rateLimits,
     modes,
+    exceeds200k,
   } = params;
 
   // PRD-004 B3: repo identity wins over dirname; worktree tag appended
@@ -361,6 +371,9 @@ async function buildStatusline(params: {
     contextUsage = formatContextUsage(contextWindow, symbols.contextWindow);
   }
 
+  // PRD-004 D2: over-limit warning right after the context segment
+  const overLimit = formatOverLimit(exceeds200k, symbols.overLimit);
+
   // PRD-004 C1: opt-in PR badge from stdin pr.* fields
   const prSegment = config.prBadge ? formatPrBadge(pr) : '';
 
@@ -374,7 +387,7 @@ async function buildStatusline(params: {
   const modesSegment = config.modeIndicators ? formatModes(modes) : '';
 
   // Build model string
-  const modelString = `${symbols.model}${modelName}${envContext}${contextUsage}${prSegment}${costSegment}${rateSegment}${modesSegment}`;
+  const modelString = `${symbols.model}${modelName}${envContext}${contextUsage}${overLimit}${prSegment}${costSegment}${rateSegment}${modesSegment}`;
 
   // Initial statusline
   let statusline = `${vpnIndicator}${projectName}${gitStatus} ${modelString}`;
@@ -475,6 +488,7 @@ async function render(
     cost?: ClaudeInput['cost'];
     rateLimits?: ClaudeInput['rate_limits'];
     modes?: ModesInput;
+    exceeds200k?: boolean | undefined;
   },
 ): Promise<string> {
   config = config ?? loadConfig();
