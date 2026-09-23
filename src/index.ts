@@ -18,26 +18,34 @@ import { EnvironmentDetector, EnvironmentFormatter } from './env/context.js';
  * Claude Code input interface
  */
 interface ClaudeInput {
+  session_id?: string;
   workspace: {
     current_dir: string;
+    repo?: { host: string; owner: string; name: string };
+    git_worktree?: string;
   };
-  model: {
-    display_name: string;
-  };
+  model: { display_name: string };
   context_window?: {
     total_input_tokens: number;
     total_output_tokens: number;
     context_window_size: number;
     // New in Claude Code v2.1.15: Pre-calculated percentages
-    used_percentage?: number;
-    remaining_percentage?: number;
+    used_percentage?: number | null;
+    remaining_percentage?: number | null;
     // Legacy: Current usage for manual calculation
     current_usage?: {
       input_tokens: number;
       output_tokens: number;
       cache_creation_input_tokens: number;
       cache_read_input_tokens: number;
-    };
+    } | null;
+  };
+  worktree?: {
+    name: string;
+    path: string;
+    branch?: string;
+    original_cwd: string;
+    original_branch?: string;
   };
 }
 
