@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { formatPrBadge } from '../dist/index.js';
+import { formatCost, formatPrBadge } from '../dist/index.js';
 
 describe('formatPrBadge', () => {
   it('renders number + state token', () => {
@@ -14,5 +14,16 @@ describe('formatPrBadge', () => {
   });
   it('returns empty for absent PR', () => {
     assert.strictEqual(formatPrBadge(undefined), '');
+  });
+});
+
+describe('formatCost', () => {
+  it('prefixes ~ to mark the client-side estimate', () => {
+    assert.strictEqual(formatCost(1.2344), ' ~$1.23');
+    assert.strictEqual(formatCost(0), ' ~$0.00');
+  });
+  it('returns empty when absent or negative', () => {
+    assert.strictEqual(formatCost(undefined), '');
+    assert.strictEqual(formatCost(-1), '');
   });
 });

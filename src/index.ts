@@ -56,6 +56,13 @@ interface ClaudeInput {
     original_branch?: string;
   };
   pr?: PrInfo;
+  cost?: {
+    total_cost_usd: number;
+    total_duration_ms: number;
+    total_api_duration_ms: number;
+    total_lines_added: number;
+    total_lines_removed: number;
+  };
 }
 
 /**
@@ -106,6 +113,7 @@ export async function main(injected?: ClaudeInput): Promise<void> {
         repoName,
         worktreeName,
         pr: input.pr,
+        cost: input.cost,
       }));
   } catch (error) {
     console.error('[ERROR]', error instanceof Error ? error.message : String(error));
@@ -171,6 +179,12 @@ export function formatPrBadge(pr?: PrInfo): string {
   return ` #${pr.number}${token}`;
 }
 
+/** PRD-004 C2: ` ~$1.23` client-side cost estimate. */
+export function formatCost(totalCostUsd?: number): string {
+  if (totalCostUsd === undefined || totalCostUsd < 0) return '';
+  return ` ~$${totalCostUsd.toFixed(2)}`;
+}
+
 /**
  * Build the complete statusline string
  */
@@ -188,6 +202,7 @@ async function buildStatusline(params: {
   repoName?: string | undefined;
   worktreeName?: string | undefined;
   pr?: ClaudeInput['pr'];
+  cost?: ClaudeInput['cost'];
 }): Promise<string> {
   const {
     fullDir,
@@ -203,6 +218,7 @@ async function buildStatusline(params: {
     repoName,
     worktreeName,
     pr,
+    cost,
   } = params;
 
   // PRD-004 B3: repo identity wins over dirname; worktree tag appended
@@ -251,8 +267,11 @@ async function buildStatusline(params: {
   // PRD-004 C1: opt-in PR badge from stdin pr.* fields
   const prSegment = config.prBadge ? formatPrBadge(pr) : '';
 
+  // PRD-004 C2: opt-in cost estimate from stdin cost.total_cost_usd
+  const costSegment = config.costUsage ? formatCost(cost?.total_cost_usd) : '';
+
   // Build model string
-  const modelString = `${symbols.model}${modelName}${envContext}${contextUsage}${prSegment}`;
+  const modelString = `${symbols.model}${modelName}${envContext}${contextUsage}${prSegment}${costSegment}`;
 
   // Initial statusline
   let statusline = `${vpnIndicator}${projectName}${gitStatus} ${modelString}`;
@@ -350,6 +369,7 @@ async function render(
     repoName?: string | undefined;
     worktreeName?: string | undefined;
     pr?: ClaudeInput['pr'];
+    cost?: ClaudeInput['cost'];
   },
 ): Promise<string> {
   config = config ?? loadConfig();

@@ -23,6 +23,7 @@ export const ConfigSchema = z.object({
   truncate: z.boolean().default(false), // Smart truncation
   noSoftWrap: z.boolean().default(false), // Disable soft-wrapping
   prBadge: z.boolean().default(false), // Show PR badge from stdin pr.* fields
+  costUsage: z.boolean().default(false), // Show ~cost estimate from stdin cost.total_cost_usd
 
   // Width and display settings
   forceWidth: z.number().optional(), // Manual width override
@@ -185,6 +186,10 @@ function loadEnvConfig(): Partial<Config> {
     env.prBadge = true;
   }
 
+  if (process.env.CLAUDE_CODE_STATUSLINE_COST_USAGE === '1') {
+    env.costUsage = true;
+  }
+
   // Width settings
   if (process.env.CLAUDE_CODE_STATUSLINE_FORCE_WIDTH) {
     const width = parseInt(process.env.CLAUDE_CODE_STATUSLINE_FORCE_WIDTH, 10);
@@ -234,6 +239,7 @@ export function generateSampleConfig(): string {
     truncate: true, // Set to true to enable smart truncation
     noSoftWrap: false, // Set to true to force single-line output
     prBadge: false, // Set to true to show PR badge
+    costUsage: false, // Set to true to show ~cost estimate
 
     // Display settings
     rightMargin: 15, // Right margin for Claude telemetry compatibility
