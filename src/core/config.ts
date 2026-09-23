@@ -20,7 +20,7 @@ export const ConfigSchema = z.object({
   noContextWindow: z.boolean().default(false), // Disable context window usage
   envContext: z.boolean().default(false), // Show environment versions
   vpnIndicator: z.boolean().default(false), // Show VPN status indicator (macOS only)
-  truncate: z.boolean().default(false), // Smart truncation
+  truncate: z.boolean().default(true), // Smart truncation (default on; "truncate": false restores full-line output)
   noSoftWrap: z.boolean().default(false), // Disable soft-wrapping
   prBadge: z.boolean().default(false), // Show PR badge from stdin pr.* fields
   costUsage: z.boolean().default(false), // Show ~cost estimate from stdin cost.total_cost_usd
@@ -251,7 +251,7 @@ export function generateSampleConfig(): string {
     noContextWindow: false, // Set to true to disable context window usage
     envContext: true, // Set to true to show Node.js, Python versions
     vpnIndicator: true, // Set to true to show VPN status indicator (macOS only)
-    truncate: true, // Set to true to enable smart truncation
+    truncate: true, // Smart truncation is now the default; set to false to restore full-line output
     noSoftWrap: false, // Set to true to force single-line output
     prBadge: false, // Set to true to show PR badge
     costUsage: false, // Set to true to show ~cost estimate

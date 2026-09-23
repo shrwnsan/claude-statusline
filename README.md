@@ -29,6 +29,27 @@ yarn global add claude-statusline
 
 ### Claude Code Configuration
 
+**Upgrading to 2.5.0**: smart truncation is now on by default (Claude Code
+clips or wraps overly long statuslines anyway — ours degrades gracefully
+instead). Restore the old always-full-line behavior with `"truncate": false`.
+Inside git worktrees the project slot now shows the repository name from
+your `origin` remote plus a `·wt:<name>` tag (Nerd Font preset: dedicated
+glyph) instead of the worktree directory name.
+
+#### Recommended settings
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "~/bin/claude-statusline",
+    "padding": 0,
+    "refreshInterval": 3
+  }
+}
+```
+
+> `padding` pairs with our `rightMargin` (default 15 — Claude Code's right-side telemetry); `refreshInterval` (seconds, min 1) refreshes git state while the session idles, e.g. background subagents switching branches.
+
 #### Standard Configuration (Node.js Runtime)
 Add to your `~/.claude/settings.json`:
 
@@ -64,7 +85,7 @@ The statusline automatically displays when Claude Code is active and updates bas
 
 claude-statusline works out-of-the-box with these defaults:
 - `envContext`: false (environment versions NOT shown)
-- `truncate`: false (basic truncation at terminal width - 10)
+- `truncate`: true (smart truncation on by default; `"truncate": false` restores full-line output)
 - `noEmoji`: false (Nerd Font symbols preferred, ASCII fallback)
 - `noGitStatus`: false (git status shown)
 - `noContextWindow`: false (context window usage shown)

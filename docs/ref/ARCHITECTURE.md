@@ -129,17 +129,19 @@ if (unstagedChar === 'M') indicators.modified++;
 **Purpose**: Terminal width detection and text truncation
 
 **Features**:
-- **Multiple width detection methods** with fallbacks
+- **Honest width sources only** — no shell-outs, no terminal-name sniffing (PRD-004 A3)
 - **Smart truncation** with branch prioritization
 - **Model string wrapping** via `noSoftWrap` toggle
 - **Responsive design** for different terminal sizes
 
 **Width Detection Priority**:
-1. **Manual override**: `CLAUDE_CODE_STATUSLINE_FORCE_WIDTH`
-2. **Environment**: `COLUMNS`, `CLAUDE_CODE_TERMINAL_WIDTH`
+1. **Manual override**: `forceWidth` config (env `CLAUDE_CODE_STATUSLINE_FORCE_WIDTH`)
+2. **Environment**: `COLUMNS` (Claude Code provides it in the statusline payload env since 2.1.153)
 3. **Node.js**: `process.stdout.columns`
-4. **System commands**: `tput cols`, `stty size`
-5. **Terminal defaults**: Based on `TERM_PROGRAM`, `TERM`
+4. **Fixed default**: 80
+
+`tput`/`stty` cannot work here: the statusline command runs with captured
+output and no tty, so width is resolved from the four sources above only.
 
 ### Environment Detection (`env/context.ts`)
 
