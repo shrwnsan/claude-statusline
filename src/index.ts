@@ -64,6 +64,12 @@ interface ClaudeInput {
     total_lines_removed: number;
   };
   rate_limits?: RateLimits;
+  effort?: { level: string };
+  thinking?: { enabled: boolean };
+  vim?: { mode: string };
+  fast_mode?: boolean;
+  agent?: { name: string };
+  output_style?: { name: string };
 }
 
 /**
@@ -116,6 +122,14 @@ export async function main(injected?: ClaudeInput): Promise<void> {
         pr: input.pr,
         cost: input.cost,
         rateLimits: input.rate_limits,
+        modes: {
+          effort: input.effort,
+          thinking: input.thinking,
+          vim: input.vim,
+          fast_mode: input.fast_mode,
+          agent: input.agent,
+          output_style: input.output_style,
+        },
       }));
   } catch (error) {
     console.error('[ERROR]', error instanceof Error ? error.message : String(error));
@@ -208,6 +222,37 @@ export function formatRateLimit(rl?: RateLimits): string {
   return parts.length ? ` ${parts.join(' ')}` : '';
 }
 
+/** PRD-004 C4: top-level mode/session fields from stdin. */
+export interface ModesInput {
+  effort?: { level: string } | undefined;
+  thinking?: { enabled: boolean } | undefined;
+  vim?: { mode: string } | undefined;
+  fast_mode?: boolean | undefined;
+  agent?: { name: string } | undefined;
+  output_style?: { name: string } | undefined;
+}
+
+const EFFORT_TOKEN: Record<string, string> = {
+  low: 'lo',
+  medium: 'me',
+  high: 'hgh',
+  xhigh: 'xh',
+  max: 'mx',
+};
+
+/** PRD-004 C4: ` [hgh·thk]` compact mode indicators. */
+export function formatModes(m?: ModesInput): string {
+  if (!m) return '';
+  const t: string[] = [];
+  if (m.effort) t.push(EFFORT_TOKEN[m.effort.level] ?? m.effort.level);
+  if (m.thinking?.enabled) t.push('thk');
+  if (m.vim) t.push(m.vim.mode.charAt(0));
+  if (m.fast_mode) t.push('fast');
+  if (m.agent) t.push(`@${m.agent.name}`);
+  if (m.output_style && m.output_style.name !== 'default') t.push(m.output_style.name);
+  return t.length ? ` [${t.join('·')}]` : '';
+}
+
 /**
  * Build the complete statusline string
  */
@@ -227,6 +272,7 @@ async function buildStatusline(params: {
   pr?: ClaudeInput['pr'];
   cost?: ClaudeInput['cost'];
   rateLimits?: ClaudeInput['rate_limits'];
+  modes?: ModesInput;
 }): Promise<string> {
   const {
     fullDir,
@@ -244,6 +290,7 @@ async function buildStatusline(params: {
     pr,
     cost,
     rateLimits,
+    modes,
   } = params;
 
   // PRD-004 B3: repo identity wins over dirname; worktree tag appended
@@ -298,8 +345,11 @@ async function buildStatusline(params: {
   // PRD-004 C3: opt-in rate-limit windows from stdin rate_limits.*
   const rateSegment = config.rateLimit ? formatRateLimit(rateLimits) : '';
 
+  // PRD-004 C4: opt-in mode indicators (effort/thinking/vim/fast/agent/style)
+  const modesSegment = config.modeIndicators ? formatModes(modes) : '';
+
   // Build model string
-  const modelString = `${symbols.model}${modelName}${envContext}${contextUsage}${prSegment}${costSegment}${rateSegment}`;
+  const modelString = `${symbols.model}${modelName}${envContext}${contextUsage}${prSegment}${costSegment}${rateSegment}${modesSegment}`;
 
   // Initial statusline
   let statusline = `${vpnIndicator}${projectName}${gitStatus} ${modelString}`;
@@ -399,6 +449,7 @@ async function render(
     pr?: ClaudeInput['pr'];
     cost?: ClaudeInput['cost'];
     rateLimits?: ClaudeInput['rate_limits'];
+    modes?: ModesInput;
   },
 ): Promise<string> {
   config = config ?? loadConfig();

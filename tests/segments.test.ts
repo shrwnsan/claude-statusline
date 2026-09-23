@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { formatCost, formatPrBadge, formatRateLimit } from '../dist/index.js';
+import { formatCost, formatModes, formatPrBadge, formatRateLimit } from '../dist/index.js';
 
 describe('formatPrBadge', () => {
   it('renders number + state token', () => {
@@ -42,5 +42,25 @@ describe('formatRateLimit', () => {
   it('returns empty when absent or empty', () => {
     assert.strictEqual(formatRateLimit(undefined), '');
     assert.strictEqual(formatRateLimit({}), '');
+  });
+});
+
+describe('formatModes', () => {
+  it('renders compact tokens for present fields only', () => {
+    assert.strictEqual(formatModes({ effort: { level: 'high' }, thinking: { enabled: true } }), ' [hgh·thk]');
+    assert.strictEqual(formatModes({ vim: { mode: 'INSERT' }, fast_mode: true }), ' [I·fast]');
+    assert.strictEqual(formatModes({ agent: { name: 'reviewer' } }), ' [@reviewer]');
+  });
+  it('maps effort levels', () => {
+    assert.strictEqual(formatModes({ effort: { level: 'low' } }), ' [lo]');
+    assert.strictEqual(formatModes({ effort: { level: 'xhigh' } }), ' [xh]');
+    assert.strictEqual(formatModes({ effort: { level: 'max' } }), ' [mx]');
+  });
+  it('output_style renders only when not default', () => {
+    assert.strictEqual(formatModes({ output_style: { name: 'default' } }), '');
+    assert.strictEqual(formatModes({ output_style: { name: 'Explanatory' } }), ' [Explanatory]');
+  });
+  it('returns empty when nothing present', () => {
+    assert.strictEqual(formatModes({}), '');
   });
 });

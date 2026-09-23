@@ -25,6 +25,7 @@ export const ConfigSchema = z.object({
   prBadge: z.boolean().default(false), // Show PR badge from stdin pr.* fields
   costUsage: z.boolean().default(false), // Show ~cost estimate from stdin cost.total_cost_usd
   rateLimit: z.boolean().default(false), // Show rate-limit windows from stdin rate_limits.*
+  modeIndicators: z.boolean().default(false), // Show mode indicators (effort/thinking/vim/fast/agent/style)
 
   // Width and display settings
   forceWidth: z.number().optional(), // Manual width override
@@ -195,6 +196,10 @@ function loadEnvConfig(): Partial<Config> {
     env.rateLimit = true;
   }
 
+  if (process.env.CLAUDE_CODE_STATUSLINE_MODE_INDICATORS === '1') {
+    env.modeIndicators = true;
+  }
+
   // Width settings
   if (process.env.CLAUDE_CODE_STATUSLINE_FORCE_WIDTH) {
     const width = parseInt(process.env.CLAUDE_CODE_STATUSLINE_FORCE_WIDTH, 10);
@@ -246,6 +251,7 @@ export function generateSampleConfig(): string {
     prBadge: false, // Set to true to show PR badge
     costUsage: false, // Set to true to show ~cost estimate
     rateLimit: false, // Set to true to show rate-limit windows
+    modeIndicators: false, // Set to true to show mode indicators
 
     // Display settings
     rightMargin: 15, // Right margin for Claude telemetry compatibility
