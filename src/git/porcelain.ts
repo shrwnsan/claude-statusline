@@ -1,4 +1,5 @@
 import { EMPTY_INDICATORS, GitIndicators } from './status.js';
+import { executeGitCommand } from './native.js';
 
 /**
  * Result of parsing `git status --porcelain=v2 --branch --show-stash`.
@@ -88,4 +89,17 @@ export function parseStatusV2(output: string): StatusV2 {
     // '!' (ignored) records: intentionally not displayed
   }
   return r;
+}
+
+/** One spawn: status v2 + branch + stash. null when not a repo (exit 128). */
+export async function getStatusV2(cwd?: string): Promise<StatusV2 | null> {
+  try {
+    const out = await executeGitCommand(
+      ['--no-optional-locks', 'status', '--porcelain=v2', '--branch', '--show-stash'],
+      cwd ? { cwd } : {}
+    );
+    return parseStatusV2(out);
+  } catch {
+    return null;
+  }
 }
