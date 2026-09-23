@@ -5,128 +5,27 @@ import { Config } from '../core/config.js';
  * Ported from bash implementation with cross-platform Node.js support
  */
 
+const DEFAULT_WIDTH = 80;
+
 /**
- * Get terminal width using multiple detection methods
- * Ordered from most reliable to fallback methods
+ * Terminal width resolution — no shell-outs, no heuristics (PRD-004 A3).
+ * Order: forceWidth (manual override) → COLUMNS env (Claude Code provides
+ * it in the statusline payload env since 2.1.153) → process.stdout.columns
+ * → fixed 80. `tput`/`stty` cannot work here: the statusline command runs
+ * with captured output and no tty.
  */
 export async function getTerminalWidth(config: Config): Promise<number> {
-  // Method 0: Respect manual width override first (for testing)
   if (config.forceWidth && config.forceWidth > 0) {
     return config.forceWidth;
   }
-
-  // Method 1: Try COLUMNS environment variable
-  const columnsEnv = process.env.COLUMNS;
-  if (columnsEnv) {
-    const columns = parseInt(columnsEnv, 10);
-    if (!isNaN(columns) && columns > 0) {
-      return columns;
-    }
+  const columnsEnv = parseInt(process.env.COLUMNS || '', 10);
+  if (!isNaN(columnsEnv) && columnsEnv > 0) {
+    return columnsEnv;
   }
-
-  // Method 2: Try Node.js process.stdout.columns
   if (process.stdout.columns && process.stdout.columns > 0) {
     return process.stdout.columns;
   }
-
-  // Method 3: Try tput command (Unix/Linux/macOS)
-  const tputWidth = await tryCommand('tput', ['cols']);
-  if (tputWidth) {
-    return tputWidth;
-  }
-
-  // Method 4: Try stty command (Unix/Linux/macOS)
-  const sttyWidth = await tryStty();
-  if (sttyWidth) {
-    return sttyWidth;
-  }
-
-  // Method 5: Check Claude Code specific environment
-  const claudeWidth = process.env.CLAUDE_CODE_TERMINAL_WIDTH;
-  if (claudeWidth) {
-    const width = parseInt(claudeWidth, 10);
-    if (!isNaN(width) && width > 0) {
-      return width;
-    }
-  }
-
-  // Method 6: Terminal-specific defaults
-  const termProgram = process.env.TERM_PROGRAM;
-  const term = process.env.TERM;
-
-  if (termProgram === 'vscode' && process.env.VSCODE_PID) {
-    return 120; // VS Code default
-  }
-
-  if (['ghostty', 'wezterm', 'iterm'].includes(termProgram || '')) {
-    return 120; // Modern terminals default to wider
-  }
-
-  if (term && ['alacritty', 'kitty', 'wezterm', 'ghostty', 'xterm-256color'].includes(term)) {
-    return 120; // Modern terminals
-  }
-
-  // Method 7: Check for Windows Terminal
-  if (process.env.WT_SESSION || process.env.WT_PROFILE_ID) {
-    return 120; // Windows Terminal
-  }
-
-  // Final fallback: conservative 80-column default
-  return 80;
-}
-
-/**
- * Execute a command and parse numeric output
- */
-async function tryCommand(command: string, args: string[]): Promise<number | null> {
-  try {
-    const { execFile } = await import('child_process');
-    const { promisify } = await import('util');
-    const execFileAsync = promisify(execFile);
-
-    const { stdout } = await execFileAsync(command, args, {
-      timeout: 1000,
-      encoding: 'utf-8' as BufferEncoding,
-    });
-
-    const width = parseInt(stdout.trim(), 10);
-    if (!isNaN(width) && width > 0) {
-      return width;
-    }
-  } catch {
-    // Command failed or not available
-  }
-
-  return null;
-}
-
-/**
- * Try stty size command
- */
-async function tryStty(): Promise<number | null> {
-  try {
-    const { execFile } = await import('child_process');
-    const { promisify } = await import('util');
-    const execFileAsync = promisify(execFile);
-
-    const { stdout } = await execFileAsync('stty', ['size'], {
-      timeout: 1000,
-      encoding: 'utf-8' as BufferEncoding,
-    });
-
-    // stty size returns: "rows cols"
-    const parts = stdout.trim().split(' ');
-    if (parts.length === 2) {
-      const width = parseInt(parts[1] || '0', 10);
-      if (!isNaN(width) && width > 0) {
-        return width;
-      }
-    }
-  } catch {
-    // stty failed or not available
-  }
-
-  return null;
+  return DEFAULT_WIDTH;
 }
 
 /**
@@ -156,28 +55,9 @@ export async function debugWidthDetection(config: Config): Promise<void> {
     console.error('[WIDTH DEBUG] COLUMNS variable: not set');
   }
 
-  // Test tput
-  const tputWidth = await tryCommand('tput', ['cols']);
-  if (tputWidth) {
-    console.error(`[WIDTH DEBUG] tput cols: ${tputWidth}`);
-  } else {
-    console.error('[WIDTH DEBUG] tput: not available or failed');
-  }
-
-  // Test stty
-  const sttyWidth = await tryStty();
-  if (sttyWidth) {
-    console.error(`[WIDTH DEBUG] stty size: ${sttyWidth}`);
-  } else {
-    console.error('[WIDTH DEBUG] stty: not available or failed');
-  }
-
   // Test environment variables
   console.error(`[WIDTH DEBUG] CLAUDE_CODE_STATUSLINE_FORCE_WIDTH: ${config.forceWidth || 'not set'}`);
   console.error(`[WIDTH DEBUG] COLUMNS variable: ${columnsEnv || 'not set'}`);
-  console.error(`[WIDTH DEBUG] CLAUDE_CODE_TERMINAL_WIDTH: ${process.env.CLAUDE_CODE_TERMINAL_WIDTH || 'not set'}`);
-  console.error(`[WIDTH DEBUG] TERM_PROGRAM: ${process.env.TERM_PROGRAM || 'not set'}`);
-  console.error(`[WIDTH DEBUG] TERM: ${process.env.TERM || 'not set'}`);
 
   // Show final result
   const finalWidth = await getTerminalWidth(config);
