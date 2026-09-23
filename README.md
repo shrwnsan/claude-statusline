@@ -33,8 +33,8 @@ yarn global add claude-statusline
 clips or wraps overly long statuslines anyway — ours degrades gracefully
 instead). Restore the old always-full-line behavior with `"truncate": false`.
 Inside git worktrees the project slot now shows the repository name from
-your `origin` remote plus a `·wt:<name>` tag (Nerd Font preset: dedicated
-glyph) instead of the worktree directory name.
+your `origin` remote plus a `·wt:<name>` tag (Nerd Font preset: the
+`U+F504` project-symlink glyph) instead of the worktree directory name.
 
 #### Recommended settings
 ```json

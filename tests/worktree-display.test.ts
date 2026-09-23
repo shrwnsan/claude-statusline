@@ -49,3 +49,19 @@ describe('resolveBranch', () => {
     assert.strictEqual(resolveBranch({ gitBranch: 'main', worktreeBranch: undefined }), 'main');
   });
 });
+
+describe('detectSymbols NF worktree glyph', () => {
+  it('NF preset worktree glyph is U+F504 (oct-project_symlink)', async () => {
+    // Codepoint assertion via escape — never paste raw PUA bytes into source
+    const { detectSymbols } = await import('../dist/ui/symbols.js');
+    const { defaultConfig } = await import('../dist/core/config.js');
+    const symbols = await detectSymbols({ ...defaultConfig, nerdFont: true });
+    assert.strictEqual(symbols.worktree.codePointAt(0), 0xf504);
+  });
+  it('ASCII preset worktree tag is ·wt:', async () => {
+    const { detectSymbols } = await import('../dist/ui/symbols.js');
+    const { defaultConfig } = await import('../dist/core/config.js');
+    const symbols = await detectSymbols({ ...defaultConfig, nerdFont: false });
+    assert.strictEqual(symbols.worktree, '·wt:');
+  });
+});

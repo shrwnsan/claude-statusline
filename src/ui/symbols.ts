@@ -53,7 +53,7 @@ const ASCII_SYMBOLS: SymbolSet = {
  */
 const NERD_FONT_SYMBOLS: SymbolSet = {
   git: '',
-  worktree: '',
+  worktree: '',
   model: '󰚩',
   contextWindow: '󱐌',
   overLimit: '⚠',

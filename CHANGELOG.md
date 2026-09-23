@@ -28,7 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Worktree-aware display: inside linked git worktrees the project slot shows
   the repository name from the payload's `workspace.repo.name` plus a
-  `·wt:<name>` tag (dedicated Nerd Font glyph). In managed worktree sessions
+  `·wt:<name>` tag (dedicated Nerd Font glyph, `U+F504` project-symlink).
+  In managed worktree sessions
   the displayed branch comes from `worktree.branch` — a display-level
   substitution, since plain linked worktrees always resolved their own branch
   correctly.
