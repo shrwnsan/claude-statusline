@@ -1,13 +1,6 @@
 import { Config } from '../core/config.js';
-import { Cache, CacheKeys } from '../core/cache.js';
-import {
-  checkIsRepo,
-  getCurrentBranch,
-  getPorcelainStatus,
-  getStashList,
-  getUpstreamRef,
-  getAheadBehind,
-} from './native.js';
+import { Cache } from '../core/cache.js';
+import { getStatusV2 } from './porcelain.js';
 
 /**
  * Git status information interface
@@ -55,11 +48,12 @@ export const EMPTY_INDICATORS: GitIndicators = {
  */
 export class GitOperations {
   private config: Config;
-  private cache: Cache;
 
-  constructor(config: Config, cache: Cache) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  constructor(config: Config, _cache: Cache) {
     this.config = config;
-    this.cache = cache;
+    // A.3: the v1 branch cache (60s TTL) is gone with its helper; A.4 owns
+    // reintroducing caching, so the injected Cache is currently unused.
   }
 
   /**
@@ -69,170 +63,18 @@ export class GitOperations {
     if (this.config.noGitStatus) {
       return null;
     }
-
     try {
-      // Check if this is a git repository
-      const isRepo = await checkIsRepo(directory);
-      if (!isRepo) {
-        return null;
+      const v2 = await getStatusV2(directory);
+      if (!v2?.oid) {
+        return null; // not a repo (exit 128) or git failure
       }
-
-      // Get current branch
-      const branch = await this.getCurrentBranch(directory);
-      if (!branch) {
-        return null;
-      }
-
-      // Get status indicators
-      const indicators = await this.getGitIndicators(directory);
-
-      return { branch, indicators };
-
+      // Detached HEAD: show short oid instead of "(no branch)" (PRD-004 A1b)
+      const branch = v2.head ?? v2.oid.slice(0, 7);
+      return { branch, indicators: v2.indicators };
     } catch (error) {
       console.debug('[DEBUG] Git operation failed:', error instanceof Error ? error.message : String(error));
       return null;
     }
-  }
-
-  /**
-   * Get current branch name with caching
-   */
-  private async getCurrentBranch(directory: string): Promise<string | null> {
-    const cacheKey = `${CacheKeys.GIT_BRANCH(directory)}_current`;
-
-    // Try cache first
-    const cached = await this.cache.get<string>(cacheKey, 60); // 1 minute TTL for branch
-    if (cached) {
-      return cached;
-    }
-
-    try {
-      const branch = await getCurrentBranch(directory);
-
-      if (branch) {
-        await this.cache.set(cacheKey, branch);
-        return branch;
-      }
-
-      return null;
-
-    } catch (error) {
-      console.debug('[DEBUG] Failed to get current branch:', error instanceof Error ? error.message : String(error));
-      return null;
-    }
-  }
-
-  /**
-   * Get comprehensive git status indicators
-   */
-  private async getGitIndicators(directory: string): Promise<GitIndicators> {
-    const indicators = { ...EMPTY_INDICATORS };
-
-    try {
-      // Get porcelain status for parsing
-      const statusResult = await getPorcelainStatus(directory);
-      const statusLines = statusResult.split('\n')
-        .map(line => line.trimEnd()) // Only trim trailing whitespace, not leading!
-        .filter(line => line.length > 0);
-
-      // Parse each status line
-      for (const line of statusLines) {
-        if (line.length < 2) continue;
-
-        const stagedChar = line.charAt(0);
-        const unstagedChar = line.charAt(1);
-
-        // Check for conflicts (U = unmerged)
-        if (stagedChar === 'U' || unstagedChar === 'U' ||
-            (stagedChar === 'A' && unstagedChar === 'A') ||
-            (stagedChar === 'D' && unstagedChar === 'D')) {
-          indicators.conflicts++;
-        }
-        // Check for untracked files
-        else if (stagedChar === '?' && unstagedChar === '?') {
-          indicators.untracked++;
-        } else {
-          // Parse staged changes (first character)
-          switch (stagedChar) {
-            case 'M':
-              indicators.staged++; // Modified
-              break;
-            case 'A':
-              indicators.staged++; // Added
-              break;
-            case 'D':
-              indicators.deleted++; // Deleted (staged)
-              break;
-            case 'R':
-              indicators.renamed++; // Renamed (staged)
-              break;
-            case 'C':
-              indicators.staged++; // Copied (staged)
-              break;
-          }
-
-          // Parse unstaged changes (second character)
-          switch (unstagedChar) {
-            case 'M':
-              indicators.modified++; // Modified
-              break;
-            case 'D':
-              indicators.deleted++; // Deleted (unstaged)
-              break;
-            case 'R':
-              indicators.renamed++; // Renamed (unstaged)
-              break;
-          }
-        }
-      }
-
-      // Get stashed changes count
-      indicators.stashed = await this.getStashedCount(directory);
-
-      // Get ahead/behind information
-      const { ahead, behind } = await this.getAheadBehind(directory);
-      indicators.ahead = ahead;
-      indicators.behind = behind;
-      indicators.diverged = ahead > 0 && behind > 0;
-
-    } catch (error) {
-      console.debug('[DEBUG] Failed to parse git status:', error instanceof Error ? error.message : String(error));
-    }
-
-    return indicators;
-  }
-
-  /**
-   * Get number of stashed changes
-   */
-  private async getStashedCount(directory: string): Promise<number> {
-    try {
-      const stashList = await getStashList(directory);
-      return stashList.trim().split('\n').filter(line => line.trim().length > 0).length;
-    } catch {
-      return 0;
-    }
-  }
-
-  /**
-   * Get ahead/behind count for tracking branch
-   */
-  private async getAheadBehind(directory: string): Promise<{ ahead: number; behind: number }> {
-    try {
-      // Check if we have an upstream branch
-      const upstream = await getUpstreamRef(directory);
-      if (!upstream) {
-        return { ahead: 0, behind: 0 };
-      }
-
-      // Get ahead/behind count
-      return await getAheadBehind(directory);
-
-    } catch {
-      // No upstream or other error
-    }
-
-    return { ahead: 0, behind: 0 };
   }
 
   /**
