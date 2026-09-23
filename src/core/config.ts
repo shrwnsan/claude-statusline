@@ -26,6 +26,7 @@ export const ConfigSchema = z.object({
   costUsage: z.boolean().default(false), // Show ~cost estimate from stdin cost.total_cost_usd
   rateLimit: z.boolean().default(false), // Show rate-limit windows from stdin rate_limits.*
   modeIndicators: z.boolean().default(false), // Show mode indicators (effort/thinking/vim/fast/agent/style)
+  contextTokens: z.boolean().default(false), // Append ~used/total absolute context tokens
 
   // Width and display settings
   forceWidth: z.number().optional(), // Manual width override
@@ -200,6 +201,10 @@ function loadEnvConfig(): Partial<Config> {
     env.modeIndicators = true;
   }
 
+  if (process.env.CLAUDE_CODE_STATUSLINE_CONTEXT_TOKENS === '1') {
+    env.contextTokens = true;
+  }
+
   // Width settings
   if (process.env.CLAUDE_CODE_STATUSLINE_FORCE_WIDTH) {
     const width = parseInt(process.env.CLAUDE_CODE_STATUSLINE_FORCE_WIDTH, 10);
@@ -252,6 +257,7 @@ export function generateSampleConfig(): string {
     costUsage: false, // Set to true to show ~cost estimate
     rateLimit: false, // Set to true to show rate-limit windows
     modeIndicators: false, // Set to true to show mode indicators
+    contextTokens: false, // Set to true to append ~used/total absolute context
 
     // Display settings
     rightMargin: 15, // Right margin for Claude telemetry compatibility

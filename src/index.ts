@@ -268,9 +268,16 @@ export interface ContextWindowInput {
   } | null;
 }
 
+/** PRD-004 D3: absolute token counts as ~NNk. */
+export function formatTokenCount(n?: number): string {
+  if (n === undefined || isNaN(n)) return '';
+  return `~${Math.round(n / 1000)}k`;
+}
+
 /** PRD-004 D1: docs semantics — used_percentage preferred (input-only),
- *  remaining_percentage fallback, current_usage fallback, null = no render. */
-export function formatContextUsage(cw: ContextWindowInput | undefined, symbol: string): string {
+ *  remaining_percentage fallback, current_usage fallback, null = no render.
+ *  D3: opts.contextTokens appends ` ~used/size` absolute counts. */
+export function formatContextUsage(cw: ContextWindowInput | undefined, symbol: string, opts?: { contextTokens?: boolean }): string {
   if (!cw) return '';
   let used: number | undefined = cw.used_percentage ?? undefined;
   if (used === undefined && cw.remaining_percentage !== undefined && cw.remaining_percentage !== null) {
@@ -281,7 +288,12 @@ export function formatContextUsage(cw: ContextWindowInput | undefined, symbol: s
     used = ((input_tokens + cache_creation_input_tokens + cache_read_input_tokens) / cw.context_window_size) * 100;
   }
   if (used === undefined || used === null || isNaN(used)) return '';
-  return ` ${symbol}${Math.round(used)}%`;
+  let out = ` ${symbol}${Math.round(used)}%`;
+  if (opts?.contextTokens && cw.context_window_size && used != null) {
+    // Total is the exact window size — no `~` (the tilde marks estimates only)
+    out += ` ${formatTokenCount((cw.context_window_size * used) / 100)}/${Math.round(cw.context_window_size / 1000)}k`;
+  }
+  return out;
 }
 
 /** PRD-004 D2: warning glyph appended when the session exceeds 200k context tokens. */
@@ -368,7 +380,7 @@ async function buildStatusline(params: {
   // Build context window usage string
   let contextUsage = '';
   if (contextWindow && !config.noContextWindow) {
-    contextUsage = formatContextUsage(contextWindow, symbols.contextWindow);
+    contextUsage = formatContextUsage(contextWindow, symbols.contextWindow, { contextTokens: config.contextTokens });
   }
 
   // PRD-004 D2: over-limit warning right after the context segment

@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { formatContextUsage, formatOverLimit } from '../dist/index.js';
+import { formatContextUsage, formatOverLimit, formatTokenCount } from '../dist/index.js';
 
 const SYM = '≈';
 
@@ -29,5 +29,18 @@ describe('formatOverLimit', () => {
     assert.strictEqual(formatOverLimit(true, '!!'), '!!');
     assert.strictEqual(formatOverLimit(false, '!!'), '');
     assert.strictEqual(formatOverLimit(undefined, '!!'), '');
+  });
+});
+
+describe('formatTokenCount + contextTokens opt-in', () => {
+  it('formats absolute counts', () => {
+    assert.strictEqual(formatTokenCount(41234), '~41k');
+    assert.strictEqual(formatTokenCount(undefined), '');
+  });
+  it('contextTokens opt-in appends ~used/total', () => {
+    assert.strictEqual(
+      formatContextUsage({ used_percentage: 25, context_window_size: 200000 }, SYM, { contextTokens: true }),
+      ' ≈25% ~50k/200k',
+    );
   });
 });
