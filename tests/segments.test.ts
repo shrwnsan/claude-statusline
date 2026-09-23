@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { formatCost, formatPrBadge } from '../dist/index.js';
+import { formatCost, formatPrBadge, formatRateLimit } from '../dist/index.js';
 
 describe('formatPrBadge', () => {
   it('renders number + state token', () => {
@@ -25,5 +25,22 @@ describe('formatCost', () => {
   it('returns empty when absent or negative', () => {
     assert.strictEqual(formatCost(undefined), '');
     assert.strictEqual(formatCost(-1), '');
+  });
+});
+
+describe('formatRateLimit', () => {
+  it('renders only windows that are present', () => {
+    assert.strictEqual(formatRateLimit({ five_hour: { used_percentage: 42 } }), ' 5h:42%');
+    assert.strictEqual(formatRateLimit({ five_hour: { used_percentage: 42 }, seven_day: { used_percentage: 12 } }), ' 5h:42% 7d:12%');
+  });
+  it('rounds fractional percentages', () => {
+    assert.strictEqual(formatRateLimit({ five_hour: { used_percentage: 42.6 } }), ' 5h:43%');
+  });
+  it('renders >100 verbatim (docs: spend_limit may exceed 100)', () => {
+    assert.strictEqual(formatRateLimit({ spend_limit: { used_percentage: 137 } }), ' spl:137%');
+  });
+  it('returns empty when absent or empty', () => {
+    assert.strictEqual(formatRateLimit(undefined), '');
+    assert.strictEqual(formatRateLimit({}), '');
   });
 });

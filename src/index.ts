@@ -63,6 +63,7 @@ interface ClaudeInput {
     total_lines_added: number;
     total_lines_removed: number;
   };
+  rate_limits?: RateLimits;
 }
 
 /**
@@ -114,6 +115,7 @@ export async function main(injected?: ClaudeInput): Promise<void> {
         worktreeName,
         pr: input.pr,
         cost: input.cost,
+        rateLimits: input.rate_limits,
       }));
   } catch (error) {
     console.error('[ERROR]', error instanceof Error ? error.message : String(error));
@@ -185,6 +187,27 @@ export function formatCost(totalCostUsd?: number): string {
   return ` ~$${totalCostUsd.toFixed(2)}`;
 }
 
+/** PRD-004 C3: one usage window; spend_limit may exceed 100. */
+export interface RateWindow {
+  used_percentage: number;
+}
+
+export interface RateLimits {
+  five_hour?: RateWindow;
+  seven_day?: RateWindow;
+  spend_limit?: RateWindow;
+}
+
+/** PRD-004 C3: ` 5h:42% 7d:12%` rate-limit windows. */
+export function formatRateLimit(rl?: RateLimits): string {
+  if (!rl) return '';
+  const parts: string[] = [];
+  if (rl.five_hour) parts.push(`5h:${Math.round(rl.five_hour.used_percentage)}%`);
+  if (rl.seven_day) parts.push(`7d:${Math.round(rl.seven_day.used_percentage)}%`);
+  if (rl.spend_limit) parts.push(`spl:${Math.round(rl.spend_limit.used_percentage)}%`);
+  return parts.length ? ` ${parts.join(' ')}` : '';
+}
+
 /**
  * Build the complete statusline string
  */
@@ -203,6 +226,7 @@ async function buildStatusline(params: {
   worktreeName?: string | undefined;
   pr?: ClaudeInput['pr'];
   cost?: ClaudeInput['cost'];
+  rateLimits?: ClaudeInput['rate_limits'];
 }): Promise<string> {
   const {
     fullDir,
@@ -219,6 +243,7 @@ async function buildStatusline(params: {
     worktreeName,
     pr,
     cost,
+    rateLimits,
   } = params;
 
   // PRD-004 B3: repo identity wins over dirname; worktree tag appended
@@ -270,8 +295,11 @@ async function buildStatusline(params: {
   // PRD-004 C2: opt-in cost estimate from stdin cost.total_cost_usd
   const costSegment = config.costUsage ? formatCost(cost?.total_cost_usd) : '';
 
+  // PRD-004 C3: opt-in rate-limit windows from stdin rate_limits.*
+  const rateSegment = config.rateLimit ? formatRateLimit(rateLimits) : '';
+
   // Build model string
-  const modelString = `${symbols.model}${modelName}${envContext}${contextUsage}${prSegment}${costSegment}`;
+  const modelString = `${symbols.model}${modelName}${envContext}${contextUsage}${prSegment}${costSegment}${rateSegment}`;
 
   // Initial statusline
   let statusline = `${vpnIndicator}${projectName}${gitStatus} ${modelString}`;
@@ -370,6 +398,7 @@ async function render(
     worktreeName?: string | undefined;
     pr?: ClaudeInput['pr'];
     cost?: ClaudeInput['cost'];
+    rateLimits?: ClaudeInput['rate_limits'];
   },
 ): Promise<string> {
   config = config ?? loadConfig();
