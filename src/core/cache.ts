@@ -221,6 +221,8 @@ export const CacheKeys = {
   VPN_STATUS: 'vpn_status',
   GIT_REMOTE_URL: (dir: string) => `git_remote_${Buffer.from(dir).toString('base64')}`,
   GIT_BRANCH: (dir: string) => `git_branch_${Buffer.from(dir).toString('base64')}`,
+  GIT_STATUS: (sessionId: string | undefined, dir: string) =>
+    `git_status_${Buffer.from(sessionId ? `${sessionId}:${dir}` : dir).toString('base64')}`,
 } as const;
 
 /**

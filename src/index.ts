@@ -91,7 +91,7 @@ export async function main(injected?: ClaudeInput): Promise<void> {
       return;
     }
 
-    process.stdout.write(await render(fullDir, modelName, contextWindow, config));
+    process.stdout.write(await render(fullDir, modelName, contextWindow, config, input.session_id));
 
   } catch (error) {
     console.error('[ERROR]', error instanceof Error ? error.message : String(error));
@@ -275,6 +275,7 @@ async function render(
   modelName: string,
   contextWindow?: ClaudeInput['context_window'],
   config?: Config,
+  sessionId?: string,
 ): Promise<string> {
   config = config ?? loadConfig();
   const cache = new Cache(config);
@@ -284,7 +285,7 @@ async function render(
   await debugWidthDetection(config);
 
   const operations: Promise<any>[] = [
-    gitOps.getGitInfo(fullDir),
+    gitOps.getGitInfo(fullDir, sessionId),
     envDetector.getEnvironmentInfo(),
     detectSymbols(config),
   ];

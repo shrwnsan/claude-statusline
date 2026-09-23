@@ -1,5 +1,5 @@
 import { Config } from '../core/config.js';
-import { Cache } from '../core/cache.js';
+import { Cache, CacheKeys } from '../core/cache.js';
 import { getStatusV2 } from './porcelain.js';
 
 /**
@@ -48,20 +48,24 @@ export const EMPTY_INDICATORS: GitIndicators = {
  */
 export class GitOperations {
   private config: Config;
+  private cache: Cache;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  constructor(config: Config, _cache: Cache) {
+  constructor(config: Config, cache: Cache) {
     this.config = config;
-    // A.3: the v1 branch cache (60s TTL) is gone with its helper; A.4 owns
-    // reintroducing caching, so the injected Cache is currently unused.
+    this.cache = cache;
   }
 
   /**
    * Get git information for a directory
    */
-  async getGitInfo(directory: string): Promise<GitInfo | null> {
+  async getGitInfo(directory: string, sessionId?: string): Promise<GitInfo | null> {
     if (this.config.noGitStatus) {
       return null;
+    }
+    const cacheKey = CacheKeys.GIT_STATUS(sessionId, directory);
+    const cached = await this.cache.get<GitInfo>(cacheKey, 5); // PRD-004 A2: 5 s TTL
+    if (cached) {
+      return cached;
     }
     try {
       const v2 = await getStatusV2(directory);
@@ -70,7 +74,9 @@ export class GitOperations {
       }
       // Detached HEAD: show short oid instead of "(no branch)" (PRD-004 A1b)
       const branch = v2.head ?? v2.oid.slice(0, 7);
-      return { branch, indicators: v2.indicators };
+      const info: GitInfo = { branch, indicators: v2.indicators };
+      await this.cache.set(cacheKey, info);
+      return info;
     } catch (error) {
       console.debug('[DEBUG] Git operation failed:', error instanceof Error ? error.message : String(error));
       return null;
