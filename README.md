@@ -3,7 +3,7 @@
 Simple statusline for Claude Code with project-branch, git indicators, and context usage. Optimized for speed with bun. Just the essentials, none of the bloat.
 
 ![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
-![Version](https://img.shields.io/badge/version-2.4.1-green.svg)
+![Version](https://img.shields.io/badge/version-2.5.0-green.svg)
 ![TypeScript](https://img.shields.io/badge/language-TypeScript-3178C6.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D22.6.0-brightgreen.svg)
 ![Bun](https://img.shields.io/badge/runtime-Bun-black.svg)
@@ -90,7 +90,7 @@ claude-statusline works out-of-the-box with these defaults:
 - `noGitStatus`: false (git status shown)
 - `noContextWindow`: false (context window usage shown)
 - `overLimitWarning`: auto (exceeds-200k warning marker; rendered only where the fixed 200k threshold means nearly full — windows ≤ 200k)
-- `vpnIndicator`: true (VPN status indicator shown on macOS)
+- `vpnIndicator`: false (VPN status indicator off; set `true` to show on macOS)
 - `noSoftWrap`: false (soft wrapping enabled when truncate=true, set to true to disable)
 - `rightMargin`: 15 (prevents bleeding into Claude Code telemetry)
 - `cacheTTL`: 300 (5-minute cache for environment info)
@@ -140,13 +140,13 @@ bun install -g claude-statusline  # Downloads 19KB in <1 second
 
 **Fun fact**: We started with a fast bash script (~60ms), accidentally made it slower with TypeScript (~327ms), then optimized it to be 12x faster than the original (~5ms with Bun)!
 
-*See [Performance Guide](docs/guide-003-performance.md) for the full optimization story*
+*See [Performance Guide](docs/guides/guide-003-performance.md) for the full optimization story*
 
 ## Features
 
 ### VPN Status Indicator
 
-Shows VPN connection status on macOS (automatically detects utun interfaces):
+Shows VPN connection status on macOS (automatically detects utun interfaces). Disabled by default; enable with `"vpnIndicator": true` in config or `CLAUDE_CODE_STATUSLINE_VPN_INDICATOR=1`:
 
 ```
 ◉ VPN on (connected)
@@ -154,8 +154,8 @@ Shows VPN connection status on macOS (automatically detects utun interfaces):
 ```
 
 **Configuration:**
-- Enabled by default on macOS
-- Can be disabled with `"vpnIndicator": false` in config or `CLAUDE_CODE_STATUSLINE_VPN_INDICATOR=0`
+- Disabled by default (macOS only)
+- Enable with `"vpnIndicator": true` in config or `CLAUDE_CODE_STATUSLINE_VPN_INDICATOR=1`
 - Cached with 30-second TTL for performance
 - ASCII fallback: `✓·vpn ·` / `✗·vpn ·` (when using ASCII symbols)
 
@@ -187,7 +187,7 @@ Shows percentage of the context window used in the current conversation. The sym
 - **ASCII**: ≈ (approximately equals)
 
 **Important Notes:**
-- Prefers the `used_percentage` field from the Claude Code API (since v2.1.15); when only `remaining_percentage` is present, shows `100 − remaining`
+- Prefers the `used_percentage` field from the Claude Code API (since v2.1.6); when only `remaining_percentage` is present, shows `100 − remaining`
 - Falls back to computing usage from `current_usage` (input + cache creation + cache read, relative to the window size); output tokens are excluded — `used_percentage` is input-only
 - Only shows when Claude Code provides context window data
 - Can be disabled with `"noContextWindow": true` or `CLAUDE_CODE_STATUSLINE_NO_CONTEXT_WINDOW=1`
@@ -295,7 +295,7 @@ For enhanced visual icons, install a Nerd Font:
 
 ### 🎛️ Configuration
 
-**📖 [Complete Configuration Guide](./docs/guide-001-configuration.md)**
+**📖 [Complete Configuration Guide](./docs/guides/guide-001-configuration.md)**
 
 Configure with JSON/YAML files:
 
@@ -344,9 +344,12 @@ nano ~/.claude/claude-statusline.json
 
 📚 **Complete documentation available in the [`docs/`](./docs) directory:**
 
-- **[Configuration Guide](./docs/guide-001-configuration.md)** - Complete configuration options and examples
-- **[Migration Guide](./docs/MIGRATION.md)** - Migrating from bash v1.0 to TypeScript v2.0
-- **[Feature Comparison](./docs/FEATURE_COMPARISON.md)** - Detailed comparison between versions
+- **[Configuration Guide](./docs/guides/guide-001-configuration.md)** - Complete configuration options and examples
+- **[Troubleshooting Guide](./docs/guides/guide-002-troubleshooting.md)** - Common issues and fixes
+- **[Performance Guide](./docs/guides/guide-003-performance.md)** - Optimization story and benchmarks
+- **[Architecture Reference](./docs/ref/ARCHITECTURE.md)** - Internal architecture
+- **[Feature Comparison](./docs/ref/FEATURE_COMPARISON.md)** - Detailed comparison between versions
+- **[Migration Guide](./docs/guides/MIGRATION.md)** - Migrating from bash v1.0 to TypeScript v2.0
 - **[Documentation Index](./docs/README.md)** - Overview of all documentation
 
 ## Security
@@ -438,5 +441,5 @@ chmod +x claude-statusline.sh
 - No npm distribution
 - Basic width detection only
 
-See [Feature Comparison](./docs/FEATURE_COMPARISON.md) for details.
+See [Feature Comparison](./docs/ref/FEATURE_COMPARISON.md) for details.
 
