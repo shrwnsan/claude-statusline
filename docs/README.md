@@ -1,7 +1,7 @@
 # Claude Statusline Documentation
 
-**Last Updated:** 2026-05-29
-**Version:** 2.4.0
+**Last Updated:** 2026-09-28
+**Version:** 2.5.0
 
 Comprehensive documentation for the Claude Code statusline tool.
 
@@ -69,6 +69,8 @@ Research, evaluations, and project planning.
 | [tasks-002-vpn-cross-platform-support.md](plans/tasks-002-vpn-cross-platform-support.md) | Tasks | Implementation tasks for PRD-002 |
 | [prd-003-rendering-hygiene-and-cleanup.md](plans/prd-003-rendering-hygiene-and-cleanup.md) | PRD | Rendering hygiene and codebase cleanup |
 | [tasks-003-prd-003-rendering-hygiene-and-cleanup.md](plans/tasks-003-prd-003-rendering-hygiene-and-cleanup.md) | Tasks | Implementation tasks for PRD-003 |
+| [prd-004-claude-code-2026-modernization.md](plans/prd-004-claude-code-2026-modernization.md) | PRD | Claude Code 2026 modernization (2.5.0) |
+| [tasks-004-prd-004-claude-code-2026-modernization.md](plans/tasks-004-prd-004-claude-code-2026-modernization.md) | Tasks | Implementation tasks for PRD-004 |
 
 ---
 
@@ -88,10 +90,10 @@ npm install -g claude-statusline
 
 ```bash
 # Minimal setup
-cp .claude-statusline.json.example.min ~/.claude/.claude-statusline.json
+cp .claude-statusline.json.example.min ~/.claude/claude-statusline.json
 
 # Complete setup
-cp .claude-statusline.json.example ~/.claude/.claude-statusline.json
+cp .claude-statusline.json.example ~/.claude/claude-statusline.json
 ```
 
 ### Claude Code Integration
