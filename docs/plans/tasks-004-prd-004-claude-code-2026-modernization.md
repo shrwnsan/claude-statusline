@@ -1560,13 +1560,15 @@ Co-Authored-By: GLM <zai-org@users.noreply.github.com>"
 - **Verify the "since v2.1.15" version claim** in the README used_percentage
   bullet (D review residual nit): the 2026-09-23 schema audit dated
   used_percentage/remaining_percentage to **2.1.6**; the claim is inherited
-  text and likely wrong for both fields.
+  text and likely wrong for both fields. ✅ Resolved 2026-09-28 (`02b6b98`):
+  README now says v2.1.6.
 - **Guard empty `worktree.branch`** (W6): an empty string would render an
   empty branch slot — same family/unreachability as the empty repo.name and
   vim.mode guards above.
 - **Fix the `vpnIndicator` default in README's "Default Configuration"**
   (spotted 2026-09-24): README claims `true` (shown by default) but the zod
-  schema defaults it to `false`. Docs-only; align on the schema truth.
+  schema defaults it to `false`. ✅ Resolved 2026-09-28 (`02b6b98`): both the
+  defaults list and the VPN section now state `false`.
 - **Add a `worktree` key to the `symbols`/`asciiSymbols` config schemas**
   (spotted 2026-09-24): `detectSymbols` merges user overrides generically, but
   the schema has no `worktree` key, so the tag glyph is not user-overridable
