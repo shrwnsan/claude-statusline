@@ -174,7 +174,7 @@ Shows VPN connection status on macOS (automatically detects utun interfaces). Di
 - **Ahead**: ⇡ (commits ahead of upstream)
 - **Behind**: ⇣ (commits behind upstream)
 
-### Context Window Usage (Beta Feature)
+### Context Window Usage
 
 Automatically displays context window used percentage when available (requires Claude Code to send context window data):
 
