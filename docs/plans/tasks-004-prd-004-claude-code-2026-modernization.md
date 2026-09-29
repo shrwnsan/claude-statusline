@@ -1543,20 +1543,26 @@ Co-Authored-By: GLM <zai-org@users.noreply.github.com>"
   standard base64 can emit `/` from an aligned `?`/DEL byte, making
   `join(cacheDir, key)` target a nonexistent subdir — `Cache.set` fails
   silently and that dir/session pair goes cold every render. Near-unreachable
-  but real.
+  but real. ✅ Resolved 2026-09-30 (`ae0a8fa`, PR #30): base64url chain in
+  `CacheKeys.GIT_STATUS`, with adversarial `+`/`/` test.
 - **Delete the dead key generators** `GIT_REMOTE_URL` / `GIT_BRANCH`
-  (zero callers since the A.3 cutover).
+  (zero callers since the A.3 cutover). ✅ Resolved 2026-09-30 (`ae0a8fa`).
 - **Prune stale `git_status_*` cache files on render** — session-scoped keys
   are unbounded (~300 B per session:dir; `cache.clear()` has zero callers).
+  ✅ Resolved 2026-09-30 (`ae0a8fa`): `Cache.pruneGitStatus(5)` called after
+  each successful set.
 - **Truncation-atomic worktree tag** (B.3 review): smart truncation can slice
   inside the tag (`claude-statusline ·wt:fa..`); split slot into name/tag in
   `applySmartTruncation` and drop the tag wholesale before truncating.
+  ✅ Resolved 2026-09-30 (`ae0a8fa`).
 - **Guard empty `repo.name`** (B.3 review): `p.repoName ?? dirname` keeps
   `''` → empty project slot; `||` is safe here (Claude Code plausibly never
-  sends `""`, but one character buys the guard).
+  sends `""`, but one character buys the guard). ✅ Resolved 2026-09-30
+  (`ae0a8fa`).
 - **Guard empty `vim.mode`** (C review): `formatModes({vim:{mode:''}})`
   renders orphan `' []'` — change `if (m.vim)` to `if (m.vim && m.vim.mode)`.
-  Spec-verbatim doc code; unreachable via real stdin.
+  Spec-verbatim doc code; unreachable via real stdin. ✅ Resolved 2026-09-30
+  (`ae0a8fa`).
 - **Verify the "since v2.1.15" version claim** in the README used_percentage
   bullet (D review residual nit): the 2026-09-23 schema audit dated
   used_percentage/remaining_percentage to **2.1.6**; the claim is inherited
@@ -1564,7 +1570,7 @@ Co-Authored-By: GLM <zai-org@users.noreply.github.com>"
   README now says v2.1.6.
 - **Guard empty `worktree.branch`** (W6): an empty string would render an
   empty branch slot — same family/unreachability as the empty repo.name and
-  vim.mode guards above.
+  vim.mode guards above. ✅ Resolved 2026-09-30 (`ae0a8fa`).
 - **Fix the `vpnIndicator` default in README's "Default Configuration"**
   (spotted 2026-09-24): README claims `true` (shown by default) but the zod
   schema defaults it to `false`. ✅ Resolved 2026-09-28 (`02b6b98`): both the
@@ -1572,4 +1578,5 @@ Co-Authored-By: GLM <zai-org@users.noreply.github.com>"
 - **Add a `worktree` key to the `symbols`/`asciiSymbols` config schemas**
   (spotted 2026-09-24): `detectSymbols` merges user overrides generically, but
   the schema has no `worktree` key, so the tag glyph is not user-overridable
-  despite the config docs implying per-symbol overrides.
+  despite the config docs implying per-symbol overrides. ✅ Resolved
+  2026-09-30 (`ae0a8fa`): `worktree` key in both schemas + override tests.
