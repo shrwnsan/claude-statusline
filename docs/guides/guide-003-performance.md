@@ -102,10 +102,10 @@ bun install -g claude-statusline
 ## Performance Optimizations We've Made
 
 1. **TypeScript Rewrite** - 98.6% faster than original bash
-2. **Native Git Commands** - 59% faster than libraries
+2. **Single-Spawn Git Status** - one `git --no-optional-locks status --porcelain=v2 --branch --show-stash` call replaces 6-8 separate git invocations, with a 5-second session-scoped cache
 3. **Bun Runtime Support** - 83% faster than Node.js
 4. **Bundle Optimization** - 57% smaller download size
-5. **Smart Caching** - 8-hour cache for environment versions
+5. **Smart Caching** - ~8-hour cache for environment versions (96x the `cacheTTL` default of 300s), 5-second cache for git status
 
 ## Troubleshooting Performance
 

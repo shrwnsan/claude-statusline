@@ -4,22 +4,25 @@ Complete guide to configuring claude-statusline for your workflow.
 
 ## Quick Setup
 
-### Option A: Complete Example with All Options
+claude-statusline works out of the box with sensible ASCII defaults. To customize it, drop a `claude-statusline.json` into your project root or `~/.claude/`:
+
 ```bash
-# Copy the full example with all options documented
-cp .claude-statusline.json.example ~/.claude/.claude-statusline.json
+cat > ~/.claude/claude-statusline.json << 'EOF'
+{
+  "envContext": true
+}
+EOF
 ```
 
-### Option B: Minimal Example with Just Essentials
-```bash
-# Copy minimal example for quick setup
-cp .claude-statusline.json.example.min ~/.claude/.claude-statusline.json
-```
+## Configuration Search Order
 
-### Edit Your Configuration
-```bash
-nano ~/.claude/.claude-statusline.json
-```
+claude-statusline looks for a config file named `claude-statusline.json` or `claude-statusline.yaml` (no leading dot, no `.yml`):
+
+1. **Environment variables** (applied last, always override the file)
+2. **Walk upward from the current working directory** to the filesystem root — the first `claude-statusline.json` or `claude-statusline.yaml` found wins (project-specific configs)
+3. **`~/.claude/` fallback** — the standard Claude Code config directory
+
+> **Recommended**: put your global config at `~/.claude/claude-statusline.json` and per-project overrides in the project root.
 
 ## Runtime Selection for Maximum Performance
 
@@ -71,21 +74,14 @@ Uses Node.js runtime (default shebang):
 
 Both configurations work perfectly. The Bun runtime is 5x faster but requires Bun to be installed. Node.js is more widely available and still provides instant response times.
 
-## Configuration Search Order
-
-1. `./.claude-statusline.json` (project-specific)
-2. `~/.claude/.claude-statusline.json` (global) ← **Recommended**
-3. Environment variables (legacy)
-
-> **Note**: The `~/.claude/` directory is the standard location for Claude Code configurations and hooks. This keeps all your Claude settings organized in one place and follows modern CLI best practices.
-
 ## Configuration Options
 
 ### Core Settings
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `cacheTTL` | number | `300` | Cache duration in seconds for git operations |
+| `cacheTTL` | number | `300` | Cache duration in seconds (default cache TTL) |
+| `cacheDir` | string | `/tmp/.claude-statusline-cache` | Cache directory location |
 | `maxLength` | number | `4096` | Maximum input length (security) |
 | `rightMargin` | number | `15` | Right margin for Claude telemetry compatibility |
 
@@ -93,134 +89,181 @@ Both configurations work perfectly. The Bun runtime is 5x faster but requires Bu
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `noEmoji` | boolean | `false` | Force ASCII mode instead of Nerd Font symbols |
-| `noGitStatus` | boolean | `false` | Disable git status indicators completely |
+| `nerdFont` | boolean | `false` | Opt in to Nerd Font glyphs (default is ASCII) |
+| `noEmoji` | boolean | `false` | Force ASCII mode |
+| `noGitStatus` | boolean | `false` | Disable git indicators completely |
 | `noContextWindow` | boolean | `false` | Disable context window usage display |
 | `envContext` | boolean | `false` | Show Node.js, Python, Docker versions |
-| `truncate` | boolean | `false` | Enable smart truncation for long statuslines |
+| `vpnIndicator` | boolean | `false` | Show VPN status indicator (macOS only) |
+| `truncate` | boolean | `true` | Smart truncation is on by default; set `false` for full-line output |
+| `noSoftWrap` | boolean | `false` | Disable soft-wrapping (force single line) |
+| `prBadge` | boolean | `false` | Show PR badge from stdin `pr.*` fields |
+| `costUsage` | boolean | `false` | Show `~cost` estimate from stdin `cost.total_cost_usd` |
+| `rateLimit` | boolean | `false` | Show rate-limit windows from stdin `rate_limits.*` |
+| `modeIndicators` | boolean | `false` | Show mode indicators (effort/thinking/vim/fast/agent/style) |
+| `contextTokens` | boolean | `false` | Append `~used/total` absolute context tokens |
+| `overLimitWarning` | string | `"auto"` | Exceeds-200k marker: `auto` (only on windows ≤ 200k), `always`, or `never` |
 | `debugWidth` | boolean | `false` | Show terminal width detection debug info |
 
 ### Advanced Settings
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `forceWidth` | number | `null` | Override terminal width detection (testing only) |
-| `noSoftWrap` | boolean | `false` | Disable soft-wrapping completely |
+| `forceWidth` | number | *(unset)* | Manual width override (testing / scripting) |
+| `rightMargin` | number | `15` | Right margin for Claude telemetry compatibility |
 
-### Symbol Customization
+## Width Resolution
 
-#### Nerd Font Symbols (Default)
-```json
-"symbols": {
-  "git": "",        // Git icon
-  "model": "󰚩",     // AI model icon
-  "contextWindow": "󱐌", // Context window usage (nf-md-lightning_bolt_circle, Nerd Fonts v2.3+)
-  "staged": "+",       // Staged changes
-  "conflict": "×",     // Merge conflicts
-  "stashed": "⚑",     // Stashed changes
-  "ahead": "⇡",        // Ahead of upstream
-  "behind": "⇣",       // Behind upstream
-  "diverged": "⇕",    // Both ahead and behind
-  "renamed": "»",     // Renamed files
-  "deleted": "✘"      // Deleted files
-}
-```
+Terminal width is resolved with no shell-outs, no `tput`, no `stty` (the statusline command runs with captured output and no tty, so those tools cannot work):
 
-#### ASCII Symbols (when `noEmoji: true`)
+1. `forceWidth` config (if > 0)
+2. `COLUMNS` environment variable (Claude Code provides it in the statusline payload env)
+3. `process.stdout.columns`
+4. Fixed fallback of `80`
+
+Set `"debugWidth": true` to log the resolved width chain to stderr.
+
+## Symbol Customization
+
+### ASCII Symbols (Default)
+
+ASCII is the default symbol set — no Nerd Font required:
+
 ```json
 "asciiSymbols": {
-  "git": "@",         // Git icon
-  "model": "*",        // AI model icon
-  "contextWindow": "#", // Context window usage
-  "staged": "+",       // Staged changes
-  "conflict": "C",     // Merge conflicts
-  "stashed": "$",     // Stashed changes
-  "ahead": "A",        // Ahead of upstream
-  "behind": "B",       // Behind upstream
-  "diverged": "D",    // Both ahead and behind
-  "renamed": ">",     // Renamed files
-  "deleted": "X"      // Deleted files
+  "git": "@",
+  "worktree": "·wt:",
+  "model": "*",
+  "contextWindow": "≈",
+  "overLimit": "!!",
+  "staged": "+",
+  "conflict": "C",
+  "stashed": "$",
+  "ahead": "A",
+  "behind": "B",
+  "diverged": "D",
+  "renamed": ">",
+  "deleted": "X",
+  "vpnOn": "✓·vpn ·",
+  "vpnOff": "✗·vpn ·",
+  "node": "node",
+  "python": "py",
+  "docker": "dkr"
 }
 ```
+
+### Nerd Font Symbols (Opt-In)
+
+Nerd Font glyphs are strictly opt-in — no auto-detection. Enable with `"nerdFont": true` in your config or `NERD_FONT=1` in the environment:
+
+```json
+"symbols": {
+  "git": "",
+  "worktree": "",
+  "model": "󰚩",
+  "contextWindow": "󱐌",
+  "overLimit": "⚠",
+  "staged": "+",
+  "conflict": "×",
+  "stashed": "⚑",
+  "ahead": "⇡",
+  "behind": "⇣",
+  "diverged": "⇕",
+  "renamed": "»",
+  "deleted": "✘",
+  "vpnOn": "◉",
+  "vpnOff": "○",
+  "node": "",
+  "python": "",
+  "docker": ""
+}
+```
+
+> **Note**: When Nerd Font mode is active, overrides from `symbols` apply; when ASCII mode is active, overrides come from `asciiSymbols`. Empty-string overrides are ignored, so the built-in defaults still show through.
 
 ## Complete Example Configuration
 
-### JSON Format
+This matches the output of the built-in sample config generator:
+
 ```json
 {
   "$schema": "https://raw.githubusercontent.com/shrwnsan/claude-statusline/main/config-schema.json",
   "cacheTTL": 300,
   "maxLength": 4096,
+  "nerdFont": false,
   "noEmoji": false,
   "noGitStatus": false,
+  "noContextWindow": false,
   "envContext": true,
+  "vpnIndicator": true,
   "truncate": true,
+  "noSoftWrap": false,
+  "prBadge": false,
+  "costUsage": false,
+  "rateLimit": false,
+  "modeIndicators": false,
+  "contextTokens": false,
+  "overLimitWarning": "auto",
   "rightMargin": 15,
   "debugWidth": false,
   "symbols": {
-    "git": "@",
-    "model": "*",
+    "git": "",
+    "model": "󰚩",
+    "contextWindow": "󱐌",
+    "worktree": "",
     "staged": "+",
     "conflict": "×",
     "stashed": "⚑",
-    "ahead": "↑",
-    "behind": "↓",
+    "ahead": "⇡",
+    "behind": "⇣",
     "diverged": "⇕",
     "renamed": "»",
-    "deleted": "✘"
+    "deleted": "✘",
+    "vpnOn": "◉",
+    "vpnOff": "○"
   }
 }
 ```
 
-### YAML Format (more minimal syntax)
-```yaml
-cacheTTL: 300
-maxLength: 4096
-noEmoji: false
-noGitStatus: false
-envContext: true
-truncate: true
-rightMargin: 15
-debugWidth: false
-symbols:
-  git: "@"
-  model: "*"
-  staged: "+"
-  conflict: "×"
-  stashed: "⚑"
-  ahead: "↑"
-  behind: "↓"
-  diverged: "⇕"
-  renamed: "»"
-  deleted: "✘"
-```
+> **Note**: The `$schema` property provides VS Code and other editors with autocompletion and validation. YAML configs support exactly the same options (minus `$schema`), in `claude-statusline.yaml`.
 
-> **Note**: The `$schema` property in JSON provides VS Code/other editors with autocompletion and validation. It's JSON-specific and not used in YAML files.
+## Environment Variables
 
-## Environment Variables (Legacy Support)
+Environment variables override config file values. Boolean toggles enable when set to `1`; everything else takes its own value.
 
-Environment variables are still supported for backward compatibility. These work in both bash v1.0 and TypeScript v2.0:
+### Feature Toggles (`=1` to enable)
 
-### Bash v1.0 & TypeScript v2.0 (Legacy)
-- `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` - Force ASCII mode
-- `CLAUDE_CODE_STATUSLINE_NO_GITSTATUS=1` - Disable git indicators
-- `CLAUDE_CODE_STATUSLINE_ENV_CONTEXT=1` - Show Node.js, Python, Docker versions
-- `CLAUDE_CODE_STATUSLINE_TRUNCATE=1` - Enable smart truncation
+| Variable | Effect |
+|----------|--------|
+| `CLAUDE_CODE_STATUSLINE_NERD_FONT=1` (or `NERD_FONT=1`) | Opt in to Nerd Font glyphs |
+| `CLAUDE_CODE_STATUSLINE_NO_EMOJI=1` | Force ASCII mode |
+| `CLAUDE_CODE_STATUSLINE_NO_GITSTATUS=1` | Disable git indicators |
+| `CLAUDE_CODE_STATUSLINE_NO_CONTEXT_WINDOW=1` | Disable context window display |
+| `CLAUDE_CODE_STATUSLINE_ENV_CONTEXT=1` | Show Node.js, Python, Docker versions |
+| `CLAUDE_CODE_STATUSLINE_VPN_INDICATOR=1` | Show VPN indicator (macOS) |
+| `CLAUDE_CODE_STATUSLINE_TRUNCATE=1` | Enable smart truncation (already default) |
+| `CLAUDE_CODE_STATUSLINE_NO_SOFT_WRAP=1` | Disable soft-wrapping |
+| `CLAUDE_CODE_STATUSLINE_PR_BADGE=1` | Show PR badge |
+| `CLAUDE_CODE_STATUSLINE_COST_USAGE=1` | Show `~cost` estimate |
+| `CLAUDE_CODE_STATUSLINE_RATE_LIMIT=1` | Show rate-limit windows |
+| `CLAUDE_CODE_STATUSLINE_MODE_INDICATORS=1` | Show mode indicators |
+| `CLAUDE_CODE_STATUSLINE_CONTEXT_TOKENS=1` | Append absolute context token counts |
+| `CLAUDE_CODE_STATUSLINE_DEBUG_WIDTH=1` | Width detection debug output |
 
-### TypeScript v2.0 Only (New Features)
-- `CLAUDE_CODE_STATUSLINE_NO_SOFT_WRAP=1` - Disable soft-wrapping
-- `CLAUDE_CODE_STATUSLINE_DEBUG_WIDTH=1` - Enable width debugging
-- `CLAUDE_CODE_STATUSLINE_NO_CONTEXT_WINDOW=1` - Disable context window usage display
+### Value Variables
 
-> **Note**: Environment variables are considered legacy. Configuration files are recommended for better organization and more options.
+| Variable | Values | Effect |
+|----------|--------|--------|
+| `CLAUDE_CODE_STATUSLINE_OVER_LIMIT_WARNING` | `auto` \| `always` \| `never` | Exceeds-200k marker mode |
+| `CLAUDE_CODE_STATUSLINE_FORCE_WIDTH` | positive integer | Manual width override |
+| `CLAUDE_CODE_STATUSLINE_CACHE_DIR` | path | Cache directory override |
 
 ## Popular Configurations
 
 ### Minimal Setup (Quick Start)
 ```json
 {
-  "envContext": true,
-  "truncate": true
+  "envContext": true
 }
 ```
 
@@ -228,30 +271,16 @@ Environment variables are still supported for backward compatibility. These work
 ```json
 {
   "envContext": true,
-  "truncate": true,
-  "noEmoji": false,
-  "debugWidth": false
+  "nerdFont": true,
+  "prBadge": true,
+  "costUsage": true
 }
 ```
 
-### ASCII-Only Setup
+### Full-Line Output (No Truncation)
 ```json
 {
-  "noEmoji": true,
-  "envContext": true,
-  "truncate": true,
-  "symbols": {
-    "git": "@",
-    "model": "*",
-    "staged": "+",
-    "conflict": "C",
-    "stashed": "$",
-    "ahead": "A",
-    "behind": "B",
-    "diverged": "D",
-    "renamed": ">",
-    "deleted": "X"
-  }
+  "truncate": false
 }
 ```
 
@@ -260,15 +289,13 @@ Environment variables are still supported for backward compatibility. These work
 {
   "cacheTTL": 600,
   "noGitStatus": false,
-  "envContext": false,
-  "truncate": true
+  "envContext": false
 }
 ```
 
 ## File Formats Supported
 
-- `.claude-statusline.json` - JSON format (recommended for editor support)
-- `.claude-statusline.yaml` - YAML format (more minimal syntax)
-- `.claude-statusline.yml` - YAML format (deprecated, use `.yaml` instead)
+- `claude-statusline.json` - JSON format (recommended for editor support)
+- `claude-statusline.yaml` - YAML format (more minimal syntax)
 
-Both formats support exactly the same configuration options.
+Both formats support exactly the same configuration options. Note there is no leading dot in the filenames and `.yml` is not recognized.

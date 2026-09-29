@@ -1,8 +1,20 @@
 # Migration Guide
 
-Complete guide for migrating from bash v1.0 to TypeScript v2.0 (Released).
+Complete guide for migrating from bash v1.0 to TypeScript v2.0 (Released), plus notes for upgrading between v2.x releases.
 
 **Not sure if you should upgrade?** See the [Feature Comparison](../ref/FEATURE_COMPARISON.md) to compare versions.
+
+## From v2.4 to v2.5
+
+Key behavioral changes to be aware of:
+
+- **`truncate` now defaults to `true`**. Smart truncation is on out of the box; set `"truncate": false` to restore full-line output.
+- **Width chain changed.** Width resolves as `forceWidth` config → `COLUMNS` env → `process.stdout.columns` → fixed 80. There are no more `tput`/`stty` shell-outs and no `CLAUDE_CODE_TERMINAL_WIDTH` variable — the statusline runs with captured output and no tty, so those never worked reliably.
+- **`used_percentage` semantics.** The context segment prefers the payload's `used_percentage` (input-only) when present, falls back to `100 - remaining_percentage`, then to a `current_usage` calculation. A null/absent value renders nothing.
+- **Detached HEAD** now shows the short commit oid instead of a branch name in the git segment.
+- **Worktree-aware project slot.** Managed worktree sessions show the repo/worktree name plus a `wt` tag, and the worktree's own branch overrides the displayed branch.
+- **New opt-in segments**: `prBadge`, `costUsage`, `rateLimit`, `modeIndicators`, `contextTokens` (all default `false`), plus `vpnIndicator` and the `overLimitWarning` marker (`auto` | `always` | `never`, default `auto`).
+
 
 ## Quick Migration Checklist
 
@@ -33,8 +45,10 @@ chmod +x claude-statusline
 
 Verify installation:
 ```bash
-claude-statusline --version
+claude-statusline --self-test
 ```
+
+> **Note**: There is no `--version` flag. `--self-test` renders a sample statusline (and `--demo` prints several preset renders) — if either prints output, the binary works.
 
 ## Step 2: Convert Environment Variables to Configuration
 
@@ -59,12 +73,9 @@ export CLAUDE_CODE_STATUSLINE_TRUNCATE=1
 
 **After (TypeScript v2.0 config file):**
 ```bash
-# Create configuration file
-cp .claude-statusline.json.example.min ~/.claude/.claude-statusline.json
-
-# Or create manually
+# Create configuration file manually
 mkdir -p ~/.claude
-cat > ~/.claude/.claude-statusline.json << EOF
+cat > ~/.claude/claude-statusline.json << EOF
 {
   "envContext": true,
   "truncate": true
@@ -197,10 +208,10 @@ echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test Migr
 **Solution**: Verify the config file location and format:
 ```bash
 # Check if config exists
-ls -la ~/.claude/.claude-statusline.json
+ls -la ~/.claude/claude-statusline.json
 
 # Validate JSON format
-cat ~/.claude/.claude-statusline.json | jq .
+cat ~/.claude/claude-statusline.json | jq .
 ```
 
 #### Issue: Performance Slower Than Expected
@@ -241,7 +252,7 @@ Create a shared configuration file and sync it:
 
 ```bash
 # Create a portable config
-cat > ~/.claude/.claude-statusline.json << EOF
+cat > ~/.claude/claude-statusline.json << EOF
 {
   "envContext": true,
   "truncate": true,
@@ -251,7 +262,7 @@ cat > ~/.claude/.claude-statusline.json << EOF
 EOF
 
 # Sync across machines (using your preferred method)
-scp ~/.claude/.claude-statusline.json user@machine:~/.claude/
+scp ~/.claude/claude-statusline.json user@machine:~/.claude/
 ```
 
 ### Scenario 2: Team Standardization
@@ -282,7 +293,7 @@ Create a team configuration template:
 
 Team members can install with:
 ```bash
-cp team-config.json ~/.claude/.claude-statusline.json
+cp team-config.json ~/.claude/claude-statusline.json
 ```
 
 ### Scenario 3: Gradual Migration with A/B Testing
