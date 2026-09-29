@@ -76,6 +76,8 @@ export class GitOperations {
       const branch = v2.head ?? v2.oid.slice(0, 7);
       const info: GitInfo = { branch, indicators: v2.indicators };
       await this.cache.set(cacheKey, info);
+      // Opportunistically prune stale session-scoped entries (PRD-004 follow-up)
+      await this.cache.pruneGitStatus(5);
       return info;
     } catch (error) {
       console.debug('[DEBUG] Git operation failed:', error instanceof Error ? error.message : String(error));

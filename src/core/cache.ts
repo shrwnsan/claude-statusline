@@ -160,6 +160,32 @@ export class Cache {
   }
 
   /**
+   * Opportunistically prune stale git_status_* cache entries (mtime-based).
+   * Session-scoped keys accumulate unbounded; best-effort, never fails the render.
+   */
+  async pruneGitStatus(maxAgeSeconds: number = 5): Promise<void> {
+    try {
+      const { readdir, stat, unlink } = await import('fs/promises');
+      const files = await readdir(this.config.cacheDir);
+      const now = Date.now();
+
+      await Promise.allSettled(
+        files
+          .filter(file => file.startsWith('git_status_'))
+          .map(async file => {
+            const filePath = join(this.config.cacheDir, file);
+            const stats = await stat(filePath);
+            if (now - stats.mtimeMs > maxAgeSeconds * 1000) {
+              await unlink(filePath);
+            }
+          })
+      );
+    } catch {
+      // Pruning is opportunistic; ignore any errors
+    }
+  }
+
+  /**
    * Clear all cache entries
    */
   async clear(): Promise<boolean> {
@@ -219,10 +245,12 @@ export const CacheKeys = {
   PYTHON3_VERSION: 'python3_version',
   DOCKER_VERSION: 'docker_version',
   VPN_STATUS: 'vpn_status',
-  GIT_REMOTE_URL: (dir: string) => `git_remote_${Buffer.from(dir).toString('base64')}`,
-  GIT_BRANCH: (dir: string) => `git_branch_${Buffer.from(dir).toString('base64')}`,
   GIT_STATUS: (sessionId: string | undefined, dir: string) =>
-    `git_status_${Buffer.from(sessionId ? `${sessionId}:${dir}` : dir).toString('base64')}`,
+    // base64url: standard base64 can emit '/' which would break join(cacheDir, key)
+    `git_status_${Buffer.from(sessionId ? `${sessionId}:${dir}` : dir)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')}`,
 } as const;
 
 /**
