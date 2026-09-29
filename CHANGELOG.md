@@ -6,6 +6,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.6.0] - 2026-09-30
+
+Post-2.5.0 hardening and hygiene release.
+
+### Added
+- The worktree tag glyph is now user-overridable: `worktree` key in both
+  the `symbols` and `asciiSymbols` config schemas (previously accepted by
+  the generic override merge but rejected by the zod schema).
+- Stale-session cache pruning: `git_status_*` cache entries (session-scoped
+  keys, ~300 B each) older than the 5 s TTL are removed best-effort after
+  each successful cache set, instead of accumulating unboundedly.
+
+### Fixed
+- Cache keys are now base64url-encoded. Standard base64 could emit `/` from
+  an aligned byte, making `join(cacheDir, key)` target a nonexistent subdir
+  — `Cache.set` failed silently and that session:directory pair went cold
+  on every render.
+- Smart truncation no longer slices inside the worktree tag
+  (`claude-statusline ·wt:fa..`): the tag is now truncation-atomic —
+  rendered whole or dropped entirely.
+- Empty-string payload fields are treated as absent: `workspace.repo.name`
+  falls back to the directory name, `vim.mode: ''` no longer renders an
+  orphan `[]` mode indicator, and `worktree.branch: ''` falls back to the
+  git-reported branch.
+- Deleted dead cache-key generators `GIT_REMOTE_URL` / `GIT_BRANCH`
+  (zero callers since the 2.5.0 porcelain-v2 cutover).
+
+### Documentation
+- All guides, the migration guide, and the feature comparison aligned with
+  v2.5.0 behavior (config filenames/search order, full option and env-var
+  tables, ASCII-default symbols, real width chain, bash-era diagnostics
+  removed, v2.4→v2.5 migration notes).
+- README simplified (~40% shorter) with a "What's new in 2.5.0" section.
+
 ## [2.5.0] - 2026-09-23
 
 ### Changed
@@ -265,6 +299,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Icon reference section
 - Installation and setup instructions
 
+[2.6.0]: https://github.com/shrwnsan/claude-statusline/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/shrwnsan/claude-statusline/compare/v2.4.1...v2.5.0
 [2.4.1]: https://github.com/shrwnsan/claude-statusline/compare/v2.4.0...v2.4.1
 [2.4.0]: https://github.com/shrwnsan/claude-statusline/compare/v2.3.1...v2.4.0
