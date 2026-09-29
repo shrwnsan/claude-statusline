@@ -35,44 +35,50 @@ export const ConfigSchema = z.object({
   rightMargin: z.number().default(15), // Right margin for Claude telemetry
 
   // Symbol settings
-  symbols: z.object({
-    git: z.string().default(''),
-    model: z.string().default('󰚩'),
-    contextWindow: z.string().default('󱐌'),
-    staged: z.string().default('+'),
-    conflict: z.string().default('×'),
-    stashed: z.string().default('⚑'),
-    ahead: z.string().default('⇡'),
-    behind: z.string().default('⇣'),
-    diverged: z.string().default('⇕'),
-    renamed: z.string().default('»'),
-    deleted: z.string().default('✘'),
-    vpnOn: z.string().default('◉'),
-    vpnOff: z.string().default('○'),
-    node: z.string().default(''),
-    python: z.string().default(''),
-    docker: z.string().default(''),
-  }).default({}),
+  symbols: z
+    .object({
+      git: z.string().default(''),
+      worktree: z.string().default(''),
+      model: z.string().default('󰚩'),
+      contextWindow: z.string().default('󱐌'),
+      staged: z.string().default('+'),
+      conflict: z.string().default('×'),
+      stashed: z.string().default('⚑'),
+      ahead: z.string().default('⇡'),
+      behind: z.string().default('⇣'),
+      diverged: z.string().default('⇕'),
+      renamed: z.string().default('»'),
+      deleted: z.string().default('✘'),
+      vpnOn: z.string().default('◉'),
+      vpnOff: z.string().default('○'),
+      node: z.string().default(''),
+      python: z.string().default(''),
+      docker: z.string().default(''),
+    })
+    .default({}),
 
   // ASCII fallback symbols
-  asciiSymbols: z.object({
-    git: z.string().default('@'),
-    model: z.string().default('*'),
-    contextWindow: z.string().default('≈'),
-    staged: z.string().default('+'),
-    conflict: z.string().default('C'),
-    stashed: z.string().default('$'),
-    ahead: z.string().default('A'),
-    behind: z.string().default('B'),
-    diverged: z.string().default('D'),
-    renamed: z.string().default('>'),
-    deleted: z.string().default('X'),
-    vpnOn: z.string().default('✓·vpn ·'),
-    vpnOff: z.string().default('✗·vpn ·'),
-    node: z.string().default('node'),
-    python: z.string().default('py'),
-    docker: z.string().default('dkr'),
-  }).default({}),
+  asciiSymbols: z
+    .object({
+      git: z.string().default('@'),
+      worktree: z.string().default(''),
+      model: z.string().default('*'),
+      contextWindow: z.string().default('≈'),
+      staged: z.string().default('+'),
+      conflict: z.string().default('C'),
+      stashed: z.string().default('$'),
+      ahead: z.string().default('A'),
+      behind: z.string().default('B'),
+      diverged: z.string().default('D'),
+      renamed: z.string().default('>'),
+      deleted: z.string().default('X'),
+      vpnOn: z.string().default('✓·vpn ·'),
+      vpnOff: z.string().default('✗·vpn ·'),
+      node: z.string().default('node'),
+      python: z.string().default('py'),
+      docker: z.string().default('dkr'),
+    })
+    .default({}),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
@@ -85,10 +91,7 @@ export const defaultConfig: Config = ConfigSchema.parse({});
 /**
  * Configuration file names to search for (in order of preference)
  */
-const CONFIG_FILES = [
-  'claude-statusline.json',
-  'claude-statusline.yaml',
-];
+const CONFIG_FILES = ['claude-statusline.json', 'claude-statusline.yaml'];
 
 /**
  * Load configuration from file and environment variables
@@ -121,8 +124,10 @@ function loadConfigFile(cwd: string): Partial<Config> {
           const content = readFileSync(configPath, 'utf-8');
           return filename.endsWith('.json') ? JSON.parse(content) : parseYaml(content);
         } catch (err) {
-          console.warn(`[WARNING] Failed to parse ${configPath}:`,
-            err instanceof Error ? err.message : String(err));
+          console.warn(
+            `[WARNING] Failed to parse ${configPath}:`,
+            err instanceof Error ? err.message : String(err)
+          );
         }
       }
     }
@@ -138,8 +143,10 @@ function loadConfigFile(cwd: string): Partial<Config> {
         const content = readFileSync(configPath, 'utf-8');
         return filename.endsWith('.json') ? JSON.parse(content) : parseYaml(content);
       } catch (err) {
-        console.warn(`[WARNING] Failed to parse ${configPath}:`,
-          err instanceof Error ? err.message : String(err));
+        console.warn(
+          `[WARNING] Failed to parse ${configPath}:`,
+          err instanceof Error ? err.message : String(err)
+        );
       }
     }
   }
@@ -244,47 +251,53 @@ export function getConfigFilePath(cwd: string = process.cwd()): string | null {
  * Generate a sample configuration file
  */
 export function generateSampleConfig(): string {
-  return JSON.stringify({
-    $schema: 'https://raw.githubusercontent.com/shrwnsan/claude-statusline/main/config-schema.json',
-    // Core settings
-    cacheTTL: 300, // 5 minutes
-    maxLength: 4096,
+  return JSON.stringify(
+    {
+      $schema:
+        'https://raw.githubusercontent.com/shrwnsan/claude-statusline/main/config-schema.json',
+      // Core settings
+      cacheTTL: 300, // 5 minutes
+      maxLength: 4096,
 
-    // Feature toggles
-    nerdFont: false, // Set to true to opt-in Nerd Font glyphs
-    noEmoji: false, // Set to true to force ASCII mode
-    noGitStatus: false, // Set to true to disable git indicators
-    noContextWindow: false, // Set to true to disable context window usage
-    envContext: true, // Set to true to show Node.js, Python versions
-    vpnIndicator: true, // Set to true to show VPN status indicator (macOS only)
-    truncate: true, // Smart truncation is now the default; set to false to restore full-line output
-    noSoftWrap: false, // Set to true to force single-line output
-    prBadge: false, // Set to true to show PR badge
-    costUsage: false, // Set to true to show ~cost estimate
-    rateLimit: false, // Set to true to show rate-limit windows
-    modeIndicators: false, // Set to true to show mode indicators
-    contextTokens: false, // Set to true to append ~used/total absolute context
-    overLimitWarning: 'auto', // Exceeds-200k marker: 'auto' (only on windows <= 200k) | 'always' | 'never'
+      // Feature toggles
+      nerdFont: false, // Set to true to opt-in Nerd Font glyphs
+      noEmoji: false, // Set to true to force ASCII mode
+      noGitStatus: false, // Set to true to disable git indicators
+      noContextWindow: false, // Set to true to disable context window usage
+      envContext: true, // Set to true to show Node.js, Python versions
+      vpnIndicator: true, // Set to true to show VPN status indicator (macOS only)
+      truncate: true, // Smart truncation is now the default; set to false to restore full-line output
+      noSoftWrap: false, // Set to true to force single-line output
+      prBadge: false, // Set to true to show PR badge
+      costUsage: false, // Set to true to show ~cost estimate
+      rateLimit: false, // Set to true to show rate-limit windows
+      modeIndicators: false, // Set to true to show mode indicators
+      contextTokens: false, // Set to true to append ~used/total absolute context
+      overLimitWarning: 'auto', // Exceeds-200k marker: 'auto' (only on windows <= 200k) | 'always' | 'never'
 
-    // Display settings
-    rightMargin: 15, // Right margin for Claude telemetry compatibility
-    debugWidth: false, // Set to true for width debugging output
+      // Display settings
+      rightMargin: 15, // Right margin for Claude telemetry compatibility
+      debugWidth: false, // Set to true for width debugging output
 
-    // Custom symbols (optional - will use defaults if not specified)
-    symbols: {
-      git: '',
-      model: '󰚩',
-      contextWindow: '󱐌',
-      staged: '+',
-      conflict: '×',
-      stashed: '⚑',
-      ahead: '⇡',
-      behind: '⇣',
-      diverged: '⇕',
-      renamed: '»',
-      deleted: '✘',
-      vpnOn: '◉',
-      vpnOff: '○',
+      // Custom symbols (optional - will use defaults if not specified)
+      symbols: {
+        git: '',
+        model: '󰚩',
+        contextWindow: '󱐌',
+        worktree: '',
+        staged: '+',
+        conflict: '×',
+        stashed: '⚑',
+        ahead: '⇡',
+        behind: '⇣',
+        diverged: '⇕',
+        renamed: '»',
+        deleted: '✘',
+        vpnOn: '◉',
+        vpnOff: '○',
+      },
     },
-  }, null, 2);
+    null,
+    2
+  );
 }
