@@ -183,12 +183,20 @@ export interface ProjectSlotParams {
 /** PRD-004 B2: repo identity wins over dirname; worktree tag appended. */
 export function formatProjectSlot(p: ProjectSlotParams): string {
   const dirname = p.currentDir.split('/').pop() || p.currentDir.split('\\').pop() || 'project';
-  const name = p.repoName ?? dirname;
+  const name = p.repoName || dirname; // `||` guards empty-string repo.name too
   return p.worktreeName ? `${name} ${p.wtSymbol}${p.worktreeName}` : name;
 }
 
+/** Split a formatted project slot into name and worktree tag (tag includes its leading marker). */
+export function splitProjectSlot(slot: string, wtSymbol: string): { name: string; tag: string } {
+  if (!wtSymbol) return { name: slot, tag: '' };
+  const idx = slot.lastIndexOf(` ${wtSymbol}`);
+  if (idx === -1) return { name: slot, tag: '' };
+  return { name: slot.slice(0, idx), tag: slot.slice(idx + 1) };
+}
+
 export function resolveBranch(p: { gitBranch: string; worktreeBranch?: string | undefined }): string {
-  return p.worktreeBranch ?? p.gitBranch; // PRD-004 B1
+  return p.worktreeBranch ? p.worktreeBranch : p.gitBranch; // PRD-004 B1; `?` guards empty string
 }
 
 /** PRD-004 C1: ` #27[A]` style PR badge; ASCII review-state token. */
@@ -251,7 +259,7 @@ export function formatModes(m?: ModesInput): string {
   const t: string[] = [];
   if (m.effort) t.push(EFFORT_TOKEN[m.effort.level] ?? m.effort.level);
   if (m.thinking?.enabled) t.push('thk');
-  if (m.vim) t.push(m.vim.mode.charAt(0));
+  if (m.vim && m.vim.mode) t.push(m.vim.mode.charAt(0));
   if (m.fast_mode) t.push('fast');
   if (m.agent) t.push(`@${m.agent.name}`);
   if (m.output_style && m.output_style.name !== 'default') t.push(m.output_style.name);
@@ -454,7 +462,7 @@ async function buildStatusline(params: {
 /**
  * Apply smart truncation with branch prioritization
  */
-function applySmartTruncation(params: {
+export function applySmartTruncation(params: {
   statusline: string;
   projectName: string;
   gitStatus: string;
@@ -463,17 +471,26 @@ function applySmartTruncation(params: {
   config: Config;
   symbols: SymbolSet;
 }): string {
-  const { statusline, projectName, gitStatus, modelString, terminalWidth, config } = params;
+  const { statusline, projectName, gitStatus, modelString, terminalWidth, config, symbols } = params;
 
   // Use 15-char margin for Claude telemetry compatibility
   const maxLen = Math.max(terminalWidth - config.rightMargin, 30);
-  const projectGit = `${projectName}${gitStatus}`;
 
   // Check if everything fits (using display width for accuracy)
   const statuslineDisplayWidth = getStringDisplayWidth(statusline);
   if (statuslineDisplayWidth <= maxLen) {
     return statusline;
   }
+
+  // Truncation-atomic worktree tag: once the full line needs trimming, either
+  // keep the tag whole (project+git still fits) or drop it wholesale — never
+  // slice inside `·wt:<name>`.
+  const { name: slotName, tag: slotTag } = splitProjectSlot(projectName, symbols.worktree);
+  const tagDropped =
+    slotTag !== '' && getStringDisplayWidth(`${projectName}${gitStatus}`) + 1 > maxLen;
+  const effectiveProject = tagDropped ? slotName : projectName;
+
+  const projectGit = `${effectiveProject}${gitStatus}`;
 
   // Check if project + space fits, truncate model part only (using display width)
   const projectGitDisplayWidth = getStringDisplayWidth(projectGit);
@@ -489,13 +506,14 @@ function applySmartTruncation(params: {
   }
 
   // Smart truncation of project+git part
-  const truncated = smartTruncate(projectName, gitStatus, maxLen, config);
+  const truncated = smartTruncate(effectiveProject, gitStatus, maxLen, config);
   if (truncated) {
     return truncated;
   }
 
   // Basic fallback
-  return truncateText(statusline, maxLen);
+  const fallbackLine = tagDropped ? `${slotName}${gitStatus} ${modelString}` : statusline;
+  return truncateText(fallbackLine, maxLen);
 }
 
 

@@ -63,4 +63,8 @@ describe('formatModes', () => {
   it('returns empty when nothing present', () => {
     assert.strictEqual(formatModes({}), '');
   });
+  it('empty vim.mode renders no orphan bracket', () => {
+    assert.strictEqual(formatModes({ vim: { mode: '' } }), '');
+    assert.strictEqual(formatModes({ vim: { mode: '' }, effort: { level: 'high' } }), ' [hgh]');
+  });
 });
