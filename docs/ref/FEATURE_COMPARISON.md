@@ -25,7 +25,7 @@ Comprehensive comparison between Bash v1.0 and TypeScript v2.0 implementations.
 | Soft-wrapping | ✅ | ✅ | Advanced text wrapping options |
 | **Configuration** |
 | Environment variables | ✅ | ✅ | Legacy support in both |
-| Configuration files | ❌ | ✅ | `.claude-statusline.json/.yaml` |
+| Configuration files | ❌ | ✅ | `claude-statusline.json` / `claude-statusline.yaml` |
 | JSON Schema validation | ❌ | ✅ | Editor autocompletion & validation |
 | Project-specific configs | ❌ | ✅ | Override global settings |
 | **Platform Support** |
@@ -48,6 +48,23 @@ Comprehensive comparison between Bash v1.0 and TypeScript v2.0 implementations.
 | YAML config support | ❌ | ✅ | Alternative config format |
 | Cache management | ✅ | ✅ | TTL-based caching |
 
+## New in v2.5.0
+
+Features introduced by the Claude Code 2026 modernization (PRD-004):
+
+| Feature | Description |
+|---------|-------------|
+| **5 opt-in segments** | `prBadge` (` #27[A]`), `costUsage` (` ~$1.23`), `rateLimit` (` 5h:42% 7d:12%`), `modeIndicators` (` [hgh·thk]`), `contextTokens` (` ~NNk/Nk`) — all default off |
+| **`overLimitWarning`** | Gated exceeds-200k marker: `auto` (only on windows ≤ 200k), `always`, or `never` |
+| **Worktree-aware project slot** | Managed worktree sessions show the repo name plus a `wt` tag; the worktree's branch overrides the displayed branch |
+| **Detached-HEAD oid** | Detached HEAD shows the short commit oid instead of a branch name |
+| **Single-spawn git** | One `git --no-optional-locks status --porcelain=v2 --branch --show-stash` call replaces 6-8 separate git invocations, with a 5-second session-scoped cache |
+| **`used_percentage` semantics** | Context segment prefers the payload's `used_percentage` (input-only), with `remaining_percentage` and `current_usage` fallbacks |
+| **`vpnIndicator`** | Opt-in VPN status glyph (macOS, utun detection) |
+| **No-shell width chain** | Width = `forceWidth` → `COLUMNS` → `process.stdout.columns` → 80; no `tput`/`stty` shell-outs |
+| **ASCII default symbols** | ASCII is the default symbol set; Nerd Font glyphs are strictly opt-in via `nerdFont: true` |
+
+
 ## Detailed Feature Breakdown
 
 ### Core Git Status Features
@@ -63,8 +80,8 @@ Both versions provide comprehensive git status:
 | Renamed files | ✅ | ✅ | » / > |
 | Deleted files | ✅ | ✅ | ✘ / X |
 | Merge conflicts | ✅ | ✅ | × / C |
-| Ahead of upstream | ✅ | ✅ | ↑ / A |
-| Behind upstream | ✅ | ✅ | ↓ / B |
+| Ahead of upstream | ✅ | ✅ | ⇡ / A |
+| Behind upstream | ✅ | ✅ | ⇣ / B |
 | Diverged branches | ✅ | ✅ | ⇕ / D |
 
 ### Configuration Capabilities

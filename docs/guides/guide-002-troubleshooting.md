@@ -7,28 +7,29 @@ This document provides comprehensive troubleshooting guidance for Claude Statusl
 ### Basic Health Check
 
 ```bash
-# Check if script is executable
-ls -la /path/to/claude-statusline
+# Check installation location
+which claude-statusline
 
-# Test script syntax
-bash -n /path/to/claude-statusline
+# Built-in self-test: renders with a canonical mock payload
+claude-statusline --self-test
 
-# Test basic functionality
-echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | /path/to/claude-statusline
+# Demo mode: prints several preset renders (ASCII, Nerd Font, narrow, worktree, all segments)
+claude-statusline --demo
+
+# Pipe a real payload JSON manually
+echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | claude-statusline
 ```
+
+There are only two CLI flags: `--self-test` and `--demo`. Any other flag (e.g. `--verbose`, `--version`) does not exist.
 
 ### Claude Code Integration Check
 
 ```bash
 # Check settings.json configuration
-cat ~/.claude/settings.json | grep -A 5 statusLine
+grep -A 5 statusLine ~/.claude/settings.json
 
-# Test with Claude Code input format
-echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test Model"}}' | /path/to/claude-statusline
-
-# Check if symlink exists and is valid
-ls -la ~/.claude/statusline.sh
-readlink ~/.claude/statusline.sh
+# Test with the exact command configured in settings
+echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test Model"}}' | claude-statusline
 ```
 
 ## Common Issues and Solutions
@@ -42,69 +43,71 @@ readlink ~/.claude/statusline.sh
 # 1. Check settings.json configuration
 grep -A 5 statusLine ~/.claude/settings.json
 
-# 2. Verify script path is correct
-ls -la /path/to/claude-statusline
+# 2. Verify the command resolves
+which claude-statusline
 
-# 3. Test script manually
-echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | /path/to/claude-statusline
+# 3. Test manually with a payload
+echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | claude-statusline
 
-# 4. Check script permissions
-chmod +x /path/to/claude-statusline
+# 4. Run the built-in self-test
+claude-statusline --self-test
 ```
 
 **Solutions**:
-1. **Update path in settings.json**:
+1. **Fix the command in settings.json**:
    ```json
    {
      "statusLine": {
        "type": "command",
-       "command": "/correct/path/to/claude-statusline",
+       "command": "claude-statusline",
        "padding": 0
      }
    }
    ```
 
-2. **Create/update symlink**:
-   ```bash
-   ln -sf /path/to/claude-statusline ~/.claude/statusline.sh
+2. **Use an absolute path** if the binary is not in Claude Code's `PATH`:
+   ```json
+   {
+     "statusLine": {
+       "type": "command",
+       "command": "/absolute/path/to/claude-statusline"
+     }
+   }
    ```
 
 3. **Restart Claude Code** after making changes
 
 ### Issue: Nerd Font Symbols Not Displaying
 
-**Symptoms**: Square boxes, question marks, or missing symbols
+**Symptoms**: Square boxes (tofu), question marks, or missing symbols
 
 **Diagnostic Steps**:
 ```bash
-# Test terminal font support
-echo " 󰚩 ⚑ ✘ ⇡ ⇣"
+# Test terminal font support directly
+echo "  󰚩 ⚑ ✘ ⇡ ⇣"
 
-# Check if Nerd Fonts are installed
+# Check installed Nerd Fonts
 fc-list | grep -i nerd
 
-# Test with ASCII mode
-CLAUDE_CODE_STATUSLINE_NO_EMOJI=1 echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | /path/to/claude-statusline
+# Compare ASCII vs Nerd Font renders side by side
+claude-statusline --demo
 ```
 
 **Solutions**:
 1. **Install Nerd Fonts**:
    ```bash
    # Using Homebrew (macOS)
-   brew install font-jetbrains-mono-nerd-font
-   
+   brew install --cask font-jetbrains-mono-nerd-font
+
    # Or download from https://www.nerdfonts.com/
    ```
 
 2. **Configure Terminal Font**:
    - Terminal/iTerm2: Preferences → Profiles → Text → Font
    - VS Code: Settings → `terminal.integrated.fontFamily`
-   - Alacritty: Edit `alacritty.yml` `font.family`
+   - Alacritty: Edit `alacritty.toml` `font.family`
 
-3. **Force ASCII Mode**:
-   ```bash
-   export CLAUDE_CODE_STATUSLINE_NO_EMOJI=1
-   ```
+3. **Remember Nerd Font is opt-in**: ASCII is the default. Glyphs only appear when `"nerdFont": true` is set in your config (or `NERD_FONT=1`). If you see tofu, unset the env var or remove the config flag — ASCII mode works everywhere.
 
 ### Issue: Performance Problems
 
@@ -113,18 +116,10 @@ CLAUDE_CODE_STATUSLINE_NO_EMOJI=1 echo '{"workspace":{"current_dir":"'"$PWD"'"},
 **Diagnostic Steps**:
 ```bash
 # Measure execution time
-start=$(($(date +%s%N)/1000000))
-echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | /path/to/claude-statusline > /dev/null
-end=$(($(date +%s%N)/1000000))
-duration=$((end - start))
-echo "Execution time: ${duration}ms"
+time echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | claude-statusline > /dev/null
 
 # Check cache directory
 ls -la /tmp/.claude-statusline-cache/
-
-# Test with minimal features
-CLAUDE_CODE_STATUSLINE_NO_GITSTATUS=1 CLAUDE_CODE_STATUSLINE_NO_EMOJI=1 \
-  echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | /path/to/claude-statusline
 ```
 
 **Solutions**:
@@ -133,54 +128,38 @@ CLAUDE_CODE_STATUSLINE_NO_GITSTATUS=1 CLAUDE_CODE_STATUSLINE_NO_EMOJI=1 \
    rm -rf /tmp/.claude-statusline-cache/
    ```
 
-2. **Disable Features**:
-   ```bash
-   export CLAUDE_CODE_STATUSLINE_NO_GITSTATUS=1
-   export CLAUDE_CODE_STATUSLINE_NO_EMOJI=1
-   ```
+2. **Disable Features** temporarily to isolate the cause (set `"noGitStatus": true`, `"envContext": false`, etc. in your config)
 
-3. **Check Git Repository Status**:
-   ```bash
-   # Test git operations in current directory
-   git status --porcelain
-   git rev-list --count --left-right @{upstream}...HEAD
-   ```
+3. **Check the Runtime**: `"command": "bun claude-statusline"` is ~5x faster than Node.js (see the [Performance Guide](guide-003-performance.md))
 
 ### Issue: Git Status Not Showing
 
 **Symptoms**: No git indicators despite being in a git repository
 
+**Background**: claude-statusline runs a single git spawn per refresh:
+
+```
+git --no-optional-locks status --porcelain=v2 --branch --show-stash
+```
+
+Results are cached per session and directory (`sessionId` + cwd) for 5 seconds. Outside a git repository the command exits 128 and the statusline simply omits the git segment.
+
 **Diagnostic Steps**:
 ```bash
-# Check if in git repository
+# Check if in a git repository
 git status
 
-# Test git commands manually
-git branch --show-current
-git status --porcelain
+# Run the exact command claude-statusline uses
+git --no-optional-locks status --porcelain=v2 --branch --show-stash
 
-# Check if git status disabled
-echo $CLAUDE_CODE_STATUSLINE_NO_GITSTATUS
+# Check if git status is disabled
+grep -i gitstatus ~/.claude/claude-statusline.json 2>/dev/null
 ```
 
 **Solutions**:
-1. **Enable git status**:
-   ```bash
-   unset CLAUDE_CODE_STATUSLINE_NO_GITSTATUS
-   ```
-
-2. **Check git repository**:
-   ```bash
-   # Ensure you're in a git repository
-   cd /path/to/git/repo
-   git status
-   ```
-
-3. **Check git configuration**:
-   ```bash
-   # Check if git is properly configured
-   git config --list
-   ```
+1. **Re-enable git status**: remove `"noGitStatus": true` from your config, or unset `CLAUDE_CODE_STATUSLINE_NO_GITSTATUS`
+2. **Detached HEAD** shows the short commit oid instead of a branch name — that is expected behavior, not a bug
+3. **Wait out the cache**: git info refreshes at most every 5 seconds within one Claude Code session
 
 ### Issue: Environment Context Not Showing
 
@@ -193,72 +172,66 @@ command -v node && node --version
 command -v python3 && python3 --version
 command -v docker && docker --version
 
-# Check cache files
-ls -la /tmp/.claude-statusline-cache/*_version
-
-# Test environment context explicitly
-CLAUDE_CODE_STATUSLINE_ENV_CONTEXT=1 \
-  echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | /path/to/claude-statusline
+# Enable environment context explicitly
+CLAUDE_CODE_STATUSLINE_ENV_CONTEXT=1 claude-statusline --self-test
 ```
 
 **Solutions**:
-1. **Install Missing Tools**:
+1. **Install Missing Tools** (only the tools you want shown):
    ```bash
    # Install Node.js
-   curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-   sudo apt-get install -y nodejs
-   
+   brew install node
+
    # Install Python
-   sudo apt-get install python3
-   
+   brew install python
+
    # Install Docker
-   curl -fsSL https://get.docker.com -o get-docker.sh
-   sudo sh get-docker.sh
+   brew install --cask docker
    ```
 
-2. **Clear Tool Cache**:
+2. **Clear the version cache**: environment versions are cached for ~8 hours (96x the default `cacheTTL` of 300s). Clear the cache directory to force re-detection:
    ```bash
-   rm -f /tmp/.claude-statusline-cache/*_version
-   rm -f /tmp/.claude-statusline-cache/*_version.time
+   rm -rf /tmp/.claude-statusline-cache/
    ```
 
-3. **Enable Environment Context**:
-   ```bash
-   export CLAUDE_CODE_STATUSLINE_ENV_CONTEXT=1
-   ```
+3. **Enable Environment Context**: set `"envContext": true` in your config
 
 ### Issue: Width Management Problems
 
 **Symptoms**: Text cutoff, improper wrapping, or overflow
 
+**Background**: width is resolved with no shell-outs — `tput` and `stty` cannot work here because the statusline command runs with captured output and no tty. The chain is:
+
+1. `"forceWidth"` config value (if > 0)
+2. `COLUMNS` environment variable
+3. `process.stdout.columns`
+4. Fixed fallback of `80`
+
 **Diagnostic Steps**:
 ```bash
-# Check terminal width
-tput cols
-echo $COLUMNS
+# Inspect the resolved width chain
+echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | \
+  CLAUDE_CODE_STATUSLINE_DEBUG_WIDTH=1 claude-statusline 2>&1
 
-# Test with width override
-export COLUMNS=80
-echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | /path/to/claude-statusline
+# Simulate a narrow terminal
+echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | \
+  COLUMNS=60 claude-statusline
 
-# Test with smart truncation enabled
-CLAUDE_CODE_STATUSLINE_TRUNCATE=1 \
-  echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Sonnet 4.5"}}' | /path/to/claude-statusline
+# Or force a width via config
+echo '{"forceWidth": 60}' > claude-statusline.json
+claude-statusline --self-test
 ```
 
 **Solutions**:
-1. **Adjust Terminal Width**:
-   - Increase terminal width to 80+ characters for optimal experience
-   - Use 100+ characters for full feature display
+1. **Increase Terminal Width**: 80+ characters for basic display, 100+ for full features
 
-2. **Enable Smart Truncation**:
-   ```bash
-   export CLAUDE_CODE_STATUSLINE_TRUNCATE=1
+2. **Disable Smart Truncation to Isolate**: truncation is ON by default. If you suspect truncation is mangling output, turn it off:
+   ```json
+   { "truncate": false }
    ```
+   This restores full-line output and confirms whether the width chain or truncation logic is at fault.
 
-3. **Check Terminal Settings**:
-    - Ensure terminal reports correct dimensions
-    - Check for custom terminal configurations
+3. **Check Claude Code's `COLUMNS`**: recent Claude Code versions pass the terminal width via `COLUMNS` in the statusline payload env. If it is wrong, a `"forceWidth"` override wins over it.
 
 ### Issue: Garbled Output Artifacts (Claude Code Rendering Bug)
 
@@ -275,7 +248,7 @@ claude-statusline  main [!] 󰚩glm-4.7 ⚡0%                    ct
 ```
 
 **Cause**: This is a **known Claude Code TUI rendering bug**, not an issue with the statusline script. Investigation confirmed:
-- Direct script execution produces clean output with no artifacts
+- Direct execution produces clean output with no artifacts
 - Artifacts are fragments from statusline content rendered at incorrect screen positions
 - Claude Code's statusline renderer has cursor positioning and screen buffer issues
 
@@ -289,17 +262,17 @@ claude-statusline  main [!] 󰚩glm-4.7 ⚡0%                    ct
 
 **Diagnostic Steps**:
 ```bash
-# Verify script output is clean
-echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | bun ~/.claude/claude-statusline | hexdump -C
+# Verify the output itself is clean
+echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | claude-statusline | hexdump -C
 
-# Output should end cleanly at the last character (e.g., "0%") with no trailing bytes
+# Output should end cleanly at the last character with no trailing bytes
 ```
 
 **Workarounds** (limited effectiveness):
 1. **Try disabling custom statusline temporarily** to confirm Claude Code is the cause
 2. **Update Claude Code** to the latest version (some TUI bugs have been fixed in newer releases)
 
-**Status**: Known issue in Claude Code's TUI renderer. The statusline script produces correct, clean output. Track the linked GitHub issues for updates.
+**Status**: Known issue in Claude Code's TUI renderer. The statusline produces correct, clean output. Track the linked GitHub issues for updates.
 
 ### Issue: Glyphs Render as Tofu / Random Characters
 
@@ -322,92 +295,57 @@ claude-statusline --self-test | hexdump -C | grep 'fe 0e'
 2. **Use ASCII mode**: The default is ASCII — if you see tofu, you likely have `NERD_FONT=1` set. Unset it or set `"noEmoji": true` in config
 3. **Check terminal font**: Ensure your terminal emulator is actually using the Nerd Font you installed
 
-## Debug Mode
+## Debugging
 
-### Enabling Debug Logging
+### Width Debugging
 
-**TypeScript v2.0 (Node.js/Bun)**:
+The built-in width debugger prints the resolution chain (config override, `COLUMNS`, `process.stdout.columns`) to stderr:
+
 ```bash
-# Enable debug logging
-DEBUG=claude-statusline:* claude-statusline
-
-# Or with verbose flag
-claude-statusline --verbose
+echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | \
+  CLAUDE_CODE_STATUSLINE_DEBUG_WIDTH=1 claude-statusline
 ```
 
-**Bash v1.0 (Legacy)**:
-For debugging statusline behavior, use bash built-in debugging:
-```bash
-# Enable execution tracing for one run
-bash -x /path/to/claude-statusline <<< '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}'
+Or set `"debugWidth": true` in your config.
 
-# Or enable for session
-set -x; /path/to/claude-statusline <<< '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}'; set +x
+### Comparing Render Presets
+
+`--demo` renders the same payload under six presets (ASCII default, ASCII + git/env, Nerd Font, 40-column truncation, worktree session, all segments on) — useful for narrowing a visual bug to one mode:
+
+```bash
+claude-statusline --demo
 ```
 
-Use `bash -x` for execution tracing and `bash -n` for syntax validation.
+### Manual Payload Testing
 
-**Note**: Previous versions supported `CLAUDE_STATUSLINE_LOG_LEVEL` environment variable, but this has been removed in favor of standard bash debugging tools.
+Any payload JSON can be piped directly, including the newer optional fields:
 
-**Debugging Script Issues**:
 ```bash
-# Run with bash debugging
-bash -x /path/to/claude-statusline
-
-# Check for syntax errors
-bash -n /path/to/claude-statusline
+echo '{
+  "workspace": {"current_dir": "'"$PWD"'"},
+  "model": {"display_name": "Opus"},
+  "context_window": {"used_percentage": 42, "context_window_size": 200000},
+  "pr": {"number": 27, "review_state": "approved"},
+  "cost": {"total_cost_usd": 1.23},
+  "rate_limits": {"five_hour": {"used_percentage": 42}}
+}' | CLAUDE_CODE_STATUSLINE_PR_BADGE=1 CLAUDE_CODE_STATUSLINE_COST_USAGE=1 \
+     CLAUDE_CODE_STATUSLINE_RATE_LIMIT=1 claude-statusline
 ```
 
 ## Performance Profiling
 
-### Detailed Performance Analysis
+### Quick Timing
 
 ```bash
-# Create performance test script
-cat > test_performance.sh << 'EOF'
-#!/bin/bash
-
-iterations=10
-total=0
-
-echo "Testing performance over $iterations iterations..."
-
-for i in $(seq 1 $iterations); do
-    start=$(($(date +%s%N)/1000000))
-    echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | /path/to/claude-statusline > /dev/null
-    end=$(($(date +%s%N)/1000000))
-    duration=$((end - start))
-    total=$((total + duration))
-    echo "Iteration $i: ${duration}ms"
-done
-
-average=$((total / iterations))
-echo "Average: ${average}ms"
-echo "Min: $(echo $durations | tr ' ' '\n' | sort -n | head -1)ms"
-echo "Max: $(echo $durations | tr ' ' '\n' | sort -n | tail -1)ms"
-
-# Store durations for analysis
-echo $durations > performance_data.txt
-EOF
-
-chmod +x test_performance.sh
-./test_performance.sh
-```
-
-### Cache Performance Testing
-
-```bash
-# Test first run (cache miss)
+# Cache miss (fresh run)
 rm -rf /tmp/.claude-statusline-cache/
-echo "First run (cache miss):"
-time echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | /path/to/claude-statusline > /dev/null
+time echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | claude-statusline > /dev/null
 
-# Test subsequent runs (cache hit)
-echo "Subsequent runs (cache hit):"
-for i in {1..5}; do
-    time echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | /path/to/claude-statusline > /dev/null
-done
+# Cache hit (subsequent runs)
+time echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | claude-statusline > /dev/null
 ```
+
+See the [Performance Guide](guide-003-performance.md) for expected numbers per runtime.
 
 ## Getting Help
 
@@ -421,26 +359,29 @@ Date: $(date)
 User: $(whoami)
 System: $(uname -a)
 
-=== Script Information ===
+=== Installation ===
 Path: $(which claude-statusline 2>/dev/null || echo "Not found")
-Version: $(claude-statusline --version 2>/dev/null || echo "Unknown")
-Permissions: $(ls -la /path/to/claude-statusline)
+Permissions: $(ls -la "$(which claude-statusline 2>/dev/null)" 2>/dev/null || echo "N/A")
 
 === Environment ===
 Shell: $SHELL
 Terminal: $TERM
+COLUMNS: $COLUMNS
 Claude Statusline Variables:
   CLAUDE_CODE_STATUSLINE_NO_EMOJI: $CLAUDE_CODE_STATUSLINE_NO_EMOJI
   CLAUDE_CODE_STATUSLINE_NO_GITSTATUS: $CLAUDE_CODE_STATUSLINE_NO_GITSTATUS
   CLAUDE_CODE_STATUSLINE_ENV_CONTEXT: $CLAUDE_CODE_STATUSLINE_ENV_CONTEXT
-  CLAUDE_CODE_STATUSLINE_TRUNCATE: $CLAUDE_CODE_STATUSLINE_TRUNCATE
-  CLAUDE_STATUSLINE_LOG_LEVEL: $CLAUDE_STATUSLINE_LOG_LEVEL
+  CLAUDE_CODE_STATUSLINE_NERD_FONT: $CLAUDE_CODE_STATUSLINE_NERD_FONT
+  NERD_FONT: $NERD_FONT
+
+=== Configuration ===
+Config File: $(ls claude-statusline.json claude-statusline.yaml ~/.claude/claude-statusline.json 2>/dev/null || echo "None found")
+$(cat claude-statusline.json 2>/dev/null || cat ~/.claude/claude-statusline.json 2>/dev/null || echo "No config file")
 
 === Git Status ===
 Current Directory: $(pwd)
 Git Repository: $(git rev-parse --git-dir 2>/dev/null || echo "Not a git repository")
-Git Branch: $(git branch --show-current 2>/dev/null || echo "N/A")
-Git Status: $(git status --porcelain 2>/dev/null | wc -l) changes
+Git Branch: $(git branch --show-current 2>/dev/null || echo "N/A (possibly detached HEAD)")
 
 === Tool Availability ===
 Node.js: $(command -v node >/dev/null && node --version || echo "Not found")
@@ -449,11 +390,11 @@ Docker: $(command -v docker >/dev/null && docker --version || echo "Not found")
 
 === Cache Status ===
 Cache Directory: /tmp/.claude-statusline-cache/
-Cache Contents: $(ls -la /tmp/.claude-statusline-cache/ 2>/dev/null || echo "No cache directory")
+Cache Contents: $(ls /tmp/.claude-statusline-cache/ 2>/dev/null | wc -l | tr -d ' ') files
 
 === Test Run ===
-Test Output:
-$(echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | /path/to/claude-statusline 2>&1)
+Self-test Output:
+$(claude-statusline --self-test 2>&1)
 EOF
 
 echo "Debug report saved to debug_report.txt"
@@ -469,9 +410,9 @@ When reporting issues, include:
 
 ### Community Support
 
-- **GitHub Issues**: https://github.com/yourusername/claude-statusline/issues
-- **Discussions**: https://github.com/yourusername/claude-statusline/discussions
-- **Documentation**: https://github.com/yourusername/claude-statusline/blob/main/docs/README.md
+- **GitHub Issues**: https://github.com/shrwnsan/claude-statusline/issues
+- **Discussions**: https://github.com/shrwnsan/claude-statusline/discussions
+- **Documentation**: https://github.com/shrwnsan/claude-statusline/blob/main/docs/README.md
 
 ---
 
