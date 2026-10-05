@@ -86,3 +86,10 @@ describe('formatEffortSuffix', () => {
     assert.strictEqual(formatEffortSuffix({ level: '' }), '');
   });
 });
+
+describe('formatModes PRD-005 dedupe contract', () => {
+  it('renders no effort token when the call site strips effort', () => {
+    const modes = { effort: { level: 'high' }, thinking: { enabled: true } };
+    assert.strictEqual(formatModes({ ...modes, effort: undefined }), ' [thk]');
+  });
+});

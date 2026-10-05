@@ -434,11 +434,16 @@ async function buildStatusline(params: {
   // PRD-004 C3: opt-in rate-limit windows from stdin rate_limits.*
   const rateSegment = config.rateLimit ? formatRateLimit(rateLimits) : '';
 
-  // PRD-004 C4: opt-in mode indicators (effort/thinking/vim/fast/agent/style)
-  const modesSegment = config.modeIndicators ? formatModes(modes) : '';
+  // PRD-004 C4: opt-in mode indicators (thinking/vim/fast/agent/style).
+  // PRD-005: effort renders as `·<level>` on the model name; strip it from the
+  // bracket so it never shows twice. The suffix renders exactly when a level
+  // exists, so the bracket can never carry effort after this change.
+  const effortSuffix = formatEffortSuffix(modes?.effort);
+  const modesForBracket = effortSuffix ? { ...modes, effort: undefined } : modes;
+  const modesSegment = config.modeIndicators ? formatModes(modesForBracket) : '';
 
   // Build model string
-  const modelString = `${symbols.model}${modelName}${envContext}${contextUsage}${overLimit}${prSegment}${costSegment}${rateSegment}${modesSegment}`;
+  const modelString = `${symbols.model}${modelName}${effortSuffix}${envContext}${contextUsage}${overLimit}${prSegment}${costSegment}${rateSegment}${modesSegment}`;
 
   // Initial statusline
   let statusline = `${vpnIndicator}${projectName}${gitStatus} ${modelString}`;
