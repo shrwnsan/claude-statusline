@@ -94,7 +94,7 @@ Five segments are off by default and read from the stdin payload Claude Code sen
 | **`"prBadge"`** | `CLAUDE_CODE_STATUSLINE_PR_BADGE=1` | ` #27[A]` — PR number plus review state (`[A]`pproved, `*` pending, `x` changes requested, `-` draft); only while a PR or MR is open |
 | **`"costUsage"`** | `CLAUDE_CODE_STATUSLINE_COST_USAGE=1` | ` ~$1.23` — client-side estimate from `cost.total_cost_usd`, not a billing figure |
 | **`"rateLimit"`** | `CLAUDE_CODE_STATUSLINE_RATE_LIMIT=1` | ` 5h:42% 7d:12%` — usage windows; requires claude.ai Pro/Max limits or a gateway spend limit in the payload |
-| **`"modeIndicators"`** | `CLAUDE_CODE_STATUSLINE_MODE_INDICATORS=1` | ` [hgh·thk]` — effort level, thinking, vim mode, fast mode, agent, output style |
+| **`"modeIndicators"`** | `CLAUDE_CODE_STATUSLINE_MODE_INDICATORS=1` | ` [thk·fast]` — thinking, vim mode, fast mode, agent, output style (effort always shows as `·high` after the model name) |
 | **`"contextTokens"`** | `CLAUDE_CODE_STATUSLINE_CONTEXT_TOKENS=1` | ` ≈25% ~50k/200k` — absolute context tokens appended to the used percentage |
 
 ### VPN Status Indicator
