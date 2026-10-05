@@ -245,6 +245,12 @@ export interface ModesInput {
   output_style?: { name: string } | undefined;
 }
 
+/** PRD-005: `·<level>` chip rendered directly after the model name; raw payload value. */
+export function formatEffortSuffix(effort?: { level?: string }): string {
+  if (!effort?.level) return '';
+  return `·${effort.level}`;
+}
+
 const EFFORT_TOKEN: Record<string, string> = {
   low: 'lo',
   medium: 'me',
