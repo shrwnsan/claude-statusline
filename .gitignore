@@ -50,3 +50,5 @@ dist/
 build/
 *.tgz
 *.tar.gz
+# Bun local lockfile (package-lock.json is canonical)
+bun.lock
