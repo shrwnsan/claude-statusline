@@ -122,9 +122,9 @@ function loadConfigFile(cwd: string): Partial<Config> {
       if (existsSync(configPath)) {
         try {
           const content = readFileSync(configPath, 'utf-8');
-          return (filename.endsWith('.json')
-            ? JSON.parse(content)
-            : parseYaml(content)) as Partial<Config>;
+          return (
+            filename.endsWith('.json') ? JSON.parse(content) : parseYaml(content)
+          ) as Partial<Config>;
         } catch (err) {
           console.warn(
             `[WARNING] Failed to parse ${configPath}:`,
@@ -143,9 +143,9 @@ function loadConfigFile(cwd: string): Partial<Config> {
     if (existsSync(configPath)) {
       try {
         const content = readFileSync(configPath, 'utf-8');
-        return (filename.endsWith('.json')
-          ? JSON.parse(content)
-          : parseYaml(content)) as Partial<Config>;
+        return (
+          filename.endsWith('.json') ? JSON.parse(content) : parseYaml(content)
+        ) as Partial<Config>;
       } catch (err) {
         console.warn(
           `[WARNING] Failed to parse ${configPath}:`,
