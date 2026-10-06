@@ -8,7 +8,6 @@ import { Config } from './config.js';
  * Ported from bash implementation with Node.js optimizations
  */
 
-
 /**
  * Cache wrapper that handles TTL and file operations
  */
@@ -86,10 +85,13 @@ export class Cache {
       } catch {
         return dataContent as T;
       }
-
     } catch (error) {
       // Any error reading cache should result in cache miss
-      console.debug('[DEBUG] Cache read error for key:', key, error instanceof Error ? error.message : String(error));
+      console.debug(
+        '[DEBUG] Cache read error for key:',
+        key,
+        error instanceof Error ? error.message : String(error)
+      );
       return null;
     }
   }
@@ -122,9 +124,12 @@ export class Cache {
       ]);
 
       return true;
-
     } catch (error) {
-      console.warn('[WARNING] Failed to write cache for key:', key, error instanceof Error ? error.message : String(error));
+      console.warn(
+        '[WARNING] Failed to write cache for key:',
+        key,
+        error instanceof Error ? error.message : String(error)
+      );
       return false;
     }
   }
@@ -147,14 +152,15 @@ export class Cache {
     try {
       const { unlink } = await import('fs/promises');
 
-      await Promise.allSettled([
-        unlink(cachePath),
-        unlink(timestampPath),
-      ]);
+      await Promise.allSettled([unlink(cachePath), unlink(timestampPath)]);
 
       return true;
     } catch (error) {
-      console.warn('[WARNING] Failed to delete cache for key:', key, error instanceof Error ? error.message : String(error));
+      console.warn(
+        '[WARNING] Failed to delete cache for key:',
+        key,
+        error instanceof Error ? error.message : String(error)
+      );
       return false;
     }
   }
@@ -193,13 +199,14 @@ export class Cache {
       const { readdir, unlink } = await import('fs/promises');
       const files = await readdir(this.config.cacheDir);
 
-      await Promise.allSettled(
-        files.map(file => unlink(join(this.config.cacheDir, file)))
-      );
+      await Promise.allSettled(files.map(file => unlink(join(this.config.cacheDir, file))));
 
       return true;
     } catch (error) {
-      console.warn('[WARNING] Failed to clear cache:', error instanceof Error ? error.message : String(error));
+      console.warn(
+        '[WARNING] Failed to clear cache:',
+        error instanceof Error ? error.message : String(error)
+      );
       return false;
     }
   }
@@ -230,7 +237,10 @@ export class Cache {
 
       return { total: cacheFiles, size: totalSize };
     } catch (error) {
-      console.warn('[WARNING] Failed to get cache stats:', error instanceof Error ? error.message : String(error));
+      console.warn(
+        '[WARNING] Failed to get cache stats:',
+        error instanceof Error ? error.message : String(error)
+      );
       return { total: 0, size: 0 };
     }
   }
@@ -287,9 +297,12 @@ export async function cachedCommand(
     }
 
     return result;
-
   } catch (error) {
-    console.debug('[DEBUG] Command execution failed:', command, error instanceof Error ? error.message : String(error));
+    console.debug(
+      '[DEBUG] Command execution failed:',
+      command,
+      error instanceof Error ? error.message : String(error)
+    );
     return null;
   }
 }

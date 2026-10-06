@@ -92,7 +92,13 @@ export async function detectSymbols(config: Config): Promise<SymbolSet> {
  * Get environment symbols from the resolved symbol set.
  * No longer hardcodes Nerd Font PUA characters — respects ASCII mode.
  */
-export function getEnvironmentSymbols(symbolSet: SymbolSet): { node: string; python: string; docker: string; git: string; model: string } {
+export function getEnvironmentSymbols(symbolSet: SymbolSet): {
+  node: string;
+  python: string;
+  docker: string;
+  git: string;
+  model: string;
+} {
   return {
     node: symbolSet.node,
     python: symbolSet.python,

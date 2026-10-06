@@ -21,15 +21,15 @@ export async function executeGitCommand(
     let stdout = '';
     let stderr = '';
 
-    git.stdout.on('data', (data) => {
+    git.stdout.on('data', data => {
       stdout += data.toString();
     });
 
-    git.stderr.on('data', (data) => {
+    git.stderr.on('data', data => {
       stderr += data.toString();
     });
 
-    git.on('close', (code) => {
+    git.on('close', code => {
       if (code === 0) {
         resolve(stdout);
       } else {
@@ -37,7 +37,7 @@ export async function executeGitCommand(
       }
     });
 
-    git.on('error', (error) => {
+    git.on('error', error => {
       reject(new Error(`Failed to execute git command: ${error.message}`));
     });
   });

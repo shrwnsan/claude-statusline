@@ -11,7 +11,13 @@ import { validateInput, validateDirectory } from './core/security.js';
 import { Cache } from './core/cache.js';
 import { GitOperations } from './git/status.js';
 import { detectSymbols, getEnvironmentSymbols, SymbolSet } from './ui/symbols.js';
-import { getTerminalWidth, truncateText, smartTruncate, debugWidthDetection, getStringDisplayWidth } from './ui/width.js';
+import {
+  getTerminalWidth,
+  truncateText,
+  smartTruncate,
+  debugWidthDetection,
+  getStringDisplayWidth,
+} from './ui/width.js';
 import { EnvironmentDetector, EnvironmentFormatter } from './env/context.js';
 
 /** PRD-004 C1: PR metadata from stdin. */
@@ -94,7 +100,7 @@ export async function main(injected?: ClaudeInput): Promise<void> {
     const config = loadConfig();
 
     // Read input from stdin (or use injected input for testing)
-    input = injected ?? await readInput();
+    input = injected ?? (await readInput());
     if (!input) {
       process.exit(0);
     }
@@ -135,7 +141,8 @@ export async function main(injected?: ClaudeInput): Promise<void> {
           output_style: input.output_style,
         },
         exceeds200k: input.exceeds_200k_tokens,
-      }));
+      })
+    );
   } catch (error) {
     console.error('[ERROR]', error instanceof Error ? error.message : String(error));
     process.stdout.write(renderMinimal(input));
@@ -156,14 +163,22 @@ async function readInput(): Promise<ClaudeInput | null> {
     const parsed = JSON.parse(trimmed);
     return parsed as ClaudeInput;
   } catch (error) {
-    throw new Error(`Failed to read or parse input: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(
+      `Failed to read or parse input: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 }
 
 /**
  * Extract directory and model name from Claude input
  */
-function extractInputInfo(input: ClaudeInput): { fullDir: string; modelName: string; contextWindow?: ClaudeInput['context_window']; repoName?: string | undefined; worktreeName?: string | undefined } {
+function extractInputInfo(input: ClaudeInput): {
+  fullDir: string;
+  modelName: string;
+  contextWindow?: ClaudeInput['context_window'];
+  repoName?: string | undefined;
+  worktreeName?: string | undefined;
+} {
   const fullDir = input.workspace?.current_dir || '';
   const modelName = input.model?.display_name || 'Unknown';
   const contextWindow = input.context_window;
@@ -195,7 +210,10 @@ export function splitProjectSlot(slot: string, wtSymbol: string): { name: string
   return { name: slot.slice(0, idx), tag: slot.slice(idx + 1) };
 }
 
-export function resolveBranch(p: { gitBranch: string; worktreeBranch?: string | undefined }): string {
+export function resolveBranch(p: {
+  gitBranch: string;
+  worktreeBranch?: string | undefined;
+}): string {
   return p.worktreeBranch ? p.worktreeBranch : p.gitBranch; // PRD-004 B1; `?` guards empty string
 }
 
@@ -287,15 +305,26 @@ export function formatTokenCount(n?: number): string {
 /** PRD-004 D1: docs semantics — used_percentage preferred (input-only),
  *  remaining_percentage fallback, current_usage fallback, null = no render.
  *  D3: opts.contextTokens appends ` ~used/size` absolute counts. */
-export function formatContextUsage(cw: ContextWindowInput | undefined, symbol: string, opts?: { contextTokens?: boolean }): string {
+export function formatContextUsage(
+  cw: ContextWindowInput | undefined,
+  symbol: string,
+  opts?: { contextTokens?: boolean }
+): string {
   if (!cw) return '';
   let used: number | undefined = cw.used_percentage ?? undefined;
-  if (used === undefined && cw.remaining_percentage !== undefined && cw.remaining_percentage !== null) {
+  if (
+    used === undefined &&
+    cw.remaining_percentage !== undefined &&
+    cw.remaining_percentage !== null
+  ) {
     used = 100 - cw.remaining_percentage;
   }
   if (used === undefined && cw.current_usage && cw.context_window_size) {
     const { input_tokens, cache_creation_input_tokens, cache_read_input_tokens } = cw.current_usage;
-    used = ((input_tokens + cache_creation_input_tokens + cache_read_input_tokens) / cw.context_window_size) * 100;
+    used =
+      ((input_tokens + cache_creation_input_tokens + cache_read_input_tokens) /
+        cw.context_window_size) *
+      100;
   }
   if (used === undefined || used === null || isNaN(used)) return '';
   let out = ` ${symbol}${Math.round(used)}%`;
@@ -319,7 +348,7 @@ const OVER_LIMIT_THRESHOLD = 200_000;
 export function shouldShowOverLimit(
   exceeds: boolean | undefined,
   windowSize: number | undefined,
-  mode: 'auto' | 'always' | 'never',
+  mode: 'auto' | 'always' | 'never'
 ): boolean {
   if (!exceeds || mode === 'never') return false;
   if (mode === 'always') return true;
@@ -374,11 +403,19 @@ async function buildStatusline(params: {
   } = params;
 
   // PRD-004 B3: repo identity wins over dirname; worktree tag appended
-  const projectName = formatProjectSlot({ repoName, currentDir: fullDir, worktreeName, wtSymbol: symbols.worktree });
+  const projectName = formatProjectSlot({
+    repoName,
+    currentDir: fullDir,
+    worktreeName,
+    wtSymbol: symbols.worktree,
+  });
 
   // Managed worktree sessions report their own branch; override display only
   const displayGitInfo = gitInfo
-    ? { ...gitInfo, branch: resolveBranch({ gitBranch: gitInfo.branch, worktreeBranch: worktree?.branch }) }
+    ? {
+        ...gitInfo,
+        branch: resolveBranch({ gitBranch: gitInfo.branch, worktreeBranch: worktree?.branch }),
+      }
     : gitInfo;
 
   // Build VPN indicator (shown before project name when enabled)
@@ -410,13 +447,15 @@ async function buildStatusline(params: {
   // Build context window usage string
   let contextUsage = '';
   if (contextWindow && !config.noContextWindow) {
-    contextUsage = formatContextUsage(contextWindow, symbols.contextWindow, { contextTokens: config.contextTokens });
+    contextUsage = formatContextUsage(contextWindow, symbols.contextWindow, {
+      contextTokens: config.contextTokens,
+    });
   }
 
   // PRD-004 D2: over-limit warning right after the context segment
   const overLimit = formatOverLimit(
     shouldShowOverLimit(exceeds200k, contextWindow?.context_window_size, config.overLimitWarning),
-    symbols.overLimit,
+    symbols.overLimit
   );
 
   // PRD-004 C1: opt-in PR badge from stdin pr.* fields
@@ -458,7 +497,6 @@ async function buildStatusline(params: {
   return statusline;
 }
 
-
 /**
  * Apply smart truncation with branch prioritization
  */
@@ -471,7 +509,8 @@ export function applySmartTruncation(params: {
   config: Config;
   symbols: SymbolSet;
 }): string {
-  const { statusline, projectName, gitStatus, modelString, terminalWidth, config, symbols } = params;
+  const { statusline, projectName, gitStatus, modelString, terminalWidth, config, symbols } =
+    params;
 
   // Use 15-char margin for Claude telemetry compatibility
   const maxLen = Math.max(terminalWidth - config.rightMargin, 30);
@@ -516,7 +555,6 @@ export function applySmartTruncation(params: {
   return truncateText(fallbackLine, maxLen);
 }
 
-
 /**
  * Wrap model string to second line if it exceeds maxWidth.
  * Measures by display width (not .length) so multi-byte icons/CJK are accurate.
@@ -544,7 +582,7 @@ async function render(
     rateLimits?: ClaudeInput['rate_limits'];
     modes?: ModesInput;
     exceeds200k?: boolean | undefined;
-  },
+  }
 ): Promise<string> {
   config = config ?? loadConfig();
   const cache = new Cache(config);
@@ -606,15 +644,28 @@ async function runSelfTest(demo: boolean): Promise<void> {
       git_worktree: 'cs-wt-demo',
     },
     worktree: {
-      name: 'cs-wt-demo', path: '/tmp/cs-wt-demo', branch: 'demo/wt-feature',
-      original_cwd: '/tmp/claude-statusline', original_branch: 'main',
+      name: 'cs-wt-demo',
+      path: '/tmp/cs-wt-demo',
+      branch: 'demo/wt-feature',
+      original_cwd: '/tmp/claude-statusline',
+      original_branch: 'main',
     },
   } as unknown as ClaudeInput;
 
   const fullPayloadInput = {
     ...mockInput,
-    pr: { number: 27, url: 'https://github.com/shrwnsan/claude-statusline/pull/27', review_state: 'approved' },
-    cost: { total_cost_usd: 1.2344, total_duration_ms: 0, total_api_duration_ms: 0, total_lines_added: 0, total_lines_removed: 0 },
+    pr: {
+      number: 27,
+      url: 'https://github.com/shrwnsan/claude-statusline/pull/27',
+      review_state: 'approved',
+    },
+    cost: {
+      total_cost_usd: 1.2344,
+      total_duration_ms: 0,
+      total_api_duration_ms: 0,
+      total_lines_added: 0,
+      total_lines_removed: 0,
+    },
     rate_limits: { five_hour: { used_percentage: 42 }, seven_day: { used_percentage: 12 } },
     effort: { level: 'high' },
     thinking: { enabled: true },
@@ -624,11 +675,24 @@ async function runSelfTest(demo: boolean): Promise<void> {
 
   const presets: { label: string; configOverrides: Partial<Config>; input?: ClaudeInput }[] = [
     { label: 'ASCII (default)', configOverrides: { nerdFont: false, noEmoji: false } },
-    { label: 'ASCII + git + env', configOverrides: { nerdFont: false, noEmoji: false, envContext: true } },
+    {
+      label: 'ASCII + git + env',
+      configOverrides: { nerdFont: false, noEmoji: false, envContext: true },
+    },
     { label: 'Nerd Font', configOverrides: { nerdFont: true } },
     { label: 'Narrow terminal (40 cols)', configOverrides: { truncate: true, forceWidth: 40 } },
     { label: 'Worktree session', configOverrides: { nerdFont: false }, input: worktreeInput },
-    { label: 'All segments on', configOverrides: { nerdFont: false, prBadge: true, costUsage: true, rateLimit: true, modeIndicators: true }, input: fullPayloadInput },
+    {
+      label: 'All segments on',
+      configOverrides: {
+        nerdFont: false,
+        prBadge: true,
+        costUsage: true,
+        rateLimit: true,
+        modeIndicators: true,
+      },
+      input: fullPayloadInput,
+    },
   ];
 
   if (demo) {
@@ -657,13 +721,19 @@ async function runSelfTest(demo: boolean): Promise<void> {
             output_style: input.output_style,
           },
           exceeds200k: input.exceeds_200k_tokens,
-        });
+        }
+      );
       console.log(`\n── ${preset.label} ──`);
       console.log(output);
     }
   } else {
     const config = loadConfig();
-    const output = await render(mockInput.workspace.current_dir, mockInput.model.display_name, mockInput.context_window, config);
+    const output = await render(
+      mockInput.workspace.current_dir,
+      mockInput.model.display_name,
+      mockInput.context_window,
+      config
+    );
     process.stdout.write(output + '\n');
   }
 }

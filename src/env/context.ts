@@ -25,7 +25,7 @@ export class EnvironmentDetector {
     this.cache = cache;
   }
 
-    /**
+  /**
    * Get environment information if context is enabled
    */
   async getEnvironmentInfo(): Promise<EnvironmentInfo | null> {
@@ -93,13 +93,7 @@ export class EnvironmentDetector {
 
     try {
       // Method 1: node --version
-      let version = await cachedCommand(
-        this.cache,
-        cacheKey,
-        'node',
-        ['--version'],
-        envCacheTTL
-      );
+      let version = await cachedCommand(this.cache, cacheKey, 'node', ['--version'], envCacheTTL);
 
       if (version) {
         // Remove 'v' prefix and clean up
@@ -107,9 +101,11 @@ export class EnvironmentDetector {
       }
 
       return null;
-
     } catch (error) {
-      console.debug('[DEBUG] Failed to get Node.js version:', error instanceof Error ? error.message : String(error));
+      console.debug(
+        '[DEBUG] Failed to get Node.js version:',
+        error instanceof Error ? error.message : String(error)
+      );
       return null;
     }
   }
@@ -193,9 +189,11 @@ export class EnvironmentDetector {
       }
 
       return null;
-
     } catch (error) {
-      console.debug('[DEBUG] Failed to get Docker version:', error instanceof Error ? error.message : String(error));
+      console.debug(
+        '[DEBUG] Failed to get Docker version:',
+        error instanceof Error ? error.message : String(error)
+      );
       return null;
     }
   }
@@ -230,7 +228,10 @@ export class EnvironmentDetector {
         detected = /utun/i.test(nwi);
       }
     } catch (error) {
-      console.debug('[DEBUG] Failed to get VPN status:', error instanceof Error ? error.message : String(error));
+      console.debug(
+        '[DEBUG] Failed to get VPN status:',
+        error instanceof Error ? error.message : String(error)
+      );
       return null;
     }
 

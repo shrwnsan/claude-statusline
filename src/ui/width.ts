@@ -49,13 +49,17 @@ export async function debugWidthDetection(config: Config): Promise<void> {
 
   // Test environment variables
   const columnsEnv = process.env.COLUMNS;
-  console.error(`[WIDTH DEBUG] CLAUDE_CODE_STATUSLINE_FORCE_WIDTH: ${config.forceWidth || 'not set'}`);
+  console.error(
+    `[WIDTH DEBUG] CLAUDE_CODE_STATUSLINE_FORCE_WIDTH: ${config.forceWidth || 'not set'}`
+  );
   console.error(`[WIDTH DEBUG] COLUMNS variable: ${columnsEnv || 'not set'}`);
 
   // Show final result
   const finalWidth = await getTerminalWidth(config);
   console.error(`[WIDTH DEBUG] Final detected width: ${finalWidth}`);
-  console.error(`[WIDTH DEBUG] Statusline will use: ${finalWidth - config.rightMargin} columns max`);
+  console.error(
+    `[WIDTH DEBUG] Statusline will use: ${finalWidth - config.rightMargin} columns max`
+  );
 }
 
 /**
@@ -181,38 +185,39 @@ export function getStringDisplayWidth(str: string): number {
 
     // Wide character ranges (CJK, emoji, Nerd Font icons, etc.)
     // CJK Unified Ideographs
-    if (code >= 0x1100 && (
-      (code >= 0x1100 && code <= 0x115F) || // Hangul Jamo
-      (code >= 0x2E80 && code <= 0xA4CF) || // CJK和各种符号
-      (code >= 0xAC00 && code <= 0xD7A3) || // Hangul Syllables
-      (code >= 0xF900 && code <= 0xFAFF) || // CJK Compatibility Ideographs
-      (code >= 0xFE10 && code <= 0xFE19) || // Vertical forms
-      (code >= 0xFE30 && code <= 0xFE6F) || // CJK Compatibility Forms
-      (code >= 0xFF00 && code <= 0xFF60) || // Fullwidth Forms
-      (code >= 0xFFE0 && code <= 0xFFE6) ||
-      (code >= 0x20000 && code <= 0x2FFFD) ||
-      (code >= 0x30000 && code <= 0x3FFFD)
-    )) {
+    if (
+      code >= 0x1100 &&
+      ((code >= 0x1100 && code <= 0x115f) || // Hangul Jamo
+        (code >= 0x2e80 && code <= 0xa4cf) || // CJK和各种符号
+        (code >= 0xac00 && code <= 0xd7a3) || // Hangul Syllables
+        (code >= 0xf900 && code <= 0xfaff) || // CJK Compatibility Ideographs
+        (code >= 0xfe10 && code <= 0xfe19) || // Vertical forms
+        (code >= 0xfe30 && code <= 0xfe6f) || // CJK Compatibility Forms
+        (code >= 0xff00 && code <= 0xff60) || // Fullwidth Forms
+        (code >= 0xffe0 && code <= 0xffe6) ||
+        (code >= 0x20000 && code <= 0x2fffd) ||
+        (code >= 0x30000 && code <= 0x3fffd))
+    ) {
       width += 2;
     }
     // Emoji and various symbols (including Nerd Font icons in Private Use Area)
     else if (
-      (code >= 0x1F300 && code <= 0x1F9FF) || // Emoji
-      (code >= 0x2600 && code <= 0x27BF) ||   // Miscellaneous symbols
-      (code >= 0xFE00 && code <= 0xFE0F) ||   // Variation Selectors
-      (code >= 0x1F000 && code <= 0x1F02F) || // Mahjong tiles
-      (code >= 0xE000 && code <= 0xF8FF) ||   // Private Use Area (Nerd Font icons)
-      (code >= 0xF0000 && code <= 0xFFFFD) || // Supplementary Private Use Area-A
-      (code >= 0x100000 && code <= 0x10FFFD)  // Supplementary Private Use Area-B
+      (code >= 0x1f300 && code <= 0x1f9ff) || // Emoji
+      (code >= 0x2600 && code <= 0x27bf) || // Miscellaneous symbols
+      (code >= 0xfe00 && code <= 0xfe0f) || // Variation Selectors
+      (code >= 0x1f000 && code <= 0x1f02f) || // Mahjong tiles
+      (code >= 0xe000 && code <= 0xf8ff) || // Private Use Area (Nerd Font icons)
+      (code >= 0xf0000 && code <= 0xffffd) || // Supplementary Private Use Area-A
+      (code >= 0x100000 && code <= 0x10fffd) // Supplementary Private Use Area-B
     ) {
       width += 2;
     }
     // Combining characters (zero width)
     else if (
-      (code >= 0x0300 && code <= 0x036F) ||   // Combining diacritical marks
-      (code >= 0x1DC0 && code <= 0x1DFF) ||   // Combining diacritical marks extended
-      (code >= 0x20D0 && code <= 0x20FF) ||   // Combining marks for symbols
-      (code >= 0xFE20 && code <= 0xFE2F)      // Combining half marks
+      (code >= 0x0300 && code <= 0x036f) || // Combining diacritical marks
+      (code >= 0x1dc0 && code <= 0x1dff) || // Combining diacritical marks extended
+      (code >= 0x20d0 && code <= 0x20ff) || // Combining marks for symbols
+      (code >= 0xfe20 && code <= 0xfe2f) // Combining half marks
     ) {
       // Zero width, don't increment
     }
@@ -223,4 +228,3 @@ export function getStringDisplayWidth(str: string): number {
   }
   return width;
 }
-

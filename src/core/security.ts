@@ -105,7 +105,12 @@ export function validatePath(path: string): boolean {
     }
 
     // Check for absolute paths that might be suspicious
-    if (normalized.startsWith('/') && !normalized.startsWith('/home/') && !normalized.startsWith('/Users/') && !normalized.startsWith('/tmp/')) {
+    if (
+      normalized.startsWith('/') &&
+      !normalized.startsWith('/home/') &&
+      !normalized.startsWith('/Users/') &&
+      !normalized.startsWith('/tmp/')
+    ) {
       // Allow common safe absolute paths but be cautious
       const safeRoots = ['/home', '/Users', '/tmp', '/var', '/opt'];
       const isSafeRoot = safeRoots.some(root => normalized.startsWith(root));
@@ -122,7 +127,6 @@ export function validatePath(path: string): boolean {
         return false;
       }
     }
-
   } catch {
     return false;
   }
