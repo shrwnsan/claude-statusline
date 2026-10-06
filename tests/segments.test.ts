@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { formatCost, formatModes, formatPrBadge, formatRateLimit } from '../dist/index.js';
+import { formatCost, formatEffortSuffix, formatModes, formatPrBadge, formatRateLimit } from '../dist/index.js';
 
 describe('formatPrBadge', () => {
   it('renders number + state token', () => {
@@ -66,5 +66,30 @@ describe('formatModes', () => {
   it('empty vim.mode renders no orphan bracket', () => {
     assert.strictEqual(formatModes({ vim: { mode: '' } }), '');
     assert.strictEqual(formatModes({ vim: { mode: '' }, effort: { level: 'high' } }), ' [hgh]');
+  });
+});
+
+describe('formatEffortSuffix', () => {
+  it('renders ·<level> for the raw payload value', () => {
+    assert.strictEqual(formatEffortSuffix({ level: 'low' }), '·low');
+    assert.strictEqual(formatEffortSuffix({ level: 'medium' }), '·medium');
+    assert.strictEqual(formatEffortSuffix({ level: 'high' }), '·high');
+    assert.strictEqual(formatEffortSuffix({ level: 'xhigh' }), '·xhigh');
+    assert.strictEqual(formatEffortSuffix({ level: 'max' }), '·max');
+  });
+  it('passes unknown levels through verbatim', () => {
+    assert.strictEqual(formatEffortSuffix({ level: 'ultra' }), '·ultra');
+  });
+  it('returns empty when absent, empty object, or empty level', () => {
+    assert.strictEqual(formatEffortSuffix(undefined), '');
+    assert.strictEqual(formatEffortSuffix({}), '');
+    assert.strictEqual(formatEffortSuffix({ level: '' }), '');
+  });
+});
+
+describe('formatModes PRD-005 dedupe contract', () => {
+  it('renders no effort token when the call site strips effort', () => {
+    const modes = { effort: { level: 'high' }, thinking: { enabled: true } };
+    assert.strictEqual(formatModes({ ...modes, effort: undefined }), ' [thk]');
   });
 });

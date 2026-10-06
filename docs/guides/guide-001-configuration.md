@@ -100,7 +100,7 @@ Both configurations work perfectly. The Bun runtime is 5x faster but requires Bu
 | `prBadge` | boolean | `false` | Show PR badge from stdin `pr.*` fields |
 | `costUsage` | boolean | `false` | Show `~cost` estimate from stdin `cost.total_cost_usd` |
 | `rateLimit` | boolean | `false` | Show rate-limit windows from stdin `rate_limits.*` |
-| `modeIndicators` | boolean | `false` | Show mode indicators (effort/thinking/vim/fast/agent/style) |
+| `modeIndicators` | boolean | `false` | Show mode indicators (thinking/vim/fast/agent/style; effort always renders as `·<level>` after the model name, not here) |
 | `contextTokens` | boolean | `false` | Append `~used/total` absolute context tokens |
 | `overLimitWarning` | string | `"auto"` | Exceeds-200k marker: `auto` (only on windows ≤ 200k), `always`, or `never` |
 | `debugWidth` | boolean | `false` | Show terminal width detection debug info |

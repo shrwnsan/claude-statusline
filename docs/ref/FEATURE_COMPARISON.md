@@ -54,7 +54,7 @@ Features introduced by the Claude Code 2026 modernization (PRD-004):
 
 | Feature | Description |
 |---------|-------------|
-| **5 opt-in segments** | `prBadge` (` #27[A]`), `costUsage` (` ~$1.23`), `rateLimit` (` 5h:42% 7d:12%`), `modeIndicators` (` [hgh·thk]`), `contextTokens` (` ~NNk/Nk`) — all default off |
+| **5 opt-in segments + effort chip** | `prBadge` (` #27[A]`), `costUsage` (` ~$1.23`), `rateLimit` (` 5h:42% 7d:12%`), `modeIndicators` (` [thk·fast]`), `contextTokens` (` ~NNk/Nk`) — all default off; plus always-on `·<level>` effort chip after the model name |
 | **`overLimitWarning`** | Gated exceeds-200k marker: `auto` (only on windows ≤ 200k), `always`, or `never` |
 | **Worktree-aware project slot** | Managed worktree sessions show the repo name plus a `wt` tag; the worktree's branch overrides the displayed branch |
 | **Detached-HEAD oid** | Detached HEAD shows the short commit oid instead of a branch name |
