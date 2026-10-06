@@ -53,7 +53,7 @@ export function validateInput(input: string, config: Config): boolean {
   }
 
   // Quote validation - must have balanced quotes
-  const quoteCount = (cleanedInput.match(/"/g) || []).length;
+  const quoteCount = (cleanedInput.match(/"/g) ?? []).length;
   if (quoteCount === 0 || quoteCount % 2 !== 0) {
     return false;
   }
@@ -105,7 +105,12 @@ export function validatePath(path: string): boolean {
     }
 
     // Check for absolute paths that might be suspicious
-    if (normalized.startsWith('/') && !normalized.startsWith('/home/') && !normalized.startsWith('/Users/') && !normalized.startsWith('/tmp/')) {
+    if (
+      normalized.startsWith('/') &&
+      !normalized.startsWith('/home/') &&
+      !normalized.startsWith('/Users/') &&
+      !normalized.startsWith('/tmp/')
+    ) {
       // Allow common safe absolute paths but be cautious
       const safeRoots = ['/home', '/Users', '/tmp', '/var', '/opt'];
       const isSafeRoot = safeRoots.some(root => normalized.startsWith(root));
@@ -122,7 +127,6 @@ export function validatePath(path: string): boolean {
         return false;
       }
     }
-
   } catch {
     return false;
   }
@@ -140,6 +144,7 @@ export function sanitizeString(input: string, maxLength: number = 200): string {
   }
 
   // Remove control characters except common safe ones
+  // eslint-disable-next-line no-control-regex -- matching control characters is this sanitizer's purpose
   let sanitized = input.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
   // Limit length

@@ -70,16 +70,27 @@ bun run lint
 # Performance benchmark
 bun run benchmark
 # or npm run benchmark
+
+# CI gate (mirrors .github/workflows/ci.yml — PRs cannot merge red)
+npm ci && npm run lint && npm run build && npm run build:bundle && npm test
 ```
 
 ## Critical Agent Reminders
+
+### CI Requirements
+- `npm run lint` must exit 0 before pushing — the CI job gates `main` as a
+  required status check.
+- The pre-commit hook (`.githooks/pre-commit`, opt-in via
+  `git config core.hooksPath .githooks`) lints staged `.ts` files only.
+- CI runs on Node 24 (the shipped runtime; `bin/claude-statusline` is
+  `#!/usr/bin/env node`). Bun remains the local dev accelerator.
 
 ### Script Modification Protocol
 **MANDATORY**: After any changes to `claude-statusline.sh`, always run comprehensive tests:
 
 ```bash
-# 1. Syntax validation
-bash -n ./claude-statusline.sh
+# 1. Syntax validation (bin wrapper is a Node ESM script, not bash)
+node --check ./bin/claude-statusline
 
 # 2. Basic functionality test
 echo '{"workspace":{"current_dir":"'"$PWD"'"},"model":{"display_name":"Test"}}' | ./claude-statusline.sh
@@ -268,7 +279,7 @@ gh release create vX.Y.Z --title "vX.Y.Z: Description" --notes "Release notes" c
 ## Emergency Procedures
 
 ### Script Not Working
-1. Check syntax with `bash -n ./claude-statusline.sh`
+1. Check syntax with `node --check ./bin/claude-statusline`
 2. Test manually with sample input
 3. Verify script permissions
 4. Check for missing dependencies

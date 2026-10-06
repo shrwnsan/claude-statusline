@@ -17,8 +17,7 @@ interface RuntimeInfo {
 export function detectRuntime(): RuntimeInfo {
   // Check for Bun
   if (typeof globalThis !== 'undefined' && 'Bun' in globalThis) {
-    // @ts-ignore - Bun is a global when running in Bun runtime
-    const bunVersion = (globalThis as any).Bun?.version || 'unknown';
+    const bunVersion = (globalThis as { Bun?: { version?: string } }).Bun?.version ?? 'unknown';
     return {
       runtime: 'bun',
       version: bunVersion,
@@ -28,7 +27,7 @@ export function detectRuntime(): RuntimeInfo {
   }
 
   // Check for Node.js
-  if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+  if (typeof process !== 'undefined' && process.versions?.node) {
     return {
       runtime: 'node',
       version: process.versions.node,
@@ -76,7 +75,7 @@ export function getPerformanceRecommendations(): string[] {
 
   if (runtime === 'node') {
     recommendations.push('Consider using Bun runtime for 42% better performance');
-    const majorVersion = parseInt(version.split('.')[0] || '0');
+    const majorVersion = parseInt(version.split('.')[0] ?? '0');
     if (majorVersion < 20) {
       recommendations.push('Upgrade to Node.js 20+ for better performance');
     }

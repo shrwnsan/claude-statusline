@@ -80,7 +80,10 @@ export class GitOperations {
       await this.cache.pruneGitStatus(5);
       return info;
     } catch (error) {
-      console.debug('[DEBUG] Git operation failed:', error instanceof Error ? error.message : String(error));
+      console.debug(
+        '[DEBUG] Git operation failed:',
+        error instanceof Error ? error.message : String(error)
+      );
       return null;
     }
   }
