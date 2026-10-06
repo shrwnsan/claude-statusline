@@ -46,6 +46,23 @@ npm run build
 - Add tests for new functionality
 - Update documentation if needed
 
+## CI
+
+Every pull request runs a single Node 24 job (`.github/workflows/ci.yml`):
+`npm ci` → `npm run lint` → `npm run build` → `npm run build:bundle` → `npm test`.
+The job is a required status check on `main` — PRs cannot merge red.
+
+### Pre-commit hook (optional)
+
+Lint staged TypeScript files before each commit (takes ~1s):
+
+```sh
+git config core.hooksPath .githooks
+```
+
+The hook runs eslint only on files you actually staged, so it never blocks
+unrelated work. It is opt-in per clone; CI remains the enforcement layer.
+
 ## License
 
 By contributing, you agree to license your work under the same [Apache 2.0](./LICENSE) license.

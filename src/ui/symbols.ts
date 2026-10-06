@@ -76,6 +76,7 @@ const NERD_FONT_SYMBOLS: SymbolSet = {
  * Detect and return the appropriate symbol set based on config.
  * Nerd Font is opt-in only — no auto-detection, no filesystem or shell calls.
  */
+// eslint-disable-next-line @typescript-eslint/require-await -- Promise-shaped API shared with the render() operations array
 export async function detectSymbols(config: Config): Promise<SymbolSet> {
   const base = config.nerdFont && !config.noEmoji ? NERD_FONT_SYMBOLS : ASCII_SYMBOLS;
   const overrides = config.nerdFont && !config.noEmoji ? config.symbols : config.asciiSymbols;
@@ -92,7 +93,13 @@ export async function detectSymbols(config: Config): Promise<SymbolSet> {
  * Get environment symbols from the resolved symbol set.
  * No longer hardcodes Nerd Font PUA characters — respects ASCII mode.
  */
-export function getEnvironmentSymbols(symbolSet: SymbolSet): { node: string; python: string; docker: string; git: string; model: string } {
+export function getEnvironmentSymbols(symbolSet: SymbolSet): {
+  node: string;
+  python: string;
+  docker: string;
+  git: string;
+  model: string;
+} {
   return {
     node: symbolSet.node,
     python: symbolSet.python,

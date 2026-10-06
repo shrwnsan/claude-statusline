@@ -1,0 +1,9 @@
+#!/bin/sh
+# Pre-commit: lint staged TypeScript files only.
+# Opt in per clone: git config core.hooksPath .githooks
+# (Not husky: husky's postinstall is skipped when npm ignore-scripts=true.)
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR -- '*.ts')
+[ -z "$staged" ] && exit 0
+
+printf '%s\n' "$staged" | xargs npx --no-install eslint --quiet
