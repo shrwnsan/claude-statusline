@@ -14,11 +14,12 @@ const DEFAULT_WIDTH = 80;
  * → fixed 80. `tput`/`stty` cannot work here: the statusline command runs
  * with captured output and no tty.
  */
+// eslint-disable-next-line @typescript-eslint/require-await -- Promise-shaped API shared with the render() operations array
 export async function getTerminalWidth(config: Config): Promise<number> {
   if (config.forceWidth && config.forceWidth > 0) {
     return config.forceWidth;
   }
-  const columnsEnv = parseInt(process.env.COLUMNS || '', 10);
+  const columnsEnv = parseInt(process.env.COLUMNS ?? '', 10);
   if (!isNaN(columnsEnv) && columnsEnv > 0) {
     return columnsEnv;
   }
@@ -50,9 +51,9 @@ export async function debugWidthDetection(config: Config): Promise<void> {
   // Test environment variables
   const columnsEnv = process.env.COLUMNS;
   console.error(
-    `[WIDTH DEBUG] CLAUDE_CODE_STATUSLINE_FORCE_WIDTH: ${config.forceWidth || 'not set'}`
+    `[WIDTH DEBUG] CLAUDE_CODE_STATUSLINE_FORCE_WIDTH: ${config.forceWidth ?? 'not set'}`
   );
-  console.error(`[WIDTH DEBUG] COLUMNS variable: ${columnsEnv || 'not set'}`);
+  console.error(`[WIDTH DEBUG] COLUMNS variable: ${columnsEnv ?? 'not set'}`);
 
   // Show final result
   const finalWidth = await getTerminalWidth(config);
@@ -130,7 +131,7 @@ export function smartTruncate(
   let indicators = '';
   const bracketMatch = gitInfo.match(/\[([^\]]+)\]/);
   if (bracketMatch) {
-    indicators = bracketMatch[1] || '';
+    indicators = bracketMatch[1] ?? '';
   }
 
   const indicatorsWidth = getStringDisplayWidth(indicators);

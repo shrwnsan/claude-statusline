@@ -13,19 +13,22 @@ export async function executeGitCommand(
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const git = spawn('git', args, {
+      // `||` is deliberate: '' cwd and 0 timeout must fall back to defaults.
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       cwd: options.cwd || process.cwd(),
       stdio: ['ignore', 'pipe', 'pipe'],
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       timeout: options.timeout || 5000,
     });
 
     let stdout = '';
     let stderr = '';
 
-    git.stdout.on('data', data => {
+    git.stdout.on('data', (data: Buffer) => {
       stdout += data.toString();
     });
 
-    git.stderr.on('data', data => {
+    git.stderr.on('data', (data: Buffer) => {
       stderr += data.toString();
     });
 

@@ -134,7 +134,7 @@ export class EnvironmentDetector {
         // Extract version number from "Python 3.x.y" format
         const versionMatch = version.match(/(\d+\.\d+\.\d+)/);
         if (versionMatch) {
-          return versionMatch[1] || null;
+          return versionMatch[1] ?? null;
         }
       }
     } catch {
@@ -155,7 +155,7 @@ export class EnvironmentDetector {
         // Extract version number from "Python 3.x.y" or "Python 2.x.y" format
         const versionMatch = version.match(/(\d+\.\d+\.\d+)/);
         if (versionMatch) {
-          return versionMatch[1] || null;
+          return versionMatch[1] ?? null;
         }
       }
     } catch {
@@ -184,7 +184,7 @@ export class EnvironmentDetector {
         // Extract version number from "Docker version 20.x.y" format
         const versionMatch = version.match(/Docker version (\d+\.\d+\.\d+)/);
         if (versionMatch) {
-          return versionMatch[1] || null;
+          return versionMatch[1] ?? null;
         }
       }
 
@@ -259,6 +259,8 @@ export class EnvironmentDetector {
    * Get shell environment information
    */
   getShellEnvironment(): { shell: string; shellVersion?: string } {
+    // `||` is deliberate: an empty SHELL env var means unset and must fall back.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shell = process.env.SHELL || 'unknown';
 
     // Try to extract shell version (basic implementation)
@@ -281,6 +283,8 @@ export class EnvironmentDetector {
   getOSInfo(): { platform: string; arch: string; release?: string } {
     const platform = process.platform;
     const arch = process.arch;
+    // `||` is deliberate: empty OSTYPE must fall through to OS.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const release = process.env.OSTYPE || process.env.OS;
 
     return release ? { platform, arch, release } : { platform, arch };

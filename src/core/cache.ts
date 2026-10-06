@@ -24,7 +24,7 @@ export class Cache {
   private async ensureCacheDir(): Promise<void> {
     try {
       await mkdir(this.config.cacheDir, { recursive: true, mode: 0o700 });
-    } catch (error) {
+    } catch {
       // Directory might already exist or we can't create it
       console.warn('[WARNING] Failed to create cache directory:', this.config.cacheDir);
     }

@@ -10,6 +10,7 @@ import { loadConfig, Config } from './core/config.js';
 import { validateInput, validateDirectory } from './core/security.js';
 import { Cache } from './core/cache.js';
 import { GitOperations } from './git/status.js';
+import type { GitInfo } from './git/status.js';
 import { detectSymbols, getEnvironmentSymbols, SymbolSet } from './ui/symbols.js';
 import {
   getTerminalWidth,
@@ -19,6 +20,7 @@ import {
   getStringDisplayWidth,
 } from './ui/width.js';
 import { EnvironmentDetector, EnvironmentFormatter } from './env/context.js';
+import type { EnvironmentInfo } from './env/context.js';
 
 /** PRD-004 C1: PR metadata from stdin. */
 export interface PrInfo {
@@ -153,6 +155,7 @@ export async function main(injected?: ClaudeInput): Promise<void> {
  * Read JSON input from stdin
  * Returns null if no input is provided (handles graceful degradation)
  */
+// eslint-disable-next-line @typescript-eslint/require-await -- async for stdin API symmetry with main(); body is sync readFileSync today
 async function readInput(): Promise<ClaudeInput | null> {
   try {
     const input = readFileSync(0, 'utf-8'); // Read from stdin (fd 0)
@@ -160,7 +163,7 @@ async function readInput(): Promise<ClaudeInput | null> {
     if (!trimmed) {
       return null; // No input provided
     }
-    const parsed = JSON.parse(trimmed);
+    const parsed: unknown = JSON.parse(trimmed);
     return parsed as ClaudeInput;
   } catch (error) {
     throw new Error(
@@ -197,7 +200,12 @@ export interface ProjectSlotParams {
 
 /** PRD-004 B2: repo identity wins over dirname; worktree tag appended. */
 export function formatProjectSlot(p: ProjectSlotParams): string {
+  // `||` is deliberate: a trailing separator yields an empty-string segment
+  // that must fall through to the next candidate (?? would keep '').
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
   const dirname = p.currentDir.split('/').pop() || p.currentDir.split('\\').pop() || 'project';
+  // `||` is deliberate: an empty-string repo.name must fall through to dirname.
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
   const name = p.repoName || dirname; // `||` guards empty-string repo.name too
   return p.worktreeName ? `${name} ${p.wtSymbol}${p.worktreeName}` : name;
 }
@@ -214,6 +222,9 @@ export function resolveBranch(p: {
   gitBranch: string;
   worktreeBranch?: string | undefined;
 }): string {
+  // Ternary is deliberate: an empty-string branch must fall through to the
+  // parent branch (?? would keep '').
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
   return p.worktreeBranch ? p.worktreeBranch : p.gitBranch; // PRD-004 B1; `?` guards empty string
 }
 
@@ -277,7 +288,7 @@ export function formatModes(m?: ModesInput): string {
   const t: string[] = [];
   if (m.effort) t.push(EFFORT_TOKEN[m.effort.level] ?? m.effort.level);
   if (m.thinking?.enabled) t.push('thk');
-  if (m.vim && m.vim.mode) t.push(m.vim.mode.charAt(0));
+  if (m.vim?.mode) t.push(m.vim.mode.charAt(0));
   if (m.fast_mode) t.push('fast');
   if (m.agent) t.push(`@${m.agent.name}`);
   if (m.output_style && m.output_style.name !== 'default') t.push(m.output_style.name);
@@ -363,12 +374,13 @@ export function formatOverLimit(exceeds: boolean | undefined, symbol: string): s
 /**
  * Build the complete statusline string
  */
+// eslint-disable-next-line @typescript-eslint/require-await -- Promise-shaped API: all current formatters are sync, call sites await uniformly
 async function buildStatusline(params: {
   fullDir: string;
   modelName: string;
   contextWindow?: ClaudeInput['context_window'];
-  gitInfo: any;
-  envInfo: any;
+  gitInfo: GitInfo | null;
+  envInfo: EnvironmentInfo | null;
   symbols: SymbolSet;
   terminalWidth?: number; // Optional - only needed for smart truncation
   config: Config;
@@ -591,23 +603,12 @@ async function render(
 
   await debugWidthDetection(config);
 
-  const operations: Promise<any>[] = [
+  const [gitInfo, envInfo, symbols, terminalWidth] = await Promise.all([
     gitOps.getGitInfo(fullDir, sessionId),
     envDetector.getEnvironmentInfo(),
     detectSymbols(config),
-  ];
-
-  let terminalWidth: number | undefined;
-  if (config.truncate) {
-    operations.push(getTerminalWidth(config));
-  }
-
-  const results = await Promise.all(operations);
-  const [gitInfo, envInfo, symbols] = results;
-
-  if (config.truncate && results.length > 3) {
-    terminalWidth = results[3];
-  }
+    config.truncate ? getTerminalWidth(config) : Promise.resolve(undefined),
+  ]);
 
   return buildStatusline({
     fullDir,
@@ -750,5 +751,5 @@ function renderMinimal(input?: Partial<ClaudeInput> | null): string {
 
 // Run main function if this file is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main();
+  void main(); // errors are handled inside main(); top-level fire-and-forget
 }
